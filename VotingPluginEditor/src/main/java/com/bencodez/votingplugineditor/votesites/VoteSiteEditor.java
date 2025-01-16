@@ -13,7 +13,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -22,7 +21,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.api.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.IntSettingButton;
 import com.bencodez.votingplugineditor.api.SettingButton;
@@ -32,21 +30,6 @@ import com.bencodez.votingplugineditor.rewards.RewardEditor;
 
 public class VoteSiteEditor {
 
-	private static Map<String, Object> initialState;
-	private static JCheckBox enabledCheckbox;
-	private static JTextField nameField;
-	private static JTextField serviceSiteField;
-	private static JTextField voteURLField;
-	private static JTextField voteDelayField;
-
-	// Advanced Options
-	private static JCheckBox waitUntilVoteDelayCheckbox;
-	private static JCheckBox voteDelayDailyCheckbox;
-	private static JCheckBox forceOfflineCheckbox;
-	private static JTextField materialField;
-	private static JTextField amountField;
-	private static JCheckBox hiddenCheckbox;
-	private static JTextField priorityField;
 	private static JPanel advancedPanel;
 	private static boolean advancedVisible = false;
 
@@ -62,7 +45,7 @@ public class VoteSiteEditor {
 	private void createAndShowGUI(String siteName, Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
 		JFrame frame = new JFrame("VoteSite Editor - " + siteName);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(600, 600);
+		frame.setSize(800, 600);
 		frame.setLayout(new BorderLayout());
 
 		JPanel panel = createMainPanel(siteName, siteData, voteSitesConfig);
@@ -71,8 +54,6 @@ public class VoteSiteEditor {
 		frame.add(panel, BorderLayout.CENTER);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-
-		loadInitialState(siteData);
 	}
 
 	private JPanel createMainPanel(String voteSiteName, Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
@@ -121,7 +102,6 @@ public class VoteSiteEditor {
 							}
 						}
 						voteSitesConfig.save();
-						initialState.putAll(changes);
 						JOptionPane.showMessageDialog(null, "Changes have been saved.");
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -195,14 +175,11 @@ public class VoteSiteEditor {
 		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData,
 				"Hidden (Hide votesite in GUI's and from counters):"));
 
-		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority (Used to orders sites in GUI):",
-				5));
-
-		materialField = createLabelAndTextField(advancedPanel, "DisplayItem Material:",
-				PanelUtils.getStringValue(siteData, "DisplayItem.Material", "DIAMOND"));
+		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData,
+				"Priority (Used to orders sites in VoteURL GUI):", 5));
 
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData,
-				"Display Item Material (Used in certain GUI's", "DIAMOND"));
+				"Display Item Material (Used in certain GUI's)", "DIAMOND"));
 
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData,
 				"Display Item Amount (Used in certain GUI's):", 1));
@@ -213,10 +190,6 @@ public class VoteSiteEditor {
 	private void toggleAdvancedOptions() {
 		advancedVisible = !advancedVisible;
 		advancedPanel.setVisible(advancedVisible);
-	}
-
-	private void loadInitialState(Map<String, Object> siteData) {
-		initialState = new HashMap<>(siteData);
 	}
 
 	private void saveChanges(String voteSiteName, VoteSitesConfig voteSitesConfig) {
@@ -233,23 +206,10 @@ public class VoteSiteEditor {
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
-					System.out.println("VoteSites." + voteSiteName + "." + change.getKey() + " = " + change.getValue());
-					boolean isInt = false;
-					try {
-						Integer.parseInt((String) change.getValue());
-						isInt = true;
-					} catch (Exception e) {
+					voteSitesConfig.set("VoteSites." + voteSiteName + "." + change.getKey(), change.getValue());
 
-					}
-					if (isInt) {
-						voteSitesConfig.set("VoteSites." + voteSiteName + "." + change.getKey(),
-								Integer.parseInt((String) change.getValue()));
-					} else {
-						voteSitesConfig.set("VoteSites." + voteSiteName + "." + change.getKey(), change.getValue());
-					}
 				}
 				voteSitesConfig.save();
-				initialState.putAll(changes);
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
 			} catch (Exception e) {
 				e.printStackTrace();

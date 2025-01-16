@@ -12,8 +12,11 @@ import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import lombok.Getter;
+
 public abstract class YmlConfigHandler {
 	protected String filePath;
+	@Getter
 	protected Map<String, Object> configData;
 	protected Map<String, String> commentMap;
 

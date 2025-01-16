@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -24,11 +25,24 @@ public class StringSettingButton implements SettingButton {
 
 	private JTextField textField;
 
+	private String[] options;
+
+	private JComboBox optionsBox;
+
 	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
 			String defaultValue) {
 		this.key = key;
 		initialValue = PanelUtils.getStringValue(data, key, defaultValue);
 		this.labelText = labelText;
+		getComponent(panel);
+	}
+
+	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			String defaultValue, String[] options) {
+		this.key = key;
+		initialValue = PanelUtils.getStringValue(data, key, defaultValue);
+		this.labelText = labelText;
+		this.options = options;
 		getComponent(panel);
 	}
 
@@ -38,13 +52,22 @@ public class StringSettingButton implements SettingButton {
 		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		JLabel label = new JLabel(labelText);
-		label.setPreferredSize(new Dimension(150, label.getPreferredSize().height));
-
-		textField = new JTextField(initialValue);
-		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
-
+		label.setPreferredSize(new Dimension(400, label.getPreferredSize().height));
 		subPanel.add(label);
-		subPanel.add(textField);
+
+		if (options != null && options.length > 0) {
+			optionsBox = new JComboBox<>(options);
+			optionsBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, optionsBox.getPreferredSize().height));
+			optionsBox.setAlignmentX(Component.RIGHT_ALIGNMENT);
+			optionsBox.setSelectedItem(initialValue);
+			subPanel.add(optionsBox);
+		} else {
+			textField = new JTextField(initialValue);
+			textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
+			textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
+			subPanel.add(textField);
+		}
+
 		panel.add(subPanel);
 
 		return textField;
@@ -52,12 +75,20 @@ public class StringSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		return !textField.getText().equals(initialValue);
+		if (textField != null) {
+			return !textField.getText().equals(initialValue);
+		} else {
+			return !optionsBox.getSelectedItem().toString().equals(initialValue);
+		}
 	}
 
 	@Override
 	public Object getValue() {
-		return textField.getText();
+		if (textField != null) {
+			return textField.getText();
+		} else {
+			return (String) optionsBox.getSelectedItem();
+		}
 	}
 
 	@Override

@@ -37,10 +37,11 @@ public class IntSettingButton implements SettingButton {
 		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		JLabel label = new JLabel(labelText);
-		label.setPreferredSize(new Dimension(150, label.getPreferredSize().height));
+		label.setPreferredSize(new Dimension(400, label.getPreferredSize().height));
 
 		textField = new JTextField("" + initialValue);
 		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
+		textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
 		subPanel.add(label);
 		subPanel.add(textField);

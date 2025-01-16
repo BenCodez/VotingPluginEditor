@@ -3,6 +3,8 @@ package com.bencodez.votingplugineditor.api;
 import java.awt.Component;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
@@ -29,7 +31,7 @@ public class BooleanSettingButton implements SettingButton {
 
 	public JCheckBox createLabelAndTextField(JPanel panel) {
 		checkBox = new JCheckBox(labelText, initialValue);
-
+		panel.add(checkBox);
 		return checkBox;
 	}
 
