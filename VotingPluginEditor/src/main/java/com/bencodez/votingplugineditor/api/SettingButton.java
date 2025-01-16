@@ -12,4 +12,6 @@ public interface SettingButton {
 	public Object getValue();
 	
 	public Component getComponent(JPanel panel);
+	
+	public void updateValue();
 }

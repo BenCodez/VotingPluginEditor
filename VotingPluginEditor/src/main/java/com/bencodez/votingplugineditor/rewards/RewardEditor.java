@@ -71,7 +71,9 @@ public abstract class RewardEditor {
 		for (SettingButton button : buttons) {
 			if (button.hasChanged()) {
 				changes.put(button.getKey(), button.getValue());
+				button.updateValue();
 			}
+
 		}
 
 		// Save changes if there are any

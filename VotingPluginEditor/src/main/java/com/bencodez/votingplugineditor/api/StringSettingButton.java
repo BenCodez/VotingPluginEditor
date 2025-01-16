@@ -24,7 +24,8 @@ public class StringSettingButton implements SettingButton {
 
 	private JTextField textField;
 
-	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText, String defaultValue) {
+	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			String defaultValue) {
 		this.key = key;
 		initialValue = PanelUtils.getStringValue(data, key, defaultValue);
 		this.labelText = labelText;
@@ -62,6 +63,11 @@ public class StringSettingButton implements SettingButton {
 	@Override
 	public Component getComponent(JPanel panel) {
 		return createLabelAndTextField(panel);
+	}
+
+	@Override
+	public void updateValue() {
+		initialValue = (String) getValue();
 	}
 
 }

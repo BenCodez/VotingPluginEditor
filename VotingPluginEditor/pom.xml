@@ -9,10 +9,17 @@
 	<build>
 		<plugins>
 			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+
 				<configuration>
-					<release>17</release>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>
+								com.bencodez.votingplugineditor.VotingPluginEditor</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

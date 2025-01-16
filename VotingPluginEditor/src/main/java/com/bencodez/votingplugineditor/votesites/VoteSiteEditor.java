@@ -3,11 +3,11 @@ package com.bencodez.votingplugineditor.votesites;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,6 +23,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.IntSettingButton;
+import com.bencodez.votingplugineditor.api.SettingButton;
+import com.bencodez.votingplugineditor.api.StringSettingButton;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
 import com.bencodez.votingplugineditor.rewards.RewardEditor;
 
@@ -46,10 +50,12 @@ public class VoteSiteEditor {
 	private static JPanel advancedPanel;
 	private static boolean advancedVisible = false;
 
+	private List<SettingButton> buttons;
+
 	public VoteSiteEditor(VoteSitesConfig voteSitesConfig, String siteName) {
 		Map<String, Object> siteData = (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName,
 				new HashMap<>());
-
+		buttons = new ArrayList<SettingButton>();
 		SwingUtilities.invokeLater(() -> createAndShowGUI(siteName, siteData, voteSitesConfig));
 	}
 
@@ -74,20 +80,17 @@ public class VoteSiteEditor {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-		// Basic GUI components setup with missing value handling
-		enabledCheckbox = new JCheckBox("Enabled", PanelUtils.getBooleanValue(siteData, "Enabled"));
-		enabledCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
-		panel.add(enabledCheckbox);
+		buttons.add(new BooleanSettingButton(panel, "Enabled", siteData, "VoteSite Enabled:"));
+
 		panel.add(Box.createVerticalStrut(10));
 
-		nameField = createLabelAndTextField(panel, "Display Name:",
-				PanelUtils.getStringValue(siteData, "Name", "ExampleVoteSite"));
-		serviceSiteField = createLabelAndTextField(panel, "Service Site:",
-				PanelUtils.getStringValue(siteData, "ServiceSite", "PlanetMinecraft.com"));
-		voteURLField = createLabelAndTextField(panel, "Vote URL:",
-				PanelUtils.getStringValue(siteData, "VoteURL", "http://example-vote-url.com"));
-		voteDelayField = createLabelAndTextField(panel, "Vote Delay (hours):",
-				String.valueOf(PanelUtils.getIntValue(siteData, "VoteDelay", 24)));
+		buttons.add(new StringSettingButton(panel, "Name", siteData, "Display Name", voteSiteName));
+
+		buttons.add(new StringSettingButton(panel, "ServiceSite", siteData, "Service Site:", "NOT SET"));
+
+		buttons.add(new StringSettingButton(panel, "VoteURL", siteData, "Voting URL:", "NOT SET"));
+
+		buttons.add(new IntSettingButton(panel, "VoteDelay", siteData, "VoteDelay:", 24));
 
 		JButton rewardsEdit = new JButton("Edit Rewards");
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
@@ -180,25 +183,29 @@ public class VoteSiteEditor {
 		JPanel advancedPanel = new JPanel();
 		advancedPanel.setLayout(new BoxLayout(advancedPanel, BoxLayout.Y_AXIS));
 		advancedPanel.setBorder(BorderFactory.createTitledBorder("Advanced Options"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "WaitUntilVoteDelay", siteData,
+				"Wait Until Vote Delay (Blocks votes with VoteDelay):"));
 
-		waitUntilVoteDelayCheckbox = new JCheckBox("Wait Until Vote Delay",
-				PanelUtils.getBooleanValue(siteData, "WaitUntilVoteDelay"));
-		advancedPanel.add(waitUntilVoteDelayCheckbox);
-		voteDelayDailyCheckbox = new JCheckBox("Vote Delay Daily",
-				PanelUtils.getBooleanValue(siteData, "VoteDelayDaily"));
-		advancedPanel.add(voteDelayDailyCheckbox);
-		forceOfflineCheckbox = new JCheckBox("Force Offline", PanelUtils.getBooleanValue(siteData, "ForceOffline"));
-		advancedPanel.add(forceOfflineCheckbox);
+		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData,
+				"VoteDelayDaily (Makes vote delay work based on time of day):"));
 
-		hiddenCheckbox = new JCheckBox("Hidden", PanelUtils.getBooleanValue(siteData, "Hidden"));
-		advancedPanel.add(hiddenCheckbox);
-		priorityField = createLabelAndTextField(advancedPanel, "Priority:",
-				String.valueOf(PanelUtils.getIntValue(siteData, "Priority", 5)));
+		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData,
+				"ForceOffline (Forces runs rewards while player is offline):"));
+
+		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData,
+				"Hidden (Hide votesite in GUI's and from counters):"));
+
+		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority (Used to orders sites in GUI):",
+				5));
 
 		materialField = createLabelAndTextField(advancedPanel, "DisplayItem Material:",
 				PanelUtils.getStringValue(siteData, "DisplayItem.Material", "DIAMOND"));
-		amountField = createLabelAndTextField(advancedPanel, "DisplayItem Amount:",
-				String.valueOf(PanelUtils.getIntValue(siteData, "DisplayItem.Amount", 1)));
+
+		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData,
+				"Display Item Material (Used in certain GUI's", "DIAMOND"));
+
+		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData,
+				"Display Item Amount (Used in certain GUI's):", 1));
 
 		return advancedPanel;
 	}
@@ -213,37 +220,13 @@ public class VoteSiteEditor {
 	}
 
 	private void saveChanges(String voteSiteName, VoteSitesConfig voteSitesConfig) {
-		Map<String, Object> currentState = new HashMap<>();
-		currentState.put("Enabled", enabledCheckbox.isSelected());
-		currentState.put("Name", nameField.getText());
-		currentState.put("ServiceSite", serviceSiteField.getText());
-		currentState.put("VoteURL", voteURLField.getText());
-		currentState.put("VoteDelay", voteDelayField.getText());
-
-		// Advanced
-		currentState.put("DisplayItem.Amount", amountField.getText());
-		currentState.put("WaitUntilVoteDelay", waitUntilVoteDelayCheckbox.isSelected());
-		currentState.put("VoteDelayDaily", voteDelayDailyCheckbox.isSelected());
-		currentState.put("ForceOffline", forceOfflineCheckbox.isSelected());
-		currentState.put("DisplayItem.Material", materialField.getText());
-		currentState.put("Hidden", hiddenCheckbox.isSelected());
-		currentState.put("Priority", priorityField.getText());
-
-		// Determining changes
 		Map<String, Object> changes = new HashMap<>();
-		for (String key : currentState.keySet()) {
-			if (initialState.containsKey(key)) {
-				if (!Objects.equals(initialState.get(key), currentState.get(key))) {
-					changes.put(key, currentState.get(key));
-				}
-			} else if (initialState.containsKey(key.split(Pattern.quote("."))[0])) {
-				Object s = PanelUtils.getState(key, initialState);
-				if (s != null) {
-					if (!Objects.equals(s, currentState.get(key))) {
-						changes.put(key, currentState.get(key));
-					}
-				}
+		for (SettingButton button : buttons) {
+			if (button.hasChanged()) {
+				changes.put(button.getKey(), button.getValue());
+				button.updateValue();
 			}
+
 		}
 
 		// Notify & save changes

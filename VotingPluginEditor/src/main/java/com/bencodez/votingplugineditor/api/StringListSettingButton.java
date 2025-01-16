@@ -23,7 +23,7 @@ public class StringListSettingButton implements SettingButton {
 	private String initialValue;
 
 	private String labelText;
-	
+
 	private JTextArea textArea;
 
 	public StringListSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
@@ -66,5 +66,10 @@ public class StringListSettingButton implements SettingButton {
 	@Override
 	public Component getComponent(JPanel panel) {
 		return createLabelAndTextArea(panel);
+	}
+
+	@Override
+	public void updateValue() {
+		initialValue = textArea.getText();
 	}
 }

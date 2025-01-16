@@ -66,5 +66,10 @@ public class IntSettingButton implements SettingButton {
 	public Component getComponent(JPanel panel) {
 		return createLabelAndTextField(panel);
 	}
+	
+	@Override
+	public void updateValue() {
+		initialValue = (int) getValue();
+	}
 
 }
