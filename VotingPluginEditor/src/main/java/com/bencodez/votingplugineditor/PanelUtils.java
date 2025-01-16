@@ -2,6 +2,7 @@ package com.bencodez.votingplugineditor;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -131,6 +132,10 @@ public class PanelUtils {
 		return defaultValue;
 
 	}
+	
+	public static String[] convertListToArray(List<String> list) {
+        return list != null ? list.toArray(new String[0]) : new String[0];
+    }
 
 	public static JPanel createLabelAndCheckbox(String labelText, boolean isSelected) {
 		JPanel panel = new JPanel();

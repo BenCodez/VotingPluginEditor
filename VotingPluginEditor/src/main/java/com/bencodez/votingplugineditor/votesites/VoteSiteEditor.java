@@ -21,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.IntSettingButton;
 import com.bencodez.votingplugineditor.api.SettingButton;
@@ -179,7 +181,8 @@ public class VoteSiteEditor {
 				"Priority (Used to orders sites in VoteURL GUI):", 5));
 
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData,
-				"Display Item Material (Used in certain GUI's)", "DIAMOND"));
+				"Display Item Material (Used in certain GUI's)", "DIAMOND",
+				PanelUtils.convertListToArray(VotingPluginEditor.getMaterials())));
 
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData,
 				"Display Item Amount (Used in certain GUI's):", 1));

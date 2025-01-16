@@ -61,10 +61,7 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 				public void saveChanges(Map<String, Object> changes) {
 					try {
 						for (Entry<String, Object> change : changes.entrySet()) {
-							System.out.println(path + "." + change.getKey() + " = " + change.getValue());
-
 							set(path + "." + change.getKey(), change.getValue());
-
 						}
 						save();
 					} catch (Exception e) {

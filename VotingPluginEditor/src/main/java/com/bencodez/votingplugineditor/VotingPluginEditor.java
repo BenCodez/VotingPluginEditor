@@ -3,6 +3,7 @@ package com.bencodez.votingplugineditor;
 import java.awt.GridLayout;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
@@ -20,6 +21,9 @@ import com.bencodez.votingplugineditor.files.GUIConfig;
 import com.bencodez.votingplugineditor.files.ShopConfig;
 import com.bencodez.votingplugineditor.files.SpecialRewardsConfig;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
+import com.bencodez.votingplugineditor.generator.MaterialLoader;
+
+import lombok.Getter;
 
 public class VotingPluginEditor {
 	private static JComboBox<String> fileDropdown;
@@ -27,6 +31,8 @@ public class VotingPluginEditor {
 	private static final Map<String, Class<? extends YmlConfigHandler>> HANDLER_CLASSES = new HashMap<>();
 	private static final Preferences prefs = Preferences.userNodeForPackage(VotingPluginEditor.class);
 	private static final String PREF_DIRECTORY = "votingPluginDirectory";
+	@Getter
+	private static List<String> materials;
 
 	static {
 		HANDLER_CLASSES.put("VoteSites.yml", VoteSitesConfig.class);
@@ -38,6 +44,7 @@ public class VotingPluginEditor {
 	}
 
 	public static void main(String[] args) {
+		materials = MaterialLoader.loadMaterials();
 		SwingUtilities.invokeLater(VotingPluginEditor::createAndShowGUI);
 	}
 

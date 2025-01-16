@@ -152,6 +152,20 @@ public abstract class YmlConfigHandler {
 		return current.getOrDefault(keys[keys.length - 1], defaultValue);
 	}
 
+	public Object get(Map<String, Object> configData, String path, Object defaultValue) {
+		String[] keys = path.split("\\.");
+		Map<String, Object> current = configData;
+		for (int i = 0; i < keys.length - 1; i++) {
+			Object nested = current.get(keys[i]);
+			if (nested instanceof Map) {
+				current = (Map<String, Object>) nested;
+			} else {
+				return defaultValue;
+			}
+		}
+		return current.getOrDefault(keys[keys.length - 1], defaultValue);
+	}
+
 	public void set(String path, Object value) {
 		String[] keys = path.split("\\.");
 		Map<String, Object> current = configData;

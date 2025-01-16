@@ -6,8 +6,68 @@
 	<artifactId>votingplugineditor</artifactId>
 	<name>VotingPluginGUI</name>
 	<version>0.0.1-SNAPSHOT</version>
+
+	<repositories>
+		<repository>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>2.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.spigotmc</groupId>
+			<artifactId>spigot-api</artifactId>
+			<version>1.21.4-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.36</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
 		<plugins>
+			<!-- Run MaterialGenerator during the generate-resources phase -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>generate-materials</id>
+						<phase>compile</phase> <!-- Ensure it runs after class
+						compilation -->
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>
+						com.bencodez.votingplugineditor.generator.MaterialGenerator</mainClass>
+					<includeProjectDependencies>true</includeProjectDependencies>
+					<classpathScope>compile</classpathScope>
+				</configuration>
+			</plugin>
+
+			<!-- Shade plugin for packaging -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -33,32 +93,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<repositories>
-		<repository>
-			<id>bencodez repo</id>
-			<url>https://nexus.bencodez.com/repository/maven-public/</url>
-		</repository>
-		<repository>
-			<id>spigot-repo</id>
-			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-		</repository>
-		<repository>
-			<id>maven-central</id>
-			<url>https://oss.sonatype.org/content/groups/public</url>
-		</repository>
-	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>org.yaml</groupId>
-			<artifactId>snakeyaml</artifactId>
-			<version>2.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.36</version>
-			<scope>provided</scope>
-		</dependency>
-	</dependencies>
 </project>

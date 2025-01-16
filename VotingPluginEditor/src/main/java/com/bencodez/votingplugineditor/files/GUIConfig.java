@@ -2,6 +2,7 @@ package com.bencodez.votingplugineditor.files;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +17,15 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.IntSettingButton;
 import com.bencodez.votingplugineditor.api.SettingButton;
 import com.bencodez.votingplugineditor.api.StringSettingButton;
+import com.bencodez.votingplugineditor.rewards.ItemEditor;
+import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class GUIConfig extends YmlConfigHandler {
 
@@ -80,10 +84,66 @@ public class GUIConfig extends YmlConfigHandler {
 		// panel.add(createSectionLabel("LastMonthGUI"));
 		settingButtons.add(new BooleanSettingButton(panel, "LastMonthGUI", data, "Enable LastMonthGUI:"));
 
+		JButton editVoteGUI = new JButton("Edit VoteGUI");
+		editVoteGUI.addActionListener(event -> {
+			openVoteGUIEditor();
+		});
+		panel.add(editVoteGUI);
+
 		// (Add more settings as needed, organized into sections)
 
 		panel.add(Box.createVerticalStrut(10)); // Spacer
 		return panel;
+	}
+
+	public void openVoteGUIEditor() {
+		JFrame frame = new JFrame("GUI Config Editor");
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(800, 600);
+		frame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
+		for (String guiSlot : map.keySet()) {
+			JButton voteSiteButton = new JButton(guiSlot);
+			// size = size + 30;
+			voteSiteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+			voteSiteButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, voteSiteButton.getPreferredSize().height));
+			voteSiteButton.setSize(300, 30);
+			voteSiteButton.setVerticalTextPosition(SwingConstants.CENTER);
+
+			voteSiteButton.addActionListener(event -> {
+				new ItemEditor((Map<String, Object>) get(map, guiSlot + ".Item", new HashMap<String, Object>())) {
+
+					@Override
+					public void saveChanges(Map<String, Object> changes) {
+						try {
+							for (Entry<String, Object> change : changes.entrySet()) {
+								set("CHEST.VoteGUI." + guiSlot + ".Item." + change.getKey(), change.getValue());
+							}
+							save();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				};
+			});
+			panel.add(voteSiteButton);
+
+			// Add some spacing between buttons (optional)
+			frame.add(Box.createRigidArea(new Dimension(0, 5)));
+
+			frame.add(panel);
+		}
+
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.addActionListener(e -> saveChanges());
+		frame.add(saveButton, BorderLayout.SOUTH);
+
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 	}
 
 	private void saveChanges() {

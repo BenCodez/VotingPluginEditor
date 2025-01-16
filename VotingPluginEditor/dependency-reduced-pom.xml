@@ -6,7 +6,27 @@
   <name>VotingPluginGUI</name>
   <version>0.0.1-SNAPSHOT</version>
   <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>generate-materials</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>com.bencodez.votingplugineditor.generator.MaterialGenerator</mainClass>
+          <includeProjectDependencies>true</includeProjectDependencies>
+          <classpathScope>compile</classpathScope>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.6.0</version>
@@ -31,19 +51,21 @@
   </build>
   <repositories>
     <repository>
-      <id>bencodez repo</id>
-      <url>https://nexus.bencodez.com/repository/maven-public/</url>
-    </repository>
-    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots />
       <id>spigot-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
-    <repository>
-      <id>maven-central</id>
-      <url>https://oss.sonatype.org/content/groups/public</url>
-    </repository>
   </repositories>
   <dependencies>
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot-api</artifactId>
+      <version>1.21.4-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
