@@ -36,6 +36,12 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		panel.add(addRewardsButton("FirstVote", "FirstVote Rewards"));
+		
+		panel.add(addRewardsButton("FirstVoteToday", "FirstVoteToday Rewards"));
+		
+		panel.add(addRewardsButton("AllSites", "AllSites Rewards"));
+		
+		panel.add(addRewardsButton("AlmostAllSites", "AlmostAllSites Rewards"));
 
 		editorFrame.add(panel);
 
