@@ -55,7 +55,6 @@ public class StringListSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		System.out.println(key +  textArea.getText() + " " + initialValue);
 		return !textArea.getText().equals(initialValue);
 	}
 

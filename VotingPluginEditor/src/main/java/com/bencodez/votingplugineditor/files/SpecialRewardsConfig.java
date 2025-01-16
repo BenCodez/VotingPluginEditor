@@ -67,10 +67,8 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 
 						}
 						save();
-						JOptionPane.showMessageDialog(null, "Changes have been saved.");
 					} catch (Exception e) {
 						e.printStackTrace();
-						JOptionPane.showMessageDialog(null, "Failed to save changes.");
 					}
 				}
 			};
