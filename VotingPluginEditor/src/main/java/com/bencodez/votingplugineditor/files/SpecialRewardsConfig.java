@@ -35,30 +35,30 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		JButton rewardsEdit = new JButton("FirstVote Rewards");
+		panel.add(addRewardsButton("FirstVote", "FirstVote Rewards"));
+
+		editorFrame.add(panel);
+
+		editorFrame.setLocationRelativeTo(null);
+		editorFrame.setVisible(true);
+	}
+
+	public JButton addRewardsButton(String path, String name) {
+		JButton rewardsEdit = new JButton(name);
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) get("FirstVote")) {
+			new RewardEditor((Map<String, Object>) get(path)) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
 						for (Entry<String, Object> change : changes.entrySet()) {
-							System.out.println("FirstVote." + change.getKey() + " = " + change.getValue());
-							boolean isInt = false;
-							try {
-								Integer.parseInt((String) change.getValue());
-								isInt = true;
-							} catch (Exception e) {
+							System.out.println(path + "." + change.getKey() + " = " + change.getValue());
 
-							}
-							if (isInt) {
-								set("FirstVote." + change.getKey(), Integer.parseInt((String) change.getValue()));
-							} else {
-								set("FirstVote." + change.getKey(), change.getValue());
-							}
+							set(path + "." + change.getKey(), change.getValue());
+
 						}
 						save();
 						JOptionPane.showMessageDialog(null, "Changes have been saved.");
@@ -69,11 +69,6 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 				}
 			};
 		});
-		panel.add(rewardsEdit);
-		
-		editorFrame.add(panel);
-
-		editorFrame.setLocationRelativeTo(null);
-		editorFrame.setVisible(true);
+		return rewardsEdit;
 	}
 }

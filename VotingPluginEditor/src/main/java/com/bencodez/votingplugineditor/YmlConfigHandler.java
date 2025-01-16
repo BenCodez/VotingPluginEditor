@@ -76,31 +76,51 @@ public abstract class YmlConfigHandler {
 	private void writeYaml(BufferedWriter writer, Yaml yaml, String key, Object value, int indentLevel)
 			throws IOException {
 		String indent = "  ".repeat(indentLevel);
+		String formattedKey = convertKeyToString(key);
+
 		if (value instanceof Map) {
-			writer.write(indent + key + ":\n");
+			writer.write(indent + formattedKey + ":\n");
 			@SuppressWarnings("unchecked")
 			Map<String, Object> map = (Map<String, Object>) value;
 			for (Map.Entry<String, Object> entry : map.entrySet()) {
-				writeYaml(writer, yaml, entry.getKey(), entry.getValue(), indentLevel + 1);
+				writeYaml(writer, yaml, convertKeyToString(entry.getKey()), entry.getValue(), indentLevel + 1);
 			}
 		} else if (value instanceof List) {
-			writer.write(indent + key + ":\n");
+			writer.write(indent + formattedKey + ":\n");
 			@SuppressWarnings("unchecked")
 			List<Object> list = (List<Object>) value;
 			for (Object item : list) {
-				String quotedItem = quoteIfNeeded(item.toString());
-				writer.write(indent + "  - " + quotedItem + "\n");
+				writer.write(indent + "  - " + convertValueToString(item) + "\n");
 			}
 		} else if (value instanceof String[]) {
-			writer.write(indent + key + ":\n");
+			writer.write(indent + formattedKey + ":\n");
 			for (String item : (String[]) value) {
-				String quotedItem = quoteIfNeeded(item);
-				writer.write(indent + "  - " + quotedItem + "\n");
+				writer.write(indent + "  - " + quoteIfNeeded(item) + "\n");
 			}
-		} else if (value instanceof String) {
-			writer.write(indent + key + ": " + quoteIfNeeded((String) value) + "\n");
 		} else {
-			writer.write(indent + key + ": " + value.toString() + "\n");
+			writer.write(indent + formattedKey + ": " + convertValueToString(value) + "\n");
+		}
+	}
+
+	private String convertKeyToString(Object key) {
+		if (key instanceof String) {
+			return quoteIfNeeded((String) key);
+		} else {
+			// Convert non-string keys to a string to avoid potential issues when writing to
+			// YAML
+			return quoteIfNeeded(String.valueOf(key));
+		}
+	}
+
+	private String convertValueToString(Object value) {
+		if (value == null) {
+			return "null"; // YAML representation for null values
+		} else if (value instanceof String) {
+			return quoteIfNeeded((String) value);
+		} else if (value instanceof Number || value instanceof Boolean) {
+			return value.toString();
+		} else {
+			return quoteIfNeeded(value.toString()); // Encode other types as strings
 		}
 	}
 
