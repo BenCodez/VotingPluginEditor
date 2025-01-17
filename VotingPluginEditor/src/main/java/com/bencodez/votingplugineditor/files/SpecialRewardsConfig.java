@@ -25,7 +25,7 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 	public SpecialRewardsConfig(String filePath) {
 		super(filePath);
 	}
-	
+
 	JFrame editorFrame;
 
 	@Override
@@ -40,11 +40,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		panel.add(addRewardsButton("FirstVote", "FirstVote Rewards"));
-		
+
 		panel.add(addRewardsButton("FirstVoteToday", "FirstVoteToday Rewards"));
-		
+
 		panel.add(addRewardsButton("AllSites", "AllSites Rewards"));
-		
+
 		panel.add(addRewardsButton("AlmostAllSites", "AlmostAllSites Rewards"));
 
 		editorFrame.add(panel);
@@ -77,8 +77,14 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 
 				@Override
 				public void removePath(String path1) {
-					remove(path +"." + path1);
+					remove(path + "." + path1);
 					save();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					load();
+					return (Map<String, Object>) get(path);
 				}
 			};
 		});

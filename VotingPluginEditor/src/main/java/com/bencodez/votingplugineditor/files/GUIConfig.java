@@ -146,6 +146,12 @@ public class GUIConfig extends YmlConfigHandler {
 							e.printStackTrace();
 						}
 					}
+
+					@Override
+					public void removeItemPath(String path) {
+						remove("CHEST.VoteGUI." + name + ".Item." + path);
+						save();
+					}
 				};
 			}
 		};
@@ -190,6 +196,11 @@ public class GUIConfig extends YmlConfigHandler {
 				public void removePath(String subPath) {
 					remove(path + "." + path);
 					save();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					return (Map<String, Object>) get(path);
 				}
 			};
 		});

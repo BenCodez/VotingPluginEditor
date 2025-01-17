@@ -84,6 +84,11 @@ public class ShopConfig extends YmlConfigHandler {
 					remove(path + "." + path);
 					save();
 				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					return (Map<String, Object>) get(path);
+				}
 			};
 		});
 		return rewardsEdit;

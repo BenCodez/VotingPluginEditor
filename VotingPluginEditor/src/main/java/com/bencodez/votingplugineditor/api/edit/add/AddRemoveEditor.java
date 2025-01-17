@@ -59,6 +59,10 @@ public abstract class AddRemoveEditor {
 	}
 
 	public ArrayList<JButton> getOptionsButtons(JPanel panel, String[] options) {
+		return getOptionsButtons(panel, options, true);
+	}
+
+	public ArrayList<JButton> getOptionsButtons(JPanel panel, String[] options, boolean space) {
 		ArrayList<JButton> buttons = new ArrayList<JButton>();
 
 		for (String option : options) {
@@ -76,11 +80,12 @@ public abstract class AddRemoveEditor {
 			if (panel != null) {
 				panel.add(button);
 
-				// Add some spacing between buttons (optional)
-				panel.add(Box.createRigidArea(new Dimension(0, 5)));
+				if (space)
+					// Add some spacing between buttons (optional)
+					panel.add(Box.createRigidArea(new Dimension(0, 5)));
 			}
-			buttons.add(button);
 
+			buttons.add(button);
 		}
 		return buttons;
 	}

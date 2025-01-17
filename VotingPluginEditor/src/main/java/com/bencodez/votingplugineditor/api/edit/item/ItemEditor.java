@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
+import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
@@ -26,10 +27,12 @@ public abstract class ItemEditor {
 	private JFrame frame;
 	private Map<String, Object> configData;
 	private List<SettingButton> buttons;
+	private Map<String, Object> changes;
 
 	public ItemEditor(Map<String, Object> data) {
 		configData = data;
 		buttons = new ArrayList<>();
+		changes = new HashMap<String, Object>();
 
 		// Create GUI
 		createAndShowGUI();
@@ -43,13 +46,13 @@ public abstract class ItemEditor {
 
 		JPanel panel = createMainPanel();
 		frame.add(panel, BorderLayout.CENTER);
-		
+
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		saveButton.addActionListener(e -> saveChanges());
-		
+
 		frame.add(saveButton, BorderLayout.SOUTH);
-		
+
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -63,10 +66,6 @@ public abstract class ItemEditor {
 				PanelUtils.convertListToArray(VotingPluginEditor.getMaterials())));
 		// Setup SettingButtons
 		buttons.add(new IntSettingButton(panel, "Amount", configData, "Amount:", 1));
-		buttons.add(new IntSettingButton(panel, "MinAmount", configData, "Min Amount:", 0));
-		buttons.add(new IntSettingButton(panel, "MaxAmount", configData, "Max Amount:", 0));
-		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance (%):", 0));
-		buttons.add(new IntSettingButton(panel, "Slot", configData, "Slot (Only works in GUI's):", 0));
 
 		buttons.add(new StringListSettingButton(panel, "Lore", configData, "Lore (one per line):"));
 
@@ -74,6 +73,46 @@ public abstract class ItemEditor {
 		// "Enchants (one per line):"));
 
 		buttons.add(new IntSettingButton(panel, "CustomModelData", configData, "Custom Model Data:", 0));
+
+		JPanel enchantsPanel = new JPanel();
+		enchantsPanel.setLayout(new BoxLayout(enchantsPanel, BoxLayout.X_AXIS));
+
+		AddRemoveEditor enchantsEditor = new AddRemoveEditor() {
+
+			@Override
+			public void onItemSelect(String name) {
+
+			}
+
+			@Override
+			public void onItemRemove(String name) {
+				removeItemPath("Enchants." + name);
+				frame.dispose();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put("Enchants." + name, 1);
+				saveChanges();
+				frame.dispose();
+			}
+		};
+
+		Map<String, Object> enchantData = (Map<String, Object>) PanelUtils.get(configData, "Enchants",
+				new HashMap<String, Object>());
+
+		enchantsPanel.add(enchantsEditor.getAddButton("Add Enchant", "Add Enchant"));
+		enchantsPanel.add(enchantsEditor.getRemoveButton("Remove Enchant", "Remove Enchant", enchantData.keySet()));
+
+		panel.add(enchantsPanel);
+		panel.add(PanelUtils.createSectionLabel("Edit Enchant (If any):"));
+
+		enchantsEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(enchantData.keySet()), false);
+
+		buttons.add(new IntSettingButton(panel, "MinAmount", configData, "Min Amount:", 0));
+		buttons.add(new IntSettingButton(panel, "MaxAmount", configData, "Max Amount:", 0));
+		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance (% Rewards Only):", 0));
+		buttons.add(new IntSettingButton(panel, "Slot", configData, "Slot (Only works in GUI's):", 0));
 
 		return panel;
 	}
@@ -89,19 +128,16 @@ public abstract class ItemEditor {
 			}
 		}
 
-		// Save changes if detected
+		changes.putAll(this.changes);
+		this.changes.clear();
+
+		// Save changes if there are any
 		if (!changes.isEmpty()) {
-			try {
-				saveChanges(changes);
-				JOptionPane.showMessageDialog(frame, "Changes have been saved.");
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(frame, "Failed to save changes.");
-			}
-		} else {
-			JOptionPane.showMessageDialog(frame, "No changes detected.");
+			saveChanges(changes);
 		}
 	}
+
+	public abstract void removeItemPath(String path);
 
 	public abstract void saveChanges(Map<String, Object> changes);
 }

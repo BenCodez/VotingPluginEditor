@@ -45,7 +45,7 @@ public abstract class RemoveEditor {
 		JPanel addPanel = new JPanel();
 		addPanel.setLayout(new BoxLayout(addPanel, BoxLayout.X_AXIS));
 
-		JLabel label = new JLabel("Name:");
+		JLabel label = new JLabel("Selected:");
 		addPanel.add(label);
 
 		optionsBox = new JComboBox<>(options);

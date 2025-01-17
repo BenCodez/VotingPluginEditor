@@ -95,8 +95,6 @@ public class VoteSiteEditor {
 				public void saveChanges(Map<String, Object> changes) {
 					try {
 						for (Entry<String, Object> change : changes.entrySet()) {
-							System.out.println("VoteSites." + voteSiteName + ".Rewards." + change.getKey() + " = "
-									+ change.getValue());
 							boolean isInt = false;
 							try {
 								Integer.parseInt((String) change.getValue());
@@ -124,6 +122,11 @@ public class VoteSiteEditor {
 				public void removePath(String path) {
 					voteSitesConfig.remove("VoteSites." + voteSiteName + ".Rewards." + path);
 					voteSitesConfig.save();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName, new HashMap<>());
 				}
 			};
 		});

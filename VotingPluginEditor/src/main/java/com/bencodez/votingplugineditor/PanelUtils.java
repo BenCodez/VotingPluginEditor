@@ -41,7 +41,6 @@ public class PanelUtils {
 
 	public static Object getState(String path, Map<String, Object> data) {
 		String[] p = path.split(Pattern.quote("."));
-		System.out.println(path);
 		if (data.containsKey(p[0])) {
 			Object ob = data.get(p[0]);
 			if (ob instanceof Map) {
@@ -84,9 +83,22 @@ public class PanelUtils {
 		}
 		return defaultValue;
 	}
+	
+	public static Object get(Map<String, Object> configData, String path, Object defaultValue) {
+		String[] keys = path.split("\\.");
+		Map<String, Object> current = configData;
+		for (int i = 0; i < keys.length - 1; i++) {
+			Object nested = current.get(keys[i]);
+			if (nested instanceof Map) {
+				current = (Map<String, Object>) nested;
+			} else {
+				return defaultValue;
+			}
+		}
+		return current.getOrDefault(keys[keys.length - 1], defaultValue);
+	}
 
 	public static String getStringList(Map<String, Object> data, String key) {
-		System.out.println(key);
 		Object list = data.get(key);
 		if (key.contains(".")) {
 			String[] p = key.split(Pattern.quote("."));

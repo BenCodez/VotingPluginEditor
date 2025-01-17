@@ -151,19 +151,20 @@ public abstract class YmlConfigHandler {
 		}
 		return current.getOrDefault(keys[keys.length - 1], defaultValue);
 	}
-	
+
 	public void remove(String path) {
-	    String[] keys = path.split("\\.");
-	    Map<String, Object> current = configData;
-	    for (int i = 0; i < keys.length - 1; i++) {
-	        Object nested = current.get(keys[i]);
-	        if (nested instanceof Map) {
-	            current = (Map<String, Object>) nested;
-	        } else {
-	            return; // Path not found or doesn't exist as a map
-	        }
-	    }
-	    current.remove(keys[keys.length - 1]);
+		System.out.println("Removing: " + path);
+		String[] keys = path.split("\\.");
+		Map<String, Object> current = configData;
+		for (int i = 0; i < keys.length - 1; i++) {
+			Object nested = current.get(keys[i]);
+			if (nested instanceof Map) {
+				current = (Map<String, Object>) nested;
+			} else {
+				return; // Path not found or doesn't exist as a map
+			}
+		}
+		current.remove(keys[keys.length - 1]);
 	}
 
 	public Object get(Map<String, Object> configData, String path, Object defaultValue) {
@@ -181,6 +182,7 @@ public abstract class YmlConfigHandler {
 	}
 
 	public void set(String path, Object value) {
+		System.out.println("Setting: " + path + " to " + value.toString());
 		String[] keys = path.split("\\.");
 		Map<String, Object> current = configData;
 		for (int i = 0; i < keys.length - 1; i++) {
