@@ -23,12 +23,12 @@ import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
-import com.bencodez.votingplugineditor.api.BooleanSettingButton;
-import com.bencodez.votingplugineditor.api.IntSettingButton;
-import com.bencodez.votingplugineditor.api.SettingButton;
-import com.bencodez.votingplugineditor.api.StringSettingButton;
+import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
+import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
-import com.bencodez.votingplugineditor.rewards.RewardEditor;
 
 public class VoteSiteEditor {
 
@@ -60,10 +60,8 @@ public class VoteSiteEditor {
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		saveButton.addActionListener(e -> saveChanges(siteName, voteSitesConfig));
-		
-		frame.add(saveButton, BorderLayout.SOUTH);
 
-		
+		frame.add(saveButton, BorderLayout.SOUTH);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -121,6 +119,12 @@ public class VoteSiteEditor {
 						JOptionPane.showMessageDialog(null, "Failed to save changes.");
 					}
 				}
+
+				@Override
+				public void removePath(String path) {
+					voteSitesConfig.remove("VoteSites." + voteSiteName + ".Rewards." + path);
+					voteSitesConfig.save();
+				}
 			};
 		});
 		panel.add(rewardsEdit);
@@ -141,29 +145,6 @@ public class VoteSiteEditor {
 		panel.add(Box.createVerticalStrut(20));
 
 		return panel;
-	}
-
-	private JTextField createLabelAndTextField(JPanel panel, String labelText, String initialValue) {
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
-		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		JLabel label = new JLabel(labelText);
-		label.setHorizontalAlignment(SwingConstants.RIGHT);
-		label.setPreferredSize(new Dimension(150, label.getPreferredSize().height));
-		label.setAlignmentY(Component.CENTER_ALIGNMENT);
-
-		JTextField textField = new JTextField(initialValue);
-		textField.setHorizontalAlignment(SwingConstants.CENTER);
-		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
-		textField.setAlignmentY(Component.CENTER_ALIGNMENT);
-
-		subPanel.add(label);
-		subPanel.add(Box.createHorizontalStrut(10));
-		subPanel.add(textField);
-
-		panel.add(subPanel);
-		return textField;
 	}
 
 	private JPanel createAdvancedOptionsPanel(Map<String, Object> siteData) {

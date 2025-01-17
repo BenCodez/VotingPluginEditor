@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor.rewards;
+package com.bencodez.votingplugineditor.api.edit.item;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -14,27 +14,29 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import com.bencodez.votingplugineditor.api.IntSettingButton;
-import com.bencodez.votingplugineditor.api.SettingButton;
-import com.bencodez.votingplugineditor.api.StringListSettingButton;
+import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.VotingPluginEditor;
+import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
+import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 
-public abstract class RewardEditor {
+public abstract class ItemEditor {
+
 	private JFrame frame;
-
-	private Map<String, Object> configData; // Holds the initial config values
-	private Map<String, Object> initialState; // To track the original values
-
+	private Map<String, Object> configData;
 	private List<SettingButton> buttons;
 
-	public RewardEditor(Map<String, Object> data) {
+	public ItemEditor(Map<String, Object> data) {
 		configData = data;
-		initialState = new HashMap<>(data);
-		buttons = new ArrayList<SettingButton>();
+		buttons = new ArrayList<>();
+
+		// Create GUI
 		createAndShowGUI();
 	}
 
 	private void createAndShowGUI() {
-		frame = new JFrame("Reward Editor");
+		frame = new JFrame("Item Editor");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(600, 600);
 		frame.setLayout(new BorderLayout());
@@ -57,35 +59,41 @@ public abstract class RewardEditor {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-		buttons.add(new IntSettingButton(panel, "Money", configData, "Money:", 0));
-		buttons.add(new IntSettingButton(panel, "EXP", configData, "EXP:", 0));
-		buttons.add(new IntSettingButton(panel, "EXPLevels", configData, "Exp Levels:", 0));
-		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
+		buttons.add(new StringSettingButton(panel, "Material", configData, "Item material", "STONE",
+				PanelUtils.convertListToArray(VotingPluginEditor.getMaterials())));
+		// Setup SettingButtons
+		buttons.add(new IntSettingButton(panel, "Amount", configData, "Amount:", 1));
+		buttons.add(new IntSettingButton(panel, "MinAmount", configData, "Min Amount:", 0));
+		buttons.add(new IntSettingButton(panel, "MaxAmount", configData, "Max Amount:", 0));
+		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance (%):", 0));
+		buttons.add(new IntSettingButton(panel, "Slot", configData, "Slot (Only works in GUI's):", 0));
 
-		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
+		buttons.add(new StringListSettingButton(panel, "Lore", configData, "Lore (one per line):"));
 
-		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData, "Messages (use %player%):"));
+		// buttons.add(new StringListSettingButton(panel, "Enchants", configData,
+		// "Enchants (one per line):"));
+
+		buttons.add(new IntSettingButton(panel, "CustomModelData", configData, "Custom Model Data:", 0));
 
 		return panel;
 	}
 
 	private void saveChanges() {
 		Map<String, Object> changes = new HashMap<>();
+
+		// Check for changes
 		for (SettingButton button : buttons) {
 			if (button.hasChanged()) {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
 
-		// Save changes if there are any
+		// Save changes if detected
 		if (!changes.isEmpty()) {
-			try { // Specify your path
+			try {
 				saveChanges(changes);
 				JOptionPane.showMessageDialog(frame, "Changes have been saved.");
-				// Update the initial state after saving
-				initialState.putAll(changes);
 			} catch (Exception e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(frame, "Failed to save changes.");

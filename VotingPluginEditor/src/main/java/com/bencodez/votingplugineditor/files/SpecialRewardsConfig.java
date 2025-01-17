@@ -16,8 +16,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
+import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
+
 import com.bencodez.votingplugineditor.YmlConfigHandler;
-import com.bencodez.votingplugineditor.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 
 public class SpecialRewardsConfig extends YmlConfigHandler {
 	public SpecialRewardsConfig(String filePath) {
@@ -71,6 +73,12 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+				}
+
+				@Override
+				public void removePath(String path1) {
+					remove(path +"." + path1);
+					save();
 				}
 			};
 		});

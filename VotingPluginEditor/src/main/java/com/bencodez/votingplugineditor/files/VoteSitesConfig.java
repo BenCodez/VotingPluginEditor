@@ -10,13 +10,15 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
-import com.bencodez.votingplugineditor.rewards.AddEditor;
-import com.bencodez.votingplugineditor.rewards.RemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.add.AddEditor;
+import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.add.RemoveEditor;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {
@@ -35,13 +37,23 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		int size = 60;
 
-		JButton addButton = new JButton("Add VoteSite");
-		addButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, addButton.getPreferredSize().height));
-		addButton.addActionListener(event -> {
-			new AddEditor("Add VoteSite") {
+		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
 
-				@Override
-				public void onAdd(String name) {
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
+
+			@Override
+			public void onItemRemove(String name) {
+				remove("VoteSites." + name);
+				save();
+				editorFrame.dispose();
+				openEditorGUI();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				if (map.containsKey(name)) {
+					JOptionPane.showMessageDialog(panel, "VoteSite already exists");
+				} else {
 					set("VoteSites." + name + ".Enabled", true);
 					set("VoteSites." + name + ".VoteDelay", 24);
 					set("VoteSites." + name + ".Name", name);
@@ -52,30 +64,15 @@ public class VoteSitesConfig extends YmlConfigHandler {
 					set("VoteSites." + name + ".Rewards.Messages.Player", "You voted");
 
 					save();
-					editorFrame.dispose();
-					openEditorGUI();
 				}
-			};
-		});
-		panel.add(addButton);
+				editorFrame.dispose();
+				openEditorGUI();
+			}
+		};
 
-		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
-
-		JButton removeButton = new JButton("Remove VoteSite");
-		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
-		removeButton.addActionListener(event -> {
-			new RemoveEditor("Remove VoteGUI Slot", PanelUtils.convertSetToArray(map.keySet())) {
-
-				@Override
-				public void onRemove(String name) {
-					remove("VoteSites." + name);
-					save();
-					editorFrame.dispose();
-					openEditorGUI();
-				}
-			};
-		});
-		panel.add(removeButton);
+		panel.add(addRemoveEditor.getAddButton("Add VoteSite", "Add VoteSite"));
+		panel.add(addRemoveEditor.getRemoveButton("Remove VoteSite", "Remove VoteSite",
+				PanelUtils.convertSetToArray(map.keySet())));
 
 		for (String voteSite : map.keySet()) {
 			JButton voteSiteButton = new JButton(voteSite);

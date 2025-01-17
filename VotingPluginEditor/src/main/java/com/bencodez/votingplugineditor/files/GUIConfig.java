@@ -21,13 +21,14 @@ import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
-import com.bencodez.votingplugineditor.api.BooleanSettingButton;
-import com.bencodez.votingplugineditor.api.SettingButton;
-import com.bencodez.votingplugineditor.api.StringSettingButton;
-import com.bencodez.votingplugineditor.rewards.AddEditor;
-import com.bencodez.votingplugineditor.rewards.ItemEditor;
-import com.bencodez.votingplugineditor.rewards.RemoveEditor;
-import com.bencodez.votingplugineditor.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.edit.add.AddEditor;
+import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.add.RemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
+import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 
 public class GUIConfig extends YmlConfigHandler {
 
@@ -40,7 +41,7 @@ public class GUIConfig extends YmlConfigHandler {
 
 	@Override
 	public void openEditorGUI() {
-		JFrame frame = new JFrame("GUI Config Editor");
+		JFrame frame = new JFrame("GUI.yml Editor");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(800, 600);
 		frame.setLayout(new BorderLayout());
@@ -56,16 +57,6 @@ public class GUIConfig extends YmlConfigHandler {
 		frame.setVisible(true);
 	}
 
-	private Component createSectionLabel(String title) {
-		JPanel labelPanel = new JPanel();
-		labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.X_AXIS));
-		labelPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-		labelPanel.add(Box.createHorizontalGlue());
-		labelPanel.add(new JLabel(title));
-		labelPanel.add(Box.createHorizontalGlue());
-		return labelPanel;
-	}
-
 	private JPanel createMainEditorPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -74,13 +65,25 @@ public class GUIConfig extends YmlConfigHandler {
 		Map<String, Object> data = getConfigData();
 
 		// GUIMethod Settings
-		panel.add(createSectionLabel("GUIMethod"));
+		panel.add(PanelUtils.createSectionLabel("GUIMethod"));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Today", data, "Today GUI Method", "CHEST",
 				new String[] { "CHAT", "CHEST" }));
-		settingButtons.add(new StringSettingButton(panel, "GUIMethod.TopVoter", data, "TopVoter GUI Method", "CHEST"));
-		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Last", data, "Last GUI Method", "CHEST"));
-		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Next", data, "Next GUI Method", "CHEST"));
-		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Total", data, "Total GUI Method", "CHEST"));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.TopVoter", data, "TopVoter GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Last", data, "Last GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Next", data, "Next GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Total", data, "Total GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.URL", data, "VoteURL GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST", "BOOK" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Best", data, "Best GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Streak", data, "Streak GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
+		settingButtons.add(new StringSettingButton(panel, "GUIMethod.GUI", data, "Main GUI Method", "CHEST",
+				new String[] { "CHAT", "CHEST" }));
 
 		// LastMonthGUI Setting
 		// panel.add(createSectionLabel("LastMonthGUI"));
@@ -107,38 +110,31 @@ public class GUIConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		JButton addButton = new JButton("Add item/slot");
-		addButton.addActionListener(event -> {
-			new AddEditor("Add VoteGUI Slot") {
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
 
-				@Override
-				public void onAdd(String name) {
-					set("CHEST.VoteGUI." + name + ".Item.Material", "STONE");
-					set("CHEST.VoteGUI." + name + ".Item.Amount", 1);
-					save();
-					frame.dispose();
-					openVoteGUIEditor();
-				}
-			};
-		});
-		panel.add(addButton);
+			@Override
+			public void onItemRemove(String name) {
+				remove("CHEST.VoteGUI." + name);
+				save();
+				frame.dispose();
+				openEditorGUI();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				set("CHEST.VoteGUI." + name + ".Item.Material", "STONE");
+				set("CHEST.VoteGUI." + name + ".Item.Amount", 1);
+				save();
+				frame.dispose();
+				openVoteGUIEditor();
+			}
+		};
 
 		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
 
-		JButton removeButton = new JButton("Remove item/slot");
-		removeButton.addActionListener(event -> {
-			new RemoveEditor("Remove VoteGUI Slot", PanelUtils.convertSetToArray(map.keySet())) {
-
-				@Override
-				public void onRemove(String name) {
-					remove("CHEST.VoteGUI." + name);
-					save();
-					frame.dispose();
-					openEditorGUI();
-				}
-			};
-		});
-		panel.add(removeButton);
+		panel.add(addRemoveEditor.getAddButton("Add Item/Slot", "Add Item/Slot"));
+		panel.add(addRemoveEditor.getRemoveButton("Remove Item/Slot", "Remove Item/Slot",
+				PanelUtils.convertSetToArray(map.keySet())));
 
 		for (String guiSlot : map.keySet()) {
 			JButton voteGUIButton = new JButton(guiSlot);
@@ -198,6 +194,12 @@ public class GUIConfig extends YmlConfigHandler {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
+				}
+
+				@Override
+				public void removePath(String subPath) {
+					remove(path + "." + path);
+					save();
 				}
 			};
 		});

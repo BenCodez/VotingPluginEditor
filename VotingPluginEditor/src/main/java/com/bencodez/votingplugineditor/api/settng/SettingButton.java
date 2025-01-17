@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor.api;
+package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
 

@@ -134,6 +134,16 @@ public class PanelUtils {
 
 	}
 
+	public static Component createSectionLabel(String title) {
+		JPanel labelPanel = new JPanel();
+		labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.X_AXIS));
+		labelPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+		labelPanel.add(Box.createHorizontalGlue());
+		labelPanel.add(new JLabel(title));
+		labelPanel.add(Box.createHorizontalGlue());
+		return labelPanel;
+	}
+
 	public static String[] convertListToArray(List<String> list) {
 		return list != null ? list.toArray(new String[0]) : new String[0];
 	}

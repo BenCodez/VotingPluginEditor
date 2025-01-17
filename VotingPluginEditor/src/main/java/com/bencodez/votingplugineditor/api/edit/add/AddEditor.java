@@ -1,24 +1,32 @@
-package com.bencodez.votingplugineditor.rewards;
+package com.bencodez.votingplugineditor.api.edit.add;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-public abstract class RemoveEditor {
+import com.bencodez.votingplugineditor.api.settng.SettingButton;
+
+public abstract class AddEditor {
 
 	private JFrame frame;
+	// private Map<String, Object> configData;
+	private List<SettingButton> buttons;
 
-	private String[] options;
+	public AddEditor(String name) {
+		buttons = new ArrayList<>();
 
-	public RemoveEditor(String name, String[] options) {
-		this.options = options;
 		// Create GUI
 		createAndShowGUI(name);
 	}
@@ -35,7 +43,7 @@ public abstract class RemoveEditor {
 		frame.setVisible(true);
 	}
 
-	private JComboBox optionsBox;
+	private JTextField textField;
 
 	private JPanel createMainPanel() {
 		JPanel panel = new JPanel();
@@ -48,16 +56,16 @@ public abstract class RemoveEditor {
 		JLabel label = new JLabel("Name:");
 		addPanel.add(label);
 
-		optionsBox = new JComboBox<>(options);
-		optionsBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, optionsBox.getPreferredSize().height));
+		textField = new JTextField("");
+		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
 
-		addPanel.add(optionsBox);
+		addPanel.add(textField);
 
 		panel.add(addPanel);
 
-		JButton addButton = new JButton("Click to remove");
+		JButton addButton = new JButton("Click to Add");
 		addButton.addActionListener(event -> {
-			onRemove((String) optionsBox.getSelectedItem());
+			onAdd(textField.getText());
 			frame.dispose();
 		});
 		panel.add(addButton);
@@ -65,7 +73,7 @@ public abstract class RemoveEditor {
 		return panel;
 	}
 
-	public abstract void onRemove(String name);
+	public abstract void onAdd(String name);
 
 	// public abstract void saveChanges(Map<String, Object> changes);
 }
