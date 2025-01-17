@@ -36,11 +36,13 @@ public class VoteSiteEditor {
 	private static boolean advancedVisible = false;
 
 	private List<SettingButton> buttons;
+	private String siteName;
 
 	public VoteSiteEditor(VoteSitesConfig voteSitesConfig, String siteName) {
 		Map<String, Object> siteData = (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName,
 				new HashMap<>());
 		buttons = new ArrayList<SettingButton>();
+		this.siteName = siteName;
 		SwingUtilities.invokeLater(() -> createAndShowGUI(siteName, siteData, voteSitesConfig));
 	}
 
@@ -54,6 +56,15 @@ public class VoteSiteEditor {
 
 		// Add panel to frame
 		frame.add(panel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChanges(siteName, voteSitesConfig));
+		
+		frame.add(saveButton, BorderLayout.SOUTH);
+
+		
+
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -128,12 +139,6 @@ public class VoteSiteEditor {
 		panel.add(advancedPanel);
 		advancedPanel.setVisible(advancedVisible);
 		panel.add(Box.createVerticalStrut(20));
-
-		// Save Button
-		JButton saveButton = new JButton("Save");
-		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChanges(voteSiteName, voteSitesConfig));
-		panel.add(saveButton);
 
 		return panel;
 	}

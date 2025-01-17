@@ -34,7 +34,6 @@ public class StringListSettingButton implements SettingButton {
 	}
 
 	public JTextArea createLabelAndTextArea(JPanel panel) {
-		System.out.println(labelText + " " + initialValue);
 		JPanel subPanel = new JPanel();
 		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
 		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));

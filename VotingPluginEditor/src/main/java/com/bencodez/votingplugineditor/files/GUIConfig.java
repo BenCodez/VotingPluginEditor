@@ -19,13 +19,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.BooleanSettingButton;
-import com.bencodez.votingplugineditor.api.IntSettingButton;
 import com.bencodez.votingplugineditor.api.SettingButton;
 import com.bencodez.votingplugineditor.api.StringSettingButton;
+import com.bencodez.votingplugineditor.rewards.AddEditor;
 import com.bencodez.votingplugineditor.rewards.ItemEditor;
-import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
+import com.bencodez.votingplugineditor.rewards.RemoveEditor;
+import com.bencodez.votingplugineditor.rewards.RewardEditor;
 
 public class GUIConfig extends YmlConfigHandler {
 
@@ -105,16 +107,48 @@ public class GUIConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
-		for (String guiSlot : map.keySet()) {
-			JButton voteSiteButton = new JButton(guiSlot);
-			// size = size + 30;
-			voteSiteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-			voteSiteButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, voteSiteButton.getPreferredSize().height));
-			voteSiteButton.setSize(300, 30);
-			voteSiteButton.setVerticalTextPosition(SwingConstants.CENTER);
+		JButton addButton = new JButton("Add item/slot");
+		addButton.addActionListener(event -> {
+			new AddEditor("Add VoteGUI Slot") {
 
-			voteSiteButton.addActionListener(event -> {
+				@Override
+				public void onAdd(String name) {
+					set("CHEST.VoteGUI." + name + ".Item.Material", "STONE");
+					set("CHEST.VoteGUI." + name + ".Item.Amount", 1);
+					save();
+					frame.dispose();
+					openVoteGUIEditor();
+				}
+			};
+		});
+		panel.add(addButton);
+
+		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
+
+		JButton removeButton = new JButton("Remove item/slot");
+		removeButton.addActionListener(event -> {
+			new RemoveEditor("Remove VoteGUI Slot", PanelUtils.convertSetToArray(map.keySet())) {
+
+				@Override
+				public void onRemove(String name) {
+					remove("CHEST.VoteGUI." + name);
+					save();
+					frame.dispose();
+					openEditorGUI();
+				}
+			};
+		});
+		panel.add(removeButton);
+
+		for (String guiSlot : map.keySet()) {
+			JButton voteGUIButton = new JButton(guiSlot);
+			// size = size + 30;
+			voteGUIButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+			voteGUIButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, voteGUIButton.getPreferredSize().height));
+			voteGUIButton.setSize(300, 30);
+			voteGUIButton.setVerticalTextPosition(SwingConstants.CENTER);
+
+			voteGUIButton.addActionListener(event -> {
 				new ItemEditor((Map<String, Object>) get(map, guiSlot + ".Item", new HashMap<String, Object>())) {
 
 					@Override
@@ -130,7 +164,7 @@ public class GUIConfig extends YmlConfigHandler {
 					}
 				};
 			});
-			panel.add(voteSiteButton);
+			panel.add(voteGUIButton);
 
 			// Add some spacing between buttons (optional)
 			frame.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -144,6 +178,30 @@ public class GUIConfig extends YmlConfigHandler {
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+	}
+
+	public JButton addRewardsButton(String path, String name) {
+		JButton rewardsEdit = new JButton(name);
+		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
+		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
+		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
+		rewardsEdit.addActionListener(event -> {
+			new RewardEditor((Map<String, Object>) get(path)) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					try {
+						for (Entry<String, Object> change : changes.entrySet()) {
+							set(path + "." + change.getKey(), change.getValue());
+						}
+						save();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			};
+		});
+		return rewardsEdit;
 	}
 
 	private void saveChanges() {

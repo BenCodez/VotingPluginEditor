@@ -1,6 +1,7 @@
 package com.bencodez.votingplugineditor.rewards;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,13 @@ public abstract class ItemEditor {
 
 		JPanel panel = createMainPanel();
 		frame.add(panel, BorderLayout.CENTER);
+		
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChanges());
+		
+		frame.add(saveButton, BorderLayout.SOUTH);
+		
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -58,6 +66,7 @@ public abstract class ItemEditor {
 		buttons.add(new IntSettingButton(panel, "MinAmount", configData, "Min Amount:", 0));
 		buttons.add(new IntSettingButton(panel, "MaxAmount", configData, "Max Amount:", 0));
 		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance (%):", 0));
+		buttons.add(new IntSettingButton(panel, "Slot", configData, "Slot (Only works in GUI's):", 0));
 
 		buttons.add(new StringListSettingButton(panel, "Lore", configData, "Lore (one per line):"));
 
@@ -65,11 +74,6 @@ public abstract class ItemEditor {
 		// "Enchants (one per line):"));
 
 		buttons.add(new IntSettingButton(panel, "CustomModelData", configData, "Custom Model Data:", 0));
-
-		// Save Button
-		JButton saveButton = new JButton("Save");
-		saveButton.addActionListener(e -> saveChanges());
-		panel.add(saveButton);
 
 		return panel;
 	}

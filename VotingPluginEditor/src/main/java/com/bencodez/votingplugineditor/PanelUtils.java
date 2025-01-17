@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -132,10 +133,14 @@ public class PanelUtils {
 		return defaultValue;
 
 	}
-	
+
 	public static String[] convertListToArray(List<String> list) {
-        return list != null ? list.toArray(new String[0]) : new String[0];
-    }
+		return list != null ? list.toArray(new String[0]) : new String[0];
+	}
+
+	public static String[] convertSetToArray(Set<String> set) {
+		return set != null ? set.toArray(new String[0]) : new String[0];
+	}
 
 	public static JPanel createLabelAndCheckbox(String labelText, boolean isSelected) {
 		JPanel panel = new JPanel();

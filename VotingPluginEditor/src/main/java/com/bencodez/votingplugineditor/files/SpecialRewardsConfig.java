@@ -23,10 +23,12 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 	public SpecialRewardsConfig(String filePath) {
 		super(filePath);
 	}
+	
+	JFrame editorFrame;
 
 	@Override
 	public void openEditorGUI() {
-		JFrame editorFrame = new JFrame("Editing SpecialRewards.yml - " + new File(filePath).getName());
+		editorFrame = new JFrame("Editing SpecialRewards.yml - " + new File(filePath).getName());
 		editorFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		editorFrame.setSize(300, 600);
 
@@ -64,6 +66,8 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 							set(path + "." + change.getKey(), change.getValue());
 						}
 						save();
+						editorFrame.dispose();
+						openEditorGUI();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

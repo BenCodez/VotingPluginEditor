@@ -13,7 +13,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
+import com.bencodez.votingplugineditor.rewards.AddEditor;
+import com.bencodez.votingplugineditor.rewards.RemoveEditor;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {
@@ -30,21 +33,58 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		int size = 30;
+		int size = 60;
 
-		JButton newVoteSite = new JButton("Add VoteSite");
-		newVoteSite.setMaximumSize(new Dimension(Integer.MAX_VALUE, newVoteSite.getPreferredSize().height));
-		newVoteSite.setSize(300, 30);
-		panel.add(newVoteSite);
+		JButton addButton = new JButton("Add VoteSite");
+		addButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, addButton.getPreferredSize().height));
+		addButton.addActionListener(event -> {
+			new AddEditor("Add VoteSite") {
+
+				@Override
+				public void onAdd(String name) {
+					set("VoteSites." + name + ".Enabled", true);
+					set("VoteSites." + name + ".VoteDelay", 24);
+					set("VoteSites." + name + ".Name", name);
+					set("VoteSites." + name + ".DisplayItem.Material", "DIAMOND");
+					set("VoteSites." + name + ".DisplayItem.Amount", 1);
+					set("VoteSites." + name + ".VoteURL", "PLEASE SET");
+					set("VoteSites." + name + ".ServiceSite", "PLEASE SET");
+					set("VoteSites." + name + ".Rewards.Messages.Player", "You voted");
+
+					save();
+					editorFrame.dispose();
+					openEditorGUI();
+				}
+			};
+		});
+		panel.add(addButton);
 
 		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
+
+		JButton removeButton = new JButton("Remove VoteSite");
+		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
+		removeButton.addActionListener(event -> {
+			new RemoveEditor("Remove VoteGUI Slot", PanelUtils.convertSetToArray(map.keySet())) {
+
+				@Override
+				public void onRemove(String name) {
+					remove("VoteSites." + name);
+					save();
+					editorFrame.dispose();
+					openEditorGUI();
+				}
+			};
+		});
+		panel.add(removeButton);
+
 		for (String voteSite : map.keySet()) {
 			JButton voteSiteButton = new JButton(voteSite);
-			size = size + 30;
+
 			voteSiteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 			voteSiteButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, voteSiteButton.getPreferredSize().height));
 			voteSiteButton.setSize(300, 30);
 			voteSiteButton.setVerticalTextPosition(SwingConstants.CENTER);
+			size = size + voteSiteButton.getHeight();
 
 			voteSiteButton.addActionListener(event -> {
 				System.out.println(voteSite);
@@ -58,7 +98,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 			editorFrame.add(panel);
 		}
 
-		//System.out.println("" + map.toString());
+		// System.out.println("" + map.toString());
 
 		editorFrame.setSize(300, size);
 		// editorFrame.add(saveButton, BorderLayout.SOUTH);

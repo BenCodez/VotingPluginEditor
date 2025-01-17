@@ -1,6 +1,7 @@
 package com.bencodez.votingplugineditor.rewards;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,13 @@ public abstract class RewardEditor {
 
 		JPanel panel = createMainPanel();
 		frame.add(panel, BorderLayout.CENTER);
+		
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChanges());
+		
+		frame.add(saveButton, BorderLayout.SOUTH);
+		
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -57,11 +65,6 @@ public abstract class RewardEditor {
 		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
 
 		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData, "Messages (use %player%):"));
-
-		// Save Button
-		JButton saveButton = new JButton("Save");
-		saveButton.addActionListener(e -> saveChanges());
-		panel.add(saveButton);
 
 		return panel;
 	}
