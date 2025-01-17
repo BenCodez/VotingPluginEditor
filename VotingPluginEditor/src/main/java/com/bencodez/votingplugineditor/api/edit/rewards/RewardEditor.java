@@ -67,9 +67,9 @@ public abstract class RewardEditor {
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		
+
 		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
-			
+
 			@Override
 			public void onItemRemove(String name) {
 				removePath("Items." + name);
@@ -77,7 +77,7 @@ public abstract class RewardEditor {
 				frame.dispose();
 				openItemsGUI();
 			}
-			
+
 			@Override
 			public void onItemAdd(String name) {
 				changes.put("Items." + name + ".Material", "STONE");
@@ -86,8 +86,13 @@ public abstract class RewardEditor {
 				itemsFrame.dispose();
 				openItemsGUI(name);
 			}
+
+			@Override
+			public void onItemSelect(String name) {
+				openItemsGUI(name);
+			}
 		};
-		
+
 		Map<String, Object> map1 = null;
 		if (configData.containsKey("Items")) {
 			map1 = (Map<String, Object>) configData.get("Items");
@@ -95,9 +100,13 @@ public abstract class RewardEditor {
 			map1 = new HashMap<String, Object>();
 		}
 		final Map<String, Object> map = map1;
-		
+
 		panel.add(addRemoveEditor.getAddButton("Add Item", "Add Item to reward"));
-		panel.add(addRemoveEditor.getRemoveButton("Remove Item", "Remove Item", PanelUtils.convertSetToArray(map.keySet())));		
+		panel.add(addRemoveEditor.getRemoveButton("Remove Item", "Remove Item",
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
+		
+		itemsFrame.add(panel);
 
 		itemsFrame.setLocationRelativeTo(null);
 		itemsFrame.setVisible(true);

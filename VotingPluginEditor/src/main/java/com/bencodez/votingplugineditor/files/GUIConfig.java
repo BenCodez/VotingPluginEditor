@@ -110,6 +110,8 @@ public class GUIConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
+
 		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
 
 			@Override
@@ -128,30 +130,16 @@ public class GUIConfig extends YmlConfigHandler {
 				frame.dispose();
 				openVoteGUIEditor();
 			}
-		};
 
-		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
-
-		panel.add(addRemoveEditor.getAddButton("Add Item/Slot", "Add Item/Slot"));
-		panel.add(addRemoveEditor.getRemoveButton("Remove Item/Slot", "Remove Item/Slot",
-				PanelUtils.convertSetToArray(map.keySet())));
-
-		for (String guiSlot : map.keySet()) {
-			JButton voteGUIButton = new JButton(guiSlot);
-			// size = size + 30;
-			voteGUIButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-			voteGUIButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, voteGUIButton.getPreferredSize().height));
-			voteGUIButton.setSize(300, 30);
-			voteGUIButton.setVerticalTextPosition(SwingConstants.CENTER);
-
-			voteGUIButton.addActionListener(event -> {
-				new ItemEditor((Map<String, Object>) get(map, guiSlot + ".Item", new HashMap<String, Object>())) {
+			@Override
+			public void onItemSelect(String name) {
+				new ItemEditor((Map<String, Object>) get(map, name + ".Item", new HashMap<String, Object>())) {
 
 					@Override
 					public void saveChanges(Map<String, Object> changes) {
 						try {
 							for (Entry<String, Object> change : changes.entrySet()) {
-								set("CHEST.VoteGUI." + guiSlot + ".Item." + change.getKey(), change.getValue());
+								set("CHEST.VoteGUI." + name + ".Item." + change.getKey(), change.getValue());
 							}
 							save();
 						} catch (Exception e) {
@@ -159,14 +147,16 @@ public class GUIConfig extends YmlConfigHandler {
 						}
 					}
 				};
-			});
-			panel.add(voteGUIButton);
+			}
+		};
 
-			// Add some spacing between buttons (optional)
-			frame.add(Box.createRigidArea(new Dimension(0, 5)));
+		panel.add(addRemoveEditor.getAddButton("Add Item/Slot", "Add Item/Slot"));
+		panel.add(addRemoveEditor.getRemoveButton("Remove Item/Slot", "Remove Item/Slot",
+				PanelUtils.convertSetToArray(map.keySet())));
 
-			frame.add(panel);
-		}
+		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
+
+		frame.add(panel);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
