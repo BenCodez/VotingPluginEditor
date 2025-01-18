@@ -51,20 +51,21 @@ public class PanelUtils {
 		return null;
 	}
 
-	public static boolean getBooleanValue(Map<String, Object> data, String key) {
+	public static boolean getBooleanValue(Map<String, Object> data, String key, boolean defaultValue) {
 		if (key.contains(".")) {
 			String[] p = key.split(Pattern.quote("."));
 			if (data.containsKey(p[0])) {
 				Object ob = data.get(p[0]);
 				if (ob instanceof Map) {
-					return getBooleanValue((Map<String, Object>) data.get(p[0]), key.replaceFirst(p[0] + ".", ""));
+					return getBooleanValue((Map<String, Object>) data.get(p[0]), key.replaceFirst(p[0] + ".", ""),
+							defaultValue);
 				}
 				return Boolean.TRUE.equals(ob);
 			}
 		} else {
-			return Boolean.TRUE.equals(data.get(key));
+			return Boolean.TRUE.equals(data.getOrDefault(key, defaultValue));
 		}
-		return false;
+		return defaultValue;
 	}
 
 	public static String getStringValue(Map<String, Object> data, String key, String defaultValue) {
@@ -83,7 +84,7 @@ public class PanelUtils {
 		}
 		return defaultValue;
 	}
-	
+
 	public static Object get(Map<String, Object> configData, String path, Object defaultValue) {
 		String[] keys = path.split("\\.");
 		Map<String, Object> current = configData;

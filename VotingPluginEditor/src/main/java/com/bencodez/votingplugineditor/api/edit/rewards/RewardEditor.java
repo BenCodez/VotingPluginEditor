@@ -18,9 +18,11 @@ import javax.swing.JPanel;
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
+import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 
 import lombok.Getter;
 
@@ -43,7 +45,7 @@ public abstract class RewardEditor {
 	private void createAndShowGUI() {
 		frame = new JFrame("Reward Editor");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(600, 600);
+		frame.setSize(800, 900);
 		frame.setLayout(new BorderLayout());
 
 		JPanel panel = createMainPanel();
@@ -59,15 +61,15 @@ public abstract class RewardEditor {
 		frame.setVisible(true);
 	}
 
-	private void openItemsGUI(String name) {
+	private void openItemsGUIItem(String path, String name) {
 		configData = updateData();
 		new ItemEditor(
-				(Map<String, Object>) PanelUtils.get(configData, "Items." + name, new HashMap<String, Object>())) {
+				(Map<String, Object>) PanelUtils.get(configData, path + "." + name, new HashMap<String, Object>())) {
 
 			@Override
 			public void saveChanges(Map<String, Object> changes) {
 				for (Entry<String, Object> change : changes.entrySet()) {
-					getChanges().put("Items." + name + "." + change.getKey(), change.getValue());
+					getChanges().put(path + "." + name + "." + change.getKey(), change.getValue());
 				}
 				if (!changes.isEmpty()) {
 					saveChanges();
@@ -76,15 +78,15 @@ public abstract class RewardEditor {
 
 			@Override
 			public void removeItemPath(String path) {
-				removePath("Items." + name + "." + path);
+				removePath(path + "." + name + "." + path);
 				saveChanges();
 				configData = updateData();
 			}
 		};
 	}
 
-	private void openItemsGUI() {
-		JFrame itemsFrame = new JFrame("Edit Items");
+	private void openItemsGUI(String title, String path) {
+		JFrame itemsFrame = new JFrame(title);
 		itemsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		itemsFrame.setSize(600, 600);
 		itemsFrame.setLayout(new BorderLayout());
@@ -96,33 +98,27 @@ public abstract class RewardEditor {
 
 			@Override
 			public void onItemRemove(String name) {
-				removePath("Items." + name);
+				removePath(path + "." + name);
 				frame.dispose();
-				openItemsGUI();
+				openItemsGUI(title, path);
 			}
 
 			@Override
 			public void onItemAdd(String name) {
-				changes.put("Items." + name + ".Material", "STONE");
-				changes.put("Items." + name + ".Amount", 1);
+				changes.put(path + "." + name + ".Material", "STONE");
+				changes.put(path + "." + name + ".Amount", 1);
 				saveChanges();
 				itemsFrame.dispose();
-				openItemsGUI(name);
+				openItemsGUIItem(path, name);
 			}
 
 			@Override
 			public void onItemSelect(String name) {
-				openItemsGUI(name);
+				openItemsGUIItem(path, name);
 			}
 		};
 
-		Map<String, Object> map1 = null;
-		if (configData.containsKey("Items")) {
-			map1 = (Map<String, Object>) configData.get("Items");
-		} else {
-			map1 = new HashMap<String, Object>();
-		}
-		final Map<String, Object> map = map1;
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, path, new HashMap<String, Object>());
 
 		panel.add(addRemoveEditor.getAddButton("Add Item", "Add Item to reward"));
 		panel.add(addRemoveEditor.getRemoveButton("Remove Item", "Remove Item",
@@ -142,19 +138,36 @@ public abstract class RewardEditor {
 
 		JButton itemsButton = new JButton("Edit Items");
 		itemsButton.addActionListener(event -> {
-			openItemsGUI();
+			openItemsGUI("Edit Items", "Items");
 		});
 
 		panel.add(itemsButton);
 
+		panel.add(PanelUtils.createSectionLabel("Requirements"));
+		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
+		buttons.add(new BooleanSettingButton(panel, "RequirePermission", configData, "Require Permission (Set below)"));
+		buttons.add(new StringSettingButton(panel, "Permission", configData, "Permission (Enable above)", ""));
+
+		panel.add(PanelUtils.createSectionLabel("Rewards"));
+
 		buttons.add(new IntSettingButton(panel, "Money", configData, "Money:", 0));
 		buttons.add(new IntSettingButton(panel, "EXP", configData, "EXP:", 0));
 		buttons.add(new IntSettingButton(panel, "EXPLevels", configData, "Exp Levels:", 0));
-		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
 
 		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
+		buttons.add(new StringListSettingButton(panel, "RandomCommand", configData,
+				"RandomCommand (Picks one command at random):"));
 
-		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData, "Messages (use %player%):"));
+		// RandomItem
+		JButton itemsButton2 = new JButton("Edit Random Item (Only give one item)");
+		itemsButton2.addActionListener(event -> {
+			openItemsGUI("Edit RandomItem", "RandomItem");
+		});
+
+		panel.add(itemsButton2);
+
+		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData,
+				"Messages to player (use %player%):"));
 
 		return panel;
 	}
@@ -174,7 +187,7 @@ public abstract class RewardEditor {
 		// Save changes if there are any
 		if (!changes.isEmpty()) {
 			saveChanges(changes);
-			
+
 			configData = updateData();
 		}
 	}

@@ -35,10 +35,9 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-	
 
 		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
-		int size = 60 + map.size()*30;
+		int size = 75 + map.size() * 30;
 
 		VoteSitesConfig config = this;
 
@@ -82,8 +81,10 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		panel.add(addRemoveEditor.getRemoveButton("Remove VoteSite", "Remove VoteSite",
 				PanelUtils.convertSetToArray(map.keySet())));
 
+		panel.add(Box.createRigidArea(new Dimension(0, 15)));
+
 		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
-		
+
 		editorFrame.add(panel);
 
 		// System.out.println("" + map.toString());

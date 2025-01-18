@@ -24,7 +24,15 @@ public class BooleanSettingButton implements SettingButton {
 
 	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
 		this.key = key;
-		initialValue = PanelUtils.getBooleanValue(data, key);
+		initialValue = PanelUtils.getBooleanValue(data, key, false);
+		this.labelText = labelText;
+		getComponent(panel);
+	}
+
+	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			boolean defaultValue) {
+		this.key = key;
+		initialValue = PanelUtils.getBooleanValue(data, key, defaultValue);
 		this.labelText = labelText;
 		getComponent(panel);
 	}

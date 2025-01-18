@@ -7,6 +7,7 @@ import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
@@ -18,6 +19,7 @@ public abstract class AddRemoveEditor {
 
 	public JButton getAddButton(String label, String title) {
 		JButton addButton = new JButton(label);
+		addButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, addButton.getPreferredSize().height));
 		addButton.addActionListener(event -> {
 			new AddEditor(title) {
 
@@ -32,28 +34,38 @@ public abstract class AddRemoveEditor {
 
 	public JButton getRemoveButton(String label, String title, String[] options) {
 		JButton removeButton = new JButton(label);
+		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
 		removeButton.addActionListener(event -> {
-			new RemoveEditor(title, options) {
+			if (options.length == 0) {
+				JOptionPane.showMessageDialog(null, "Nothing to remove");
+			} else {
+				new RemoveEditor(title, options) {
 
-				@Override
-				public void onRemove(String name) {
-					onItemRemove(name);
-				}
-			};
+					@Override
+					public void onRemove(String name) {
+						onItemRemove(name);
+					}
+				};
+			}
 		});
 		return removeButton;
 	}
 
 	public JButton getRemoveButton(String label, String title, Set<String> options) {
 		JButton removeButton = new JButton(label);
+		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
 		removeButton.addActionListener(event -> {
-			new RemoveEditor(title, PanelUtils.convertSetToArray(options)) {
+			if (options.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Nothing to delete");
+			} else {
+				new RemoveEditor(title, PanelUtils.convertSetToArray(options)) {
 
-				@Override
-				public void onRemove(String name) {
-					onItemRemove(name);
-				}
-			};
+					@Override
+					public void onRemove(String name) {
+						onItemRemove(name);
+					}
+				};
+			}
 		});
 		return removeButton;
 	}

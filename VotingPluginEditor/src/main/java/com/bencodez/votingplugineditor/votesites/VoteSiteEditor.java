@@ -84,6 +84,7 @@ public class VoteSiteEditor {
 
 		buttons.add(new IntSettingButton(panel, "VoteDelay", siteData, "VoteDelay:", 24));
 
+		JPanel panel1 = new JPanel();
 		JButton rewardsEdit = new JButton("Edit Rewards");
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
@@ -126,20 +127,23 @@ public class VoteSiteEditor {
 
 				@Override
 				public Map<String, Object> updateData() {
-					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName, new HashMap<>());
+					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".Rewards", new HashMap<>());
 				}
 			};
 		});
-		panel.add(rewardsEdit);
+		panel1.add(rewardsEdit);
+		
 
 		panel.add(Box.createVerticalStrut(10));
 
 		// Advanced Options Button
 		JButton advancedButton = new JButton("Advanced Options");
-		advancedButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		advancedButton.setHorizontalAlignment(SwingConstants.CENTER);
 		advancedButton.addActionListener(e -> toggleAdvancedOptions());
-		panel.add(advancedButton);
-		panel.add(Box.createVerticalStrut(10));
+		panel1.add(advancedButton);
+		panel1.add(Box.createVerticalStrut(10));
+		
+		panel.add(panel1);
 
 		// Advanced Options Panel
 		advancedPanel = createAdvancedOptionsPanel(siteData);
