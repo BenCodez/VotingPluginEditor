@@ -53,7 +53,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChanges());
+		saveButton.addActionListener(e -> saveChange());
 
 		frame.add(saveButton, BorderLayout.SOUTH);
 
@@ -72,14 +72,14 @@ public abstract class RewardEditor {
 					getChanges().put(path + "." + name + "." + change.getKey(), change.getValue());
 				}
 				if (!changes.isEmpty()) {
-					saveChanges();
+					saveChange();
 				}
 			}
 
 			@Override
 			public void removeItemPath(String path) {
 				removePath(path + "." + name + "." + path);
-				saveChanges();
+				saveChange();
 				configData = updateData();
 			}
 		};
@@ -107,7 +107,7 @@ public abstract class RewardEditor {
 			public void onItemAdd(String name) {
 				changes.put(path + "." + name + ".Material", "STONE");
 				changes.put(path + "." + name + ".Amount", 1);
-				saveChanges();
+				saveChange();
 				itemsFrame.dispose();
 				openItemsGUIItem(path, name);
 			}
@@ -172,7 +172,7 @@ public abstract class RewardEditor {
 		return panel;
 	}
 
-	private void saveChanges() {
+	public void saveChange() {
 		Map<String, Object> changes = new HashMap<>();
 		for (SettingButton button : buttons) {
 			if (button.hasChanged()) {
