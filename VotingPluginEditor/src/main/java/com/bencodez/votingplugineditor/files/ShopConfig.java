@@ -96,14 +96,14 @@ public class ShopConfig extends YmlConfigHandler {
 						getChanges().put("Shop." + shop + "." + change.getKey(), change.getValue());
 					}
 					if (!changes.isEmpty()) {
-						saveChanges();
+						saveChange();
 					}
 				}
 
 				@Override
 				public void removeItemPath(String path) {
 					remove("Shop." + shop + "." + path);
-					saveChanges();
+					save();
 				}
 			};
 		});
@@ -208,6 +208,10 @@ public class ShopConfig extends YmlConfigHandler {
 			};
 		});
 		return rewardsEdit;
+	}
+
+	private void saveChange() {
+		saveChanges();
 	}
 
 	private void saveChanges() {
