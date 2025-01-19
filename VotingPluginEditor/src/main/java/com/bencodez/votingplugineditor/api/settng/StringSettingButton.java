@@ -49,10 +49,10 @@ public class StringSettingButton implements SettingButton {
 	public JTextField createLabelAndTextField(JPanel panel) {
 		JPanel subPanel = new JPanel();
 		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
-		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 40, 5, 5));
 
 		JLabel label = new JLabel(labelText);
-		label.setPreferredSize(new Dimension(400, label.getPreferredSize().height));
+		label.setPreferredSize(new Dimension(300, label.getPreferredSize().height));
 		subPanel.add(label);
 
 		if (options != null && options.length > 0) {

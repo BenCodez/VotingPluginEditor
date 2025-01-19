@@ -53,7 +53,36 @@ public class ShopConfig extends YmlConfigHandler {
 		frame.setLayout(new BorderLayout());
 
 		JPanel mainPanel = createMainEditorPanel();
-		frame.add(mainPanel, BorderLayout.CENTER);
+		frame.add(mainPanel, BorderLayout.NORTH);
+
+		frame.add(Box.createVerticalStrut(10)); // Spacer
+
+		JPanel generalPanel = new JPanel();
+		generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
+		// generalPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// generalPanel.add(new JLabel("General VoteShop Settings"));
+		generalPanel.add(PanelUtils.createSectionLabel("General VoteShop Settings"));
+
+		settingButtons
+				.add(new BooleanSettingButton(generalPanel, "VoteShop.Enabled", getConfigData(), "VoteShop Enabled"));
+		
+		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name",
+				"VoteShop"));
+		settingButtons.add(
+				new BooleanSettingButton(generalPanel, "VoteShop.BackButton", getConfigData(), "Vote Shop BackButton"));
+		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.HideLimitedReached", getConfigData(),
+				"Hide items in vote shop which user can not buy"));
+		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.LimitReached", getConfigData(),
+				"VoteShop LimitReached", "&aYou reached your limit"));
+		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.RequireConfirmation", getConfigData(),
+				"VoteShop RequireConfirmation (Global setting)"));
+		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.Disabled", getConfigData(),
+				"VoteShop Disabled Message", "&cVote shop disabled"));
+		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.ReopenGUIOnPurchase", getConfigData(),
+				"ReopenGUIOnPurchase"));
+		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.HideLimitReached", getConfigData(),
+				"HideLimitReached"));
+		frame.add(generalPanel);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
@@ -171,7 +200,6 @@ public class ShopConfig extends YmlConfigHandler {
 
 		editor.getOptionsButtons(panel, PanelUtils.convertSetToArray(shopData.keySet()));
 
-		panel.add(Box.createVerticalStrut(10)); // Spacer
 		return panel;
 	}
 
