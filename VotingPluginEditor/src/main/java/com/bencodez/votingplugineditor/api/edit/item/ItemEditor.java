@@ -82,7 +82,7 @@ public abstract class ItemEditor {
 		JPanel enchantsPanel = new JPanel();
 		enchantsPanel.setLayout(new BoxLayout(enchantsPanel, BoxLayout.X_AXIS));
 
-		AddRemoveEditor enchantsEditor = new AddRemoveEditor() {
+		AddRemoveEditor enchantsEditor = new AddRemoveEditor(frame.getWidth()) {
 
 			@Override
 			public void onItemSelect(String name) {

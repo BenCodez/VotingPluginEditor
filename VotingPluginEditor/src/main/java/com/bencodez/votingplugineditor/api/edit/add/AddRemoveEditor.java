@@ -14,12 +14,16 @@ import javax.swing.SwingConstants;
 import com.bencodez.votingplugineditor.PanelUtils;
 
 public abstract class AddRemoveEditor {
-	public AddRemoveEditor() {
+	private int width;
+
+	public AddRemoveEditor(int width) {
+		this.width = width;
 	}
 
 	public JButton getAddButton(String label, String title) {
 		JButton addButton = new JButton(label);
 		addButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, addButton.getPreferredSize().height));
+		addButton.setSize(width, 30);
 		addButton.addActionListener(event -> {
 			new AddEditor(title) {
 
@@ -35,6 +39,7 @@ public abstract class AddRemoveEditor {
 	public JButton getRemoveButton(String label, String title, String[] options) {
 		JButton removeButton = new JButton(label);
 		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
+		removeButton.setSize(width, 30);
 		removeButton.addActionListener(event -> {
 			if (options.length == 0) {
 				JOptionPane.showMessageDialog(null, "Nothing to remove");
@@ -54,6 +59,7 @@ public abstract class AddRemoveEditor {
 	public JButton getRemoveButton(String label, String title, Set<String> options) {
 		JButton removeButton = new JButton(label);
 		removeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, removeButton.getPreferredSize().height));
+		removeButton.setSize(width, 30);
 		removeButton.addActionListener(event -> {
 			if (options.size() == 0) {
 				JOptionPane.showMessageDialog(null, "Nothing to delete");
@@ -82,7 +88,8 @@ public abstract class AddRemoveEditor {
 
 			button.setAlignmentX(Component.LEFT_ALIGNMENT);
 			button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getPreferredSize().height));
-			button.setSize(300, 30);
+			System.out.println(width);
+			button.setSize(width, 30);
 			button.setVerticalTextPosition(SwingConstants.CENTER);
 
 			button.addActionListener(event -> {

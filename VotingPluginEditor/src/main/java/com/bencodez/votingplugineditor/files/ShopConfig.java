@@ -14,25 +14,40 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
+import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
+
+import lombok.Getter;
 
 public class ShopConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
+	private JFrame frame;
+
 	public ShopConfig(String filePath) {
 		super(filePath);
 		settingButtons = new ArrayList<SettingButton>();
+		changes = new HashMap<String, Object>();
 	}
+
+	@Getter
+	private Map<String, Object> changes;
 
 	@Override
 	public void openEditorGUI() {
-		JFrame frame = new JFrame("Shop.yml VoteShop Editor");
+		frame = new JFrame("Shop.yml VoteShop Editor");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(800, 600);
 		frame.setLayout(new BorderLayout());
@@ -48,12 +63,113 @@ public class ShopConfig extends YmlConfigHandler {
 		frame.setVisible(true);
 	}
 
+	private void openShopEditor(String shop) {
+		JFrame frame = new JFrame("Shop: " + shop);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(800, 600);
+		frame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		settingButtons.add(new StringSettingButton(panel, "Shop." + shop + ".Identifier_Name", getConfigData(),
+				"Shop identifier display name", shop));
+		settingButtons.add(new IntSettingButton(panel, "Shop." + shop + ".Cost", getConfigData(), "Cost", 0));
+
+		settingButtons.add(new StringSettingButton(panel, "Shop." + shop + ".Permission", getConfigData(),
+				"Shop permission to view", ""));
+
+		settingButtons.add(new BooleanSettingButton(panel, "Shop." + shop + ".RequireConfirmation", getConfigData(),
+				"Require confirmation before purchase"));
+
+		settingButtons.add(
+				new BooleanSettingButton(panel, "Shop." + shop + ".CloseGUI", getConfigData(), "CloseGUI on purchase"));
+
+		JButton itemsButton = new JButton("Edit Display Item");
+		itemsButton.addActionListener(event -> {
+			new ItemEditor((Map<String, Object>) get("Shop." + shop)) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					for (Entry<String, Object> change : changes.entrySet()) {
+						getChanges().put("Shop." + shop + "." + change.getKey(), change.getValue());
+					}
+					if (!changes.isEmpty()) {
+						saveChanges();
+					}
+				}
+
+				@Override
+				public void removeItemPath(String path) {
+					remove("Shop." + shop + "." + path);
+					saveChanges();
+				}
+			};
+		});
+		panel.add(itemsButton);
+
+		panel.add(addRewardsButton("Shop." + shop, "Shop Rewards: " + shop));
+
+		frame.add(panel);
+
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.addActionListener(e -> saveChanges());
+		frame.add(saveButton, BorderLayout.SOUTH);
+
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+
+	}
+
 	private JPanel createMainEditorPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		Map<String, Object> data = getConfigData();
+		Map<String, Object> shopData = (Map<String, Object>) data.get("Shop");
+
+		AddRemoveEditor editor = new AddRemoveEditor(frame.getWidth()) {
+
+			@Override
+			public void onItemSelect(String name) {
+				openShopEditor(name);
+			}
+
+			@Override
+			public void onItemRemove(String name) {
+				remove("Shop." + name);
+				save();
+				frame.dispose();
+				openEditorGUI();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				if (shopData.containsKey(name)) {
+					JOptionPane.showMessageDialog(panel, "Shop already exists");
+				} else {
+					set("Shop." + name + ".Cost", 3);
+					set("Shop." + name + ".Material", "STONE");
+					set("Shop." + name + ".Amount", 1);
+					set("Shop." + name + ".Name", "Example");
+					set("Shop." + name + ".Rewards.Commands", new String[] { "example command" });
+					save();
+				}
+				frame.dispose();
+				openEditorGUI();
+			}
+		};
+
+		panel.add(editor.getAddButton("Add A Shop", "Add VoteShop"));
+		panel.add(editor.getRemoveButton("Remove a Shop", "Remove a Shop", shopData.keySet()));
+
+		panel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+		panel.add(new JLabel("Click to edit shop:"));
+
+		editor.getOptionsButtons(panel, PanelUtils.convertSetToArray(shopData.keySet()));
 
 		panel.add(Box.createVerticalStrut(10)); // Spacer
 		return panel;
@@ -81,7 +197,7 @@ public class ShopConfig extends YmlConfigHandler {
 
 				@Override
 				public void removePath(String subPath) {
-					remove(path + "." + path);
+					remove(path + "." + subPath);
 					save();
 				}
 
@@ -101,8 +217,10 @@ public class ShopConfig extends YmlConfigHandler {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
+
+		changes.putAll(this.changes);
+		this.changes.clear();
 
 		// Notify & save changes
 		if (!changes.isEmpty()) {

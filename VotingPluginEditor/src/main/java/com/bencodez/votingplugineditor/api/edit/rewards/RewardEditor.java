@@ -77,8 +77,8 @@ public abstract class RewardEditor {
 			}
 
 			@Override
-			public void removeItemPath(String path) {
-				removePath(path + "." + name + "." + path);
+			public void removeItemPath(String subPath) {
+				removePath(path + "." + name + "." + subPath);
 				saveChange();
 				configData = updateData();
 			}
@@ -94,7 +94,7 @@ public abstract class RewardEditor {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(frame.getWidth()) {
 
 			@Override
 			public void onItemRemove(String name) {

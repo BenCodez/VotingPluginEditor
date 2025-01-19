@@ -112,7 +112,7 @@ public class GUIConfig extends YmlConfigHandler {
 
 		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
 
-		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(frame.getWidth()) {
 
 			@Override
 			public void onItemRemove(String name) {
@@ -194,7 +194,7 @@ public class GUIConfig extends YmlConfigHandler {
 
 				@Override
 				public void removePath(String subPath) {
-					remove(path + "." + path);
+					remove(path + "." + subPath);
 					save();
 				}
 

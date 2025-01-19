@@ -41,7 +41,9 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 		VoteSitesConfig config = this;
 
-		AddRemoveEditor addRemoveEditor = new AddRemoveEditor() {
+		editorFrame.setSize(300, size);
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(editorFrame.getWidth()) {
 
 			@Override
 			public void onItemRemove(String name) {
@@ -89,7 +91,6 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 		// System.out.println("" + map.toString());
 
-		editorFrame.setSize(300, size);
 		// editorFrame.add(saveButton, BorderLayout.SOUTH);
 		editorFrame.setLocationRelativeTo(null);
 		editorFrame.setVisible(true);
