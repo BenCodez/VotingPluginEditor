@@ -2,6 +2,7 @@ package com.bencodez.votingplugineditor.api.edit.rewards;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,8 +13,8 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
@@ -150,9 +151,14 @@ public abstract class RewardEditor {
 
 		panel.add(PanelUtils.createSectionLabel("Rewards"));
 
-		buttons.add(new IntSettingButton(panel, "Money", configData, "Money:", 0));
-		buttons.add(new IntSettingButton(panel, "EXP", configData, "EXP:", 0));
-		buttons.add(new IntSettingButton(panel, "EXPLevels", configData, "Exp Levels:", 0));
+		// Add Money, EXP, and EXPLevels buttons side by side
+		JPanel rewardsPanel = new JPanel();
+		rewardsPanel.setLayout(new BoxLayout(rewardsPanel, BoxLayout.X_AXIS));
+		rewardsPanel.add(createCollapsiblePanel("Money", "Money:", 0));
+		rewardsPanel.add(createCollapsiblePanel("EXP", "EXP:", 0));
+		rewardsPanel.add(createCollapsiblePanel("EXPLevels", "Exp Levels:", 0));
+
+		panel.add(rewardsPanel);
 
 		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
 		buttons.add(new StringListSettingButton(panel, "RandomCommand", configData,
@@ -170,6 +176,30 @@ public abstract class RewardEditor {
 				"Messages to player (use %player%):"));
 
 		return panel;
+	}
+
+	private JPanel createCollapsiblePanel(String key, String label, int defaultValue) {
+		JPanel collapsiblePanel = new JPanel();
+		collapsiblePanel.setLayout(new BoxLayout(collapsiblePanel, BoxLayout.Y_AXIS));
+		collapsiblePanel.setBorder(BorderFactory.createTitledBorder(label));
+
+		IntSettingButton settingButton = new IntSettingButton(collapsiblePanel, key, configData, label, defaultValue);
+		buttons.add(settingButton);
+
+		collapsiblePanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton(label);
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> collapsiblePanel.setVisible(!collapsiblePanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(collapsiblePanel);
+
+		return containerPanel;
 	}
 
 	public void saveChange() {

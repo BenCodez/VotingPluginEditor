@@ -2,6 +2,11 @@ package com.bencodez.votingplugineditor;
 
 import java.awt.GridLayout;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +56,12 @@ public class VotingPluginEditor {
 	private static void createAndShowGUI() {
 		JFrame frame = new JFrame("VotingPlugin File Selector");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(400, 200);
-		frame.setLayout(new GridLayout(4, 1));
+		frame.setSize(400, 300);
+		frame.setLayout(new GridLayout(7, 1)); // Updated to 7 rows
+
+		JButton editVoteSitesButton = new JButton("Edit VoteSites (Opens VoteSites.yml)");
+		editVoteSitesButton.addActionListener(e -> openVoteSitesEditor());
+		frame.add(editVoteSitesButton);
 
 		JLabel label = new JLabel("Select a file to edit:", JLabel.CENTER);
 		frame.add(label);
@@ -68,6 +77,14 @@ public class VotingPluginEditor {
 		openEditorButton.addActionListener(e -> openEditor());
 		frame.add(openEditorButton);
 
+		JButton backupButton = new JButton("Backup Files");
+		backupButton.addActionListener(e -> backupFiles());
+		frame.add(backupButton);
+
+		JButton restoreButton = new JButton("Restore Files");
+		restoreButton.addActionListener(e -> restoreFiles());
+		frame.add(restoreButton);
+
 		directoryPath = prefs.get(PREF_DIRECTORY, null);
 		if (directoryPath != null) {
 			SwingUtilities.invokeLater(() -> {
@@ -77,6 +94,70 @@ public class VotingPluginEditor {
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+	}
+
+	private static void openVoteSitesEditor() {
+		if (directoryPath != null) {
+			String filePath = directoryPath + File.separator + "VoteSites.yml";
+			try {
+				YmlConfigHandler handler = HANDLER_CLASSES.get("VoteSites.yml").getDeclaredConstructor(String.class)
+						.newInstance(filePath);
+				handler.openEditorGUI();
+			} catch (Exception e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Failed to open VoteSites.yml.");
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Please select a directory.");
+		}
+	}
+
+	private static void backupFiles() {
+		if (directoryPath != null) {
+			Path sourceDir = Paths.get(directoryPath);
+			Path backupDir = Paths.get(directoryPath + "_backup");
+
+			try {
+				Files.walk(sourceDir).forEach(source -> {
+					Path destination = backupDir.resolve(sourceDir.relativize(source));
+					try {
+						Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+				JOptionPane.showMessageDialog(null, "Backup completed successfully.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Backup failed.");
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Please select a directory.");
+		}
+	}
+
+	private static void restoreFiles() {
+		if (directoryPath != null) {
+			Path sourceDir = Paths.get(directoryPath + "_backup");
+			Path destinationDir = Paths.get(directoryPath);
+
+			try {
+				Files.walk(sourceDir).forEach(source -> {
+					Path destination = destinationDir.resolve(sourceDir.relativize(source));
+					try {
+						Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+				JOptionPane.showMessageDialog(null, "Restore completed successfully.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Restore failed.");
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Please select a directory.");
+		}
 	}
 
 	private static void chooseDirectory(JFrame frame) {

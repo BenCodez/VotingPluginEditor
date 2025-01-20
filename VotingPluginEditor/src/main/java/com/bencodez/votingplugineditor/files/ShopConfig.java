@@ -65,7 +65,7 @@ public class ShopConfig extends YmlConfigHandler {
 
 		settingButtons
 				.add(new BooleanSettingButton(generalPanel, "VoteShop.Enabled", getConfigData(), "VoteShop Enabled"));
-		
+
 		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name",
 				"VoteShop"));
 		settingButtons.add(
@@ -82,6 +82,61 @@ public class ShopConfig extends YmlConfigHandler {
 				"ReopenGUIOnPurchase"));
 		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.HideLimitReached", getConfigData(),
 				"HideLimitReached"));
+
+		settingButtons.add(new StringSettingButton(generalPanel, "ShopConfirmPurchase.Title", getConfigData(),
+				"ShopConfirmPurchase Title", "Confirm Purchase?"));
+
+		JPanel confirmPanel = new JPanel();
+		confirmPanel.setLayout(new BoxLayout(confirmPanel, BoxLayout.X_AXIS));
+
+		JButton yesButton = new JButton("Confirmation Yes Item");
+		yesButton.addActionListener(e -> {
+			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.YesItem")) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					for (Entry<String, Object> change : changes.entrySet()) {
+						getChanges().put("ShopConfirmPurchase.YesItem." + change.getKey(), change.getValue());
+					}
+					if (!changes.isEmpty()) {
+						saveChange();
+					}
+				}
+
+				@Override
+				public void removeItemPath(String path) {
+					remove("ShopConfirmPurchase.YesItem." + path);
+					save();
+				}
+			};
+		});
+		confirmPanel.add(yesButton);
+
+		JButton noButton = new JButton("Confirmation No Item");
+		noButton.addActionListener(e -> {
+			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.NoItem")) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					for (Entry<String, Object> change : changes.entrySet()) {
+						getChanges().put("ShopConfirmPurchase.NoItem." + change.getKey(), change.getValue());
+					}
+					if (!changes.isEmpty()) {
+						saveChange();
+					}
+				}
+
+				@Override
+				public void removeItemPath(String path) {
+					remove("ShopConfirmPurchase.NoItem." + path);
+					save();
+				}
+			};
+		});
+		confirmPanel.add(noButton);
+
+		generalPanel.add(confirmPanel);
+
 		frame.add(generalPanel);
 
 		JButton saveButton = new JButton("Save and Apply Changes");

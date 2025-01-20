@@ -76,9 +76,6 @@ public abstract class ItemEditor {
 
 		buttons.add(new StringListSettingButton(panel, "Lore", configData, "Lore (one per line):"));
 
-		// buttons.add(new StringListSettingButton(panel, "Enchants", configData,
-		// "Enchants (one per line):"));
-
 		JPanel enchantsPanel = new JPanel();
 		enchantsPanel.setLayout(new BoxLayout(enchantsPanel, BoxLayout.X_AXIS));
 
@@ -115,9 +112,6 @@ public abstract class ItemEditor {
 			buttons.add(new IntSettingButton(panel, "Enchants." + enchant, configData, enchant + " level", 0));
 		}
 
-		// enchantsEditor.getOptionsButtons(panel,
-		// PanelUtils.convertSetToArray(enchantData.keySet()), false);
-
 		panel.add(PanelUtils.createSectionLabel("Extra Settings:"));
 		buttons.add(new IntSettingButton(panel, "MinAmount", configData, "Min Amount:", 0));
 		buttons.add(new IntSettingButton(panel, "MaxAmount", configData, "Max Amount:", 0));
@@ -137,7 +131,20 @@ public abstract class ItemEditor {
 			buttons.add(new IntSettingButton(panel, "Power", configData, "Firework power:", 0));
 		}
 
-		buttons.add(new StringListSettingButton(panel, "ItemFlags", configData, "ItemFlags (one per line):"));
+		// Add a button to toggle the visibility of ItemFlags
+		JButton toggleItemFlagsButton = new JButton("Toggle ItemFlags");
+		toggleItemFlagsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		panel.add(toggleItemFlagsButton);
+
+		JPanel itemFlagsPanel = new JPanel();
+		itemFlagsPanel.setLayout(new BoxLayout(itemFlagsPanel, BoxLayout.Y_AXIS));
+		itemFlagsPanel.setVisible(false); // Initially hidden
+
+		buttons.add(new StringListSettingButton(itemFlagsPanel, "ItemFlags", configData, "ItemFlags (one per line):"));
+
+		panel.add(itemFlagsPanel);
+
+		toggleItemFlagsButton.addActionListener(e -> itemFlagsPanel.setVisible(!itemFlagsPanel.isVisible()));
 
 		panel.add(PanelUtils.createSectionLabel("GUI Settings:"));
 		buttons.add(new IntSettingButton(panel, "Slot", configData, "Slot", -1));

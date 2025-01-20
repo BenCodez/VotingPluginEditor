@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,9 +17,8 @@ import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
-import com.bencodez.votingplugineditor.api.edit.add.AddEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
-import com.bencodez.votingplugineditor.api.edit.add.RemoveEditor;
+import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {
@@ -31,13 +31,11 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		JFrame editorFrame = new JFrame("Editing VoteSites - " + new File(filePath).getName());
 		editorFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		// editorFrame.setLayout(new GridLayout(4, 1));
-
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
-		int size = 75 + map.size() * 30;
+		int size = 150 + map.size() * 30;
 
 		VoteSitesConfig config = this;
 
@@ -85,14 +83,51 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 		panel.add(Box.createRigidArea(new Dimension(0, 15)));
 
+		// Add the new button for EverySiteReward
+		JButton everySiteRewardButton = new JButton("Edit EverySiteReward");
+		everySiteRewardButton.setHorizontalAlignment(SwingConstants.CENTER);
+		everySiteRewardButton
+				.setMaximumSize(new Dimension(Integer.MAX_VALUE, everySiteRewardButton.getPreferredSize().height));
+		everySiteRewardButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		everySiteRewardButton.addActionListener(event -> {
+			new RewardEditor((Map<String, Object>) get("EverySiteReward")) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					try {
+						for (Entry<String, Object> change : changes.entrySet()) {
+							set("EverySiteReward." + change.getKey(), change.getValue());
+						}
+						save();
+						editorFrame.dispose();
+						openEditorGUI();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void removePath(String path) {
+					remove("EverySiteReward." + path);
+					save();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					load();
+					return (Map<String, Object>) get("EverySiteReward");
+				}
+			};
+		});
+		panel.add(everySiteRewardButton);
+
+		panel.add(Box.createRigidArea(new Dimension(0, 15)));
+
 		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
 
 		editorFrame.add(panel);
-
-		// System.out.println("" + map.toString());
-
-		// editorFrame.add(saveButton, BorderLayout.SOUTH);
 		editorFrame.setLocationRelativeTo(null);
 		editorFrame.setVisible(true);
 	}
+
 }

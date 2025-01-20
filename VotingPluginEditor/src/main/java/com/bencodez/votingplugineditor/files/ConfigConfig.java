@@ -20,7 +20,10 @@ import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 
 public class ConfigConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
@@ -55,8 +58,68 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		Map<String, Object> data = getConfigData();
 
+		settingButtons.add(new BooleanSettingButton(panel, "AdvancedServiceSiteHandling", getConfigData(),
+				"Advanced Service Site Handling"));
+		settingButtons.add(new BooleanSettingButton(panel, "StoreMonthTotalsWithDate", getConfigData(),
+				"Store Month Totals With Date"));
+		settingButtons.add(new BooleanSettingButton(panel, "UseMonthDateTotalsAsPrimaryTotal", getConfigData(),
+				"Use Month Date Totals As Primary Total"));
+		
+		
+		settingButtons.add(new StringSettingButton(panel, "DataStorage", getConfigData(), "Data Storage", "SQLITE",
+				new String[] { "SQLITE", "MYSQL" }));
+
+		panel.add(createMySQLSettingsPanel());
+
+		settingButtons.add(
+				new BooleanSettingButton(panel, "VoteReminding.Enabled", getConfigData(), "Vote Reminding Enabled"));
+		settingButtons.add(new BooleanSettingButton(panel, "VoteReminding.RemindOnLogin", getConfigData(),
+				"Vote Reminding On Login"));
+		settingButtons.add(new BooleanSettingButton(panel, "VoteReminding.RemindOnlyOnce", getConfigData(),
+				"Vote Reminding Only Once"));
+		settingButtons.add(
+				new IntSettingButton(panel, "VoteReminding.RemindDelay", getConfigData(), "Vote Reminding Delay", 30));
+
+		panel.add(Box.createVerticalStrut(10)); // Spacer
+
+		panel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
+
 		panel.add(Box.createVerticalStrut(10)); // Spacer
 		return panel;
+	}
+
+	private JPanel createMySQLSettingsPanel() {
+		JPanel mysqlPanel = new JPanel();
+		mysqlPanel.setLayout(new BoxLayout(mysqlPanel, BoxLayout.Y_AXIS));
+		mysqlPanel.setBorder(BorderFactory.createTitledBorder("MySQL Settings"));
+
+		settingButtons
+				.add(new StringSettingButton(mysqlPanel, "MySQL.Host", getConfigData(), "MySQL Host", "192.168.0.156"));
+		settingButtons.add(new IntSettingButton(mysqlPanel, "MySQL.Port", getConfigData(), "MySQL Port", 3306));
+		settingButtons
+				.add(new StringSettingButton(mysqlPanel, "MySQL.Database", getConfigData(), "MySQL Database", "db"));
+		settingButtons.add(
+				new StringSettingButton(mysqlPanel, "MySQL.Password", getConfigData(), "MySQL Password", "mD9!Zui9GH"));
+		settingButtons.add(
+				new IntSettingButton(mysqlPanel, "MySQL.MaxConnections", getConfigData(), "MySQL Max Connections", 1));
+		settingButtons.add(new StringSettingButton(mysqlPanel, "MySQL.Prefix", getConfigData(), "MySQL Prefix", ""));
+		settingButtons.add(
+				new StringSettingButton(mysqlPanel, "MySQL.Name", getConfigData(), "MySQL Name", "VotingPlugin_Users"));
+
+		mysqlPanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton("Show/Hide MySQL Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> mysqlPanel.setVisible(!mysqlPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(mysqlPanel);
+
+		return containerPanel;
 	}
 
 	public JButton addRewardsButton(String path, String name) {
