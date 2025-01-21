@@ -81,16 +81,22 @@ public class DoubleSettingButton implements SettingButton {
 	public void updateValue() {
 		initialValue = (double) getValue();
 	}
+	
+	private boolean isWidthSet = false;
 
 	@Override
 	public void setMaxWidth(int width) {
+		if (isWidthSet) {
+			return;
+		}
 		label.setMaximumSize(new Dimension(width, label.getPreferredSize().height));
 		label.setPreferredSize(new Dimension(width, label.getPreferredSize().height));
+		isWidthSet = true;
 	}
 
 	@Override
 	public int getWidth() {
-		return label.getPreferredSize().width;
+		return label.getFontMetrics(label.getFont()).stringWidth(label.getText());
 	}
 
 }

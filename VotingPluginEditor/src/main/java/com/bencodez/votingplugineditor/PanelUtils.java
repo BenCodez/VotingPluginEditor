@@ -127,6 +127,9 @@ public class PanelUtils {
 	}
 
 	public static int getIntValue(Map<String, Object> data, String key, int defaultValue) {
+		if (data == null) {
+			return defaultValue;
+		}
 		if (key.contains(".")) {
 			String[] p = key.split(Pattern.quote("."));
 			if (data.containsKey(p[0])) {
@@ -187,24 +190,26 @@ public class PanelUtils {
 
 		return panel;
 	}
-	
+
 	public static void adjustSettingButtonsMaxWidth(List<SettingButton> buttons) {
-	    int maxWidth = 0;
+		int maxWidth = 50;
 
-	    // Calculate the maximum width
-	    for (SettingButton button : buttons) {
-	        int width = button.getWidth();
-	        if (width > maxWidth) {
-	            maxWidth = width;
-	        }
-	    }
-	    
-	    System.out.print("Max Width: " + maxWidth);
+		// Calculate the maximum width
+		for (SettingButton button : buttons) {
+			int width = button.getWidth();
+			if (width > maxWidth) {
+				maxWidth = width;
+			}
+		}
+		
+		maxWidth += 10;
 
-	    // Set each button's maximum width to the calculated value
-	    for (SettingButton button : buttons) {
-	        button.setMaxWidth(maxWidth);
-	    }
+		System.out.println("Max Width: " + maxWidth);
+
+		// Set each button's maximum width to the calculated value
+		for (SettingButton button : buttons) {
+			button.setMaxWidth(maxWidth);
+		}
 	}
 
 	public static double getDoubleValue(Map<String, Object> data, String key, double defaultValue) {
@@ -228,7 +233,5 @@ public class PanelUtils {
 		}
 		return defaultValue;
 	}
-	
-	
 
 }

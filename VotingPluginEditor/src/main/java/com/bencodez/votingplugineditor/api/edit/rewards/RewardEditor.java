@@ -38,6 +38,9 @@ public abstract class RewardEditor {
 
 	public RewardEditor(Map<String, Object> data) {
 		configData = data;
+		if (configData == null) {
+			configData = new HashMap<String, Object>();
+		}
 		buttons = new ArrayList<SettingButton>();
 		changes = new HashMap<String, Object>();
 		createAndShowGUI();
@@ -145,22 +148,32 @@ public abstract class RewardEditor {
 		});
 
 		panel.add(itemsButton);
+		
+		JPanel timedPanel = new JPanel();
+		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.X_AXIS));
+		timedPanel.add(createDelayedPanel());
+		timedPanel.add(createTimedPanel());
+		panel.add(timedPanel);
 
 		panel.add(PanelUtils.createSectionLabel("Requirements"));
 		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
 		buttons.add(new BooleanSettingButton(panel, "RequirePermission", configData, "Require Permission (Set below)"));
 		buttons.add(new StringSettingButton(panel, "Permission", configData, "Permission (Enable above)", ""));
+		
 
 		panel.add(PanelUtils.createSectionLabel("Rewards"));
 
-		// Add Money, EXP, and EXPLevels buttons side by side
-		JPanel rewardsPanel = new JPanel();
-		rewardsPanel.setLayout(new BoxLayout(rewardsPanel, BoxLayout.X_AXIS));
-		rewardsPanel.add(createCollapsiblePanel("Money", "Money:", 0));
-		rewardsPanel.add(createCollapsiblePanel("EXP", "EXP:", 0));
-		rewardsPanel.add(createCollapsiblePanel("EXPLevels", "Exp Levels:", 0));
+		JPanel buttonPanel = new JPanel();
 
-		panel.add(rewardsPanel);
+		panel.add(buttonPanel);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+		// Add Money, EXP, and EXPLevels settings with toggle buttons
+		buttonPanel.add(createCollapsiblePanel(panel, "Money", "Money Settings",
+				new String[] { "Money", "Money.Min", "Money.Max", "Money.Round" }));
+		buttonPanel.add(
+				createCollapsiblePanel(panel, "EXP", "EXP Settings", new String[] { "EXP", "EXP.Min", "EXP.Max" }));
+		buttonPanel.add(createCollapsiblePanel(panel, "EXPLevels", "EXP Levels Settings",
+				new String[] { "EXPLevels", "EXPLevels.Min", "EXPLevels.Max" }));
 
 		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
 		buttons.add(new StringListSettingButton(panel, "RandomCommand", configData,
@@ -193,7 +206,102 @@ public abstract class RewardEditor {
 		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData,
 				"Messages to player (use %player%):"));
 
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
 		return panel;
+	}
+
+	private JPanel createDelayedPanel() {
+		JPanel delayedPanel = new JPanel();
+		delayedPanel.setLayout(new BoxLayout(delayedPanel, BoxLayout.Y_AXIS));
+		delayedPanel.setBorder(BorderFactory.createTitledBorder("Delayed Settings"));
+		
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+
+		buttons.add(new BooleanSettingButton(delayedPanel, "Delayed.Enabled", configData, "Enabled"));
+		buttons.add(new IntSettingButton(delayedPanel, "Delayed.Hours", configData, "Hours", 0));
+		buttons.add(new IntSettingButton(delayedPanel, "Delayed.Minutes", configData, "Minutes", 0));
+		buttons.add(new IntSettingButton(delayedPanel, "Delayed.Seconds", configData, "Seconds", 0));
+		buttons.add(new IntSettingButton(delayedPanel, "Delayed.MilliSeconds", configData, "MilliSeconds", 0));
+
+		delayedPanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton("Delayed Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> delayedPanel.setVisible(!delayedPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(delayedPanel);
+		
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+		this.buttons.addAll(buttons);
+
+		return containerPanel;
+	}
+
+	private JPanel createTimedPanel() {
+		JPanel timedPanel = new JPanel();
+		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.Y_AXIS));
+		timedPanel.setBorder(BorderFactory.createTitledBorder("Timed Settings"));
+		
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+
+		buttons.add(new BooleanSettingButton(timedPanel, "Timed.Enabled", configData, "Enabled"));
+		buttons.add(new IntSettingButton(timedPanel, "Timed.Hour", configData, "Hour", 0));
+		buttons.add(new IntSettingButton(timedPanel, "Timed.Minute", configData, "Minute", 0));
+
+		timedPanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton("Timed Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> timedPanel.setVisible(!timedPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(timedPanel);
+		
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+		this.buttons.addAll(buttons);
+
+		return containerPanel;
+	}
+
+	private JButton createCollapsiblePanel(JPanel mainPanel, String key, String label, String[] subKeys) {
+		JPanel collapsiblePanel = new JPanel();
+		collapsiblePanel.setLayout(new BoxLayout(collapsiblePanel, BoxLayout.Y_AXIS));
+		collapsiblePanel.setBorder(BorderFactory.createTitledBorder(label));
+
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+		for (String subKey : subKeys) {
+			String[] parts = subKey.split("\\.");
+			String label1 = parts.length > 1 ? key + "." + parts[1] : subKey;
+			if (subKey.endsWith(".Round")) {
+				buttons.add(new BooleanSettingButton(collapsiblePanel, key + "." + subKey, configData, label1));
+			} else {
+				buttons.add(new IntSettingButton(collapsiblePanel, key + "." + subKey, configData, label1, 0));
+			}
+		}
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+		this.buttons.addAll(buttons);
+
+		collapsiblePanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton(label);
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> collapsiblePanel.setVisible(!collapsiblePanel.isVisible()));
+
+		mainPanel.add(collapsiblePanel);
+
+		return toggleButton;
 	}
 
 	private void openActionBarEditor() {
@@ -206,10 +314,14 @@ public abstract class RewardEditor {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+
 		buttons.add(new StringSettingButton(panel, "ActionBar.Message", configData, "Message", "&cRemember to vote"));
 		buttons.add(new IntSettingButton(panel, "ActionBar.Delay", configData, "Delay", 30));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		this.buttons.addAll(buttons);
 
 		actionBarFrame.add(panel, BorderLayout.CENTER);
 
@@ -233,6 +345,8 @@ public abstract class RewardEditor {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+
 		buttons.add(new BooleanSettingButton(panel, "Title.Enabled", configData, "Enabled"));
 		buttons.add(new StringSettingButton(panel, "Title.Title", configData, "Title", "&cRemember to vote!"));
 		buttons.add(new StringSettingButton(panel, "Title.SubTitle", configData, "SubTitle", "&aType /vote"));
@@ -241,6 +355,8 @@ public abstract class RewardEditor {
 		buttons.add(new IntSettingButton(panel, "Title.FadeOut", configData, "FadeOut", 10));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		this.buttons.addAll(buttons);
 
 		titleFrame.add(panel, BorderLayout.CENTER);
 

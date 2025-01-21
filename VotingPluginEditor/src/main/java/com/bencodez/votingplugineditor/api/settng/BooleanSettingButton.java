@@ -66,15 +66,21 @@ public class BooleanSettingButton implements SettingButton {
 		initialValue = (boolean) getValue();
 	}
 
+	private boolean isWidthSet = false;
+
 	@Override
 	public void setMaxWidth(int width) {
-		checkBox.setMaximumSize(new Dimension(width, checkBox.getPreferredSize().height));
+		if (isWidthSet) {
+			return;
+		}
+		checkBox.setMaximumSize(new Dimension(width+50, checkBox.getPreferredSize().height));
 		checkBox.setPreferredSize(new Dimension(width, checkBox.getPreferredSize().height));
+		isWidthSet = true;
 	}
 
 	@Override
 	public int getWidth() {
-		return checkBox.getPreferredSize().width;
+		return checkBox.getFontMetrics(checkBox.getFont()).stringWidth(checkBox.getText());
 	}
 
 }
