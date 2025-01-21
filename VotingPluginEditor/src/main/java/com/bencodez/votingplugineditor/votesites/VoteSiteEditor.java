@@ -63,6 +63,8 @@ public class VoteSiteEditor {
 
 		frame.add(saveButton, BorderLayout.SOUTH);
 
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -127,12 +129,12 @@ public class VoteSiteEditor {
 
 				@Override
 				public Map<String, Object> updateData() {
-					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".Rewards", new HashMap<>());
+					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".Rewards",
+							new HashMap<>());
 				}
 			};
 		});
 		panel1.add(rewardsEdit);
-		
 
 		panel.add(Box.createVerticalStrut(10));
 
@@ -142,7 +144,7 @@ public class VoteSiteEditor {
 		advancedButton.addActionListener(e -> toggleAdvancedOptions());
 		panel1.add(advancedButton);
 		panel1.add(Box.createVerticalStrut(10));
-		
+
 		panel.add(panel1);
 
 		// Advanced Options Panel
@@ -158,27 +160,26 @@ public class VoteSiteEditor {
 		JPanel advancedPanel = new JPanel();
 		advancedPanel.setLayout(new BoxLayout(advancedPanel, BoxLayout.Y_AXIS));
 		advancedPanel.setBorder(BorderFactory.createTitledBorder("Advanced Options"));
-		buttons.add(new BooleanSettingButton(advancedPanel, "WaitUntilVoteDelay", siteData,
-				"Wait Until Vote Delay (Blocks votes with VoteDelay):"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "WaitUntilVoteDelay", siteData, "Wait Until Vote Delay:",
+				false, "Blocks votes with VoteDelay"));
 
-		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData,
-				"VoteDelayDaily (Makes vote delay work based on time of day):"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData, "VoteDelayDaily:", false,
+				"VoteDelay is daily instead of hourly"));
 
-		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData,
-				"ForceOffline (Forces runs rewards while player is offline):"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData, "ForceOffline:", false,
+				"Forces runs rewards while player is offline"));
 
-		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData,
-				"Hidden (Hide votesite in GUI's and from counters):"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData, "Hidden:", false,
+				"(Hide votesite in GUI's and from counters)"));
 
-		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData,
-				"Priority (Used to orders sites in VoteURL GUI):", 5));
+		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority:", 5,
+				"Used to orders sites in VoteURL GUI"));
 
-		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData,
-				"Display Item Material (Used in certain GUI's)", "DIAMOND",
-				PanelUtils.convertListToArray(VotingPluginEditor.getMaterials())));
+		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData, "Display Item Material",
+				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in certain GUI's"));
 
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData,
-				"Display Item Amount (Used in certain GUI's):", 1));
+				"Display Item Amount:", 1, "Used in certain GUI's"));
 
 		return advancedPanel;
 	}

@@ -14,29 +14,30 @@ import com.bencodez.votingplugineditor.PanelUtils;
 
 import lombok.Getter;
 
-public class IntSettingButton implements SettingButton {
+public class DoubleSettingButton implements SettingButton {
 	@Getter
 	private String key;
 
-	private int initialValue;
+	private double initialValue;
 
 	private String labelText;
 
 	private JTextField textField;
 
 	private JLabel label;
-	
-	public IntSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText, int defaultValue,
-			String hoverText) {
+
+	public DoubleSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			double defaultValue) {
+		this(panel, key, data, labelText, defaultValue, null);
+	}
+
+	public DoubleSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			double defaultValue, String hoverText) {
 		this.key = key;
-		initialValue = PanelUtils.getIntValue(data, key, defaultValue);
+		initialValue = PanelUtils.getDoubleValue(data, key, defaultValue);
 		this.labelText = labelText;
 		getComponent(panel);
 		label.setToolTipText(hoverText);
-	}
-
-	public IntSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText, int defaultValue) {
-		this(panel, key, data, labelText, defaultValue, null);
 	}
 
 	public JTextField createLabelAndTextField(JPanel panel) {
@@ -68,7 +69,7 @@ public class IntSettingButton implements SettingButton {
 		if (textField.getText().isBlank()) {
 			return 0;
 		}
-		return Integer.parseInt(textField.getText());
+		return Double.parseDouble(textField.getText());
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class IntSettingButton implements SettingButton {
 
 	@Override
 	public void updateValue() {
-		initialValue = (int) getValue();
+		initialValue = (double) getValue();
 	}
 
 	@Override

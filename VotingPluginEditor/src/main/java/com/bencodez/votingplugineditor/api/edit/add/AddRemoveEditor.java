@@ -88,7 +88,6 @@ public abstract class AddRemoveEditor {
 
 			button.setAlignmentX(Component.LEFT_ALIGNMENT);
 			button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getPreferredSize().height));
-			System.out.println(width);
 			button.setSize(width, 30);
 			button.setVerticalTextPosition(SwingConstants.CENTER);
 

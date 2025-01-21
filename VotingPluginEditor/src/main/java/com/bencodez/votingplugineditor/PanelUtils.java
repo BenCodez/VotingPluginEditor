@@ -16,6 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.api.settng.SettingButton;
+
 public class PanelUtils {
 	public static JPanel createLabelAndTextField(String labelText, String initialValue) {
 		JPanel panel = new JPanel();
@@ -185,4 +187,48 @@ public class PanelUtils {
 
 		return panel;
 	}
+	
+	public static void adjustSettingButtonsMaxWidth(List<SettingButton> buttons) {
+	    int maxWidth = 0;
+
+	    // Calculate the maximum width
+	    for (SettingButton button : buttons) {
+	        int width = button.getWidth();
+	        if (width > maxWidth) {
+	            maxWidth = width;
+	        }
+	    }
+	    
+	    System.out.print("Max Width: " + maxWidth);
+
+	    // Set each button's maximum width to the calculated value
+	    for (SettingButton button : buttons) {
+	        button.setMaxWidth(maxWidth);
+	    }
+	}
+
+	public static double getDoubleValue(Map<String, Object> data, String key, double defaultValue) {
+		if (key.contains(".")) {
+			String[] p = key.split(Pattern.quote("."));
+			if (data.containsKey(p[0])) {
+				Object ob = data.getOrDefault(p[0], defaultValue);
+				if (ob instanceof Map) {
+					return getDoubleValue((Map<String, Object>) data.get(p[0]), key.replaceFirst(p[0] + ".", ""),
+							defaultValue);
+				}
+				if (ob instanceof Number) {
+					return ((Number) ob).doubleValue();
+				}
+			}
+		} else {
+			Object value = data.get(key);
+			if (value instanceof Number) {
+				return ((Number) value).doubleValue();
+			}
+		}
+		return defaultValue;
+	}
+	
+	
+
 }

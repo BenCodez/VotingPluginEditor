@@ -1,3 +1,4 @@
+
 package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
@@ -10,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 import com.bencodez.votingplugineditor.PanelUtils;
 
@@ -26,11 +26,19 @@ public class StringListSettingButton implements SettingButton {
 
 	private JTextArea textArea;
 
+	private JLabel label;
+
 	public StringListSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
+		this(panel, key, data, labelText, null);
+	}
+
+	public StringListSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			String hoverText) {
 		this.key = key;
 		initialValue = PanelUtils.getStringList(data, key);
 		this.labelText = labelText;
 		getComponent(panel);
+		label.setToolTipText(hoverText);
 	}
 
 	public JTextArea createLabelAndTextArea(JPanel panel) {
@@ -38,7 +46,7 @@ public class StringListSettingButton implements SettingButton {
 		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
 		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel label = new JLabel(labelText);
+		label = new JLabel(labelText);
 		textArea = new JTextArea(initialValue);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -71,5 +79,16 @@ public class StringListSettingButton implements SettingButton {
 	@Override
 	public void updateValue() {
 		initialValue = textArea.getText();
+	}
+
+	@Override
+	public void setMaxWidth(int width) {
+		label.setMaximumSize(new Dimension(width, label.getPreferredSize().height));
+		label.setPreferredSize(new Dimension(width, label.getPreferredSize().height));
+	}
+
+	@Override
+	public int getWidth() {
+		return label.getPreferredSize().width;
 	}
 }

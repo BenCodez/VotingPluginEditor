@@ -1,3 +1,4 @@
+
 package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
@@ -29,21 +30,31 @@ public class StringSettingButton implements SettingButton {
 
 	private JComboBox optionsBox;
 
+	private JLabel label;
+
 	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
 			String defaultValue) {
-		this.key = key;
-		initialValue = PanelUtils.getStringValue(data, key, defaultValue);
-		this.labelText = labelText;
-		getComponent(panel);
+		this(panel, key, data, labelText, defaultValue, null, null);
 	}
 
 	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
 			String defaultValue, String[] options) {
+		this(panel, key, data, labelText, defaultValue, options, null);
+	}
+
+	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			String defaultValue, String hoverText) {
+		this(panel, key, data, labelText, defaultValue, null, hoverText);
+	}
+
+	public StringSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			String defaultValue, String[] options, String hoverText) {
 		this.key = key;
 		initialValue = PanelUtils.getStringValue(data, key, defaultValue);
 		this.labelText = labelText;
 		this.options = options;
 		getComponent(panel);
+		label.setToolTipText(hoverText);
 	}
 
 	public JTextField createLabelAndTextField(JPanel panel) {
@@ -51,8 +62,8 @@ public class StringSettingButton implements SettingButton {
 		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.X_AXIS));
 		subPanel.setBorder(BorderFactory.createEmptyBorder(5, 40, 5, 5));
 
-		JLabel label = new JLabel(labelText);
-		label.setPreferredSize(new Dimension(300, label.getPreferredSize().height));
+		label = new JLabel(labelText);
+		label.setPreferredSize(new Dimension(100, label.getPreferredSize().height));
 		subPanel.add(label);
 
 		if (options != null && options.length > 0) {
@@ -99,6 +110,17 @@ public class StringSettingButton implements SettingButton {
 	@Override
 	public void updateValue() {
 		initialValue = (String) getValue();
+	}
+
+	@Override
+	public void setMaxWidth(int width) {
+		label.setMaximumSize(new Dimension(width, label.getPreferredSize().height));
+		label.setPreferredSize(new Dimension(width, label.getPreferredSize().height));
+	}
+
+	@Override
+	public int getWidth() {
+		return label.getPreferredSize().width;
 	}
 
 }

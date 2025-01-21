@@ -58,6 +58,8 @@ public abstract class RewardEditor {
 
 		frame.add(saveButton, BorderLayout.SOUTH);
 
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -164,6 +166,22 @@ public abstract class RewardEditor {
 		buttons.add(new StringListSettingButton(panel, "RandomCommand", configData,
 				"RandomCommand (Picks one command at random):"));
 
+		// Add the new button for editing the title
+		JButton editTitleButton = new JButton("Edit Title");
+		editTitleButton.addActionListener(event -> {
+			openTitleEditor();
+		});
+
+		panel.add(editTitleButton);
+
+		// Add the new button for editing the action bar
+		JButton editActionBarButton = new JButton("Edit Action Bar");
+		editActionBarButton.addActionListener(event -> {
+			openActionBarEditor();
+		});
+
+		panel.add(editActionBarButton);
+
 		// RandomItem
 		JButton itemsButton2 = new JButton("Edit Random Item (Only give one item)");
 		itemsButton2.addActionListener(event -> {
@@ -176,6 +194,64 @@ public abstract class RewardEditor {
 				"Messages to player (use %player%):"));
 
 		return panel;
+	}
+
+	private void openActionBarEditor() {
+		JFrame actionBarFrame = new JFrame("Edit Action Bar");
+		actionBarFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		actionBarFrame.setSize(600, 200);
+		actionBarFrame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+		buttons.add(new StringSettingButton(panel, "ActionBar.Message", configData, "Message", "&cRemember to vote"));
+		buttons.add(new IntSettingButton(panel, "ActionBar.Delay", configData, "Delay", 30));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		actionBarFrame.add(panel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange());
+
+		actionBarFrame.add(saveButton, BorderLayout.SOUTH);
+
+		actionBarFrame.setLocationRelativeTo(null);
+		actionBarFrame.setVisible(true);
+	}
+
+	private void openTitleEditor() {
+		JFrame titleFrame = new JFrame("Edit Title");
+		titleFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		titleFrame.setSize(600, 300);
+		titleFrame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+		buttons.add(new BooleanSettingButton(panel, "Title.Enabled", configData, "Enabled"));
+		buttons.add(new StringSettingButton(panel, "Title.Title", configData, "Title", "&cRemember to vote!"));
+		buttons.add(new StringSettingButton(panel, "Title.SubTitle", configData, "SubTitle", "&aType /vote"));
+		buttons.add(new IntSettingButton(panel, "Title.FadeIn", configData, "FadeIn", 10));
+		buttons.add(new IntSettingButton(panel, "Title.ShowTime", configData, "ShowTime", 50));
+		buttons.add(new IntSettingButton(panel, "Title.FadeOut", configData, "FadeOut", 10));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		titleFrame.add(panel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange());
+
+		titleFrame.add(saveButton, BorderLayout.SOUTH);
+
+		titleFrame.setLocationRelativeTo(null);
+		titleFrame.setVisible(true);
 	}
 
 	private JPanel createCollapsiblePanel(String key, String label, int defaultValue) {

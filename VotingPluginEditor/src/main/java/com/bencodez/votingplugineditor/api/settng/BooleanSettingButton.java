@@ -1,6 +1,7 @@
 package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.Map;
 
 import javax.swing.JCheckBox;
@@ -21,18 +22,21 @@ public class BooleanSettingButton implements SettingButton {
 	private JCheckBox checkBox;
 
 	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
-		this.key = key;
-		initialValue = PanelUtils.getBooleanValue(data, key, false);
-		this.labelText = labelText;
-		getComponent(panel);
+		this(panel, key, data, labelText, false, null);
 	}
 
 	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
 			boolean defaultValue) {
+		this(panel, key, data, labelText, defaultValue, null);
+	}
+
+	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText,
+			boolean defaultValue, String hoverText) {
 		this.key = key;
 		initialValue = PanelUtils.getBooleanValue(data, key, defaultValue);
 		this.labelText = labelText;
 		getComponent(panel);
+		checkBox.setToolTipText(hoverText);
 	}
 
 	public JCheckBox createLabelAndTextField(JPanel panel) {
@@ -60,6 +64,17 @@ public class BooleanSettingButton implements SettingButton {
 	@Override
 	public void updateValue() {
 		initialValue = (boolean) getValue();
+	}
+
+	@Override
+	public void setMaxWidth(int width) {
+		checkBox.setMaximumSize(new Dimension(width, checkBox.getPreferredSize().height));
+		checkBox.setPreferredSize(new Dimension(width, checkBox.getPreferredSize().height));
+	}
+
+	@Override
+	public int getWidth() {
+		return checkBox.getPreferredSize().width;
 	}
 
 }

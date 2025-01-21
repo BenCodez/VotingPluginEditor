@@ -56,6 +56,8 @@ public abstract class ItemEditor {
 		saveButton.addActionListener(e -> saveChanges());
 
 		frame.add(saveButton, BorderLayout.SOUTH);
+		
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
