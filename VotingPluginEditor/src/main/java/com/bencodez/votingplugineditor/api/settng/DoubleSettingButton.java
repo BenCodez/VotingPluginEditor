@@ -58,6 +58,15 @@ public class DoubleSettingButton implements SettingButton {
 
 		return textField;
 	}
+	
+	public JTextField getComponent() {
+		return textField;
+	}
+	
+	public void setVisible(boolean visible) {
+		label.setVisible(visible);
+		textField.setVisible(visible);
+	}
 
 	@Override
 	public boolean hasChanged() {

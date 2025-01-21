@@ -81,6 +81,15 @@ public class IntSettingButton implements SettingButton {
 		initialValue = (int) getValue();
 	}
 	
+	public JTextField getComponent() {
+		return textField;
+	}
+	
+	public void setVisible(boolean visible) {
+		label.setVisible(visible);
+		textField.setVisible(visible);
+	}
+	
 	private boolean isWidthSet = false;
 
 	@Override

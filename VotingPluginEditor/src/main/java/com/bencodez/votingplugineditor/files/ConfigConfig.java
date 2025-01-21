@@ -1,3 +1,4 @@
+
 package com.bencodez.votingplugineditor.files;
 
 import java.awt.BorderLayout;
@@ -18,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -56,42 +58,79 @@ public class ConfigConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		Map<String, Object> data = getConfigData();
-
 		settingButtons.add(new BooleanSettingButton(panel, "AdvancedServiceSiteHandling", getConfigData(),
 				"Advanced Service Site Handling"));
 		settingButtons.add(new BooleanSettingButton(panel, "StoreMonthTotalsWithDate", getConfigData(),
 				"Store Month Totals With Date"));
 		settingButtons.add(new BooleanSettingButton(panel, "UseMonthDateTotalsAsPrimaryTotal", getConfigData(),
 				"Use Month Date Totals As Primary Total"));
-		
-		
+
 		settingButtons.add(new StringSettingButton(panel, "DataStorage", getConfigData(), "Data Storage", "SQLITE",
 				new String[] { "SQLITE", "MYSQL" }));
 
+		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+
 		panel.add(createMySQLSettingsPanel());
+		panel.add(createVoteRemindingPanel());
 
-		settingButtons.add(
-				new BooleanSettingButton(panel, "VoteReminding.Enabled", getConfigData(), "Vote Reminding Enabled"));
-		settingButtons.add(new BooleanSettingButton(panel, "VoteReminding.RemindOnLogin", getConfigData(),
-				"Vote Reminding On Login"));
-		settingButtons.add(new BooleanSettingButton(panel, "VoteReminding.RemindOnlyOnce", getConfigData(),
-				"Vote Reminding Only Once"));
-		settingButtons.add(
-				new IntSettingButton(panel, "VoteReminding.RemindDelay", getConfigData(), "Vote Reminding Delay", 30));
-
-		panel.add(Box.createVerticalStrut(10)); // Spacer
-
-		panel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
-
-		panel.add(Box.createVerticalStrut(10)); // Spacer
 		return panel;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getConfigData(String path) {
+		Object data = get(path);
+		if (data instanceof Map) {
+			return (Map<String, Object>) data;
+		}
+		return new HashMap<>();
+	}
+
+	private JPanel createVoteRemindingPanel() {
+		JPanel voteRemindingPanel = new JPanel();
+
+		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
+
+		voteRemindingPanel.setLayout(new BoxLayout(voteRemindingPanel, BoxLayout.Y_AXIS));
+		voteRemindingPanel.setBorder(BorderFactory.createTitledBorder("Vote Reminding Settings"));
+
+		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.Enabled", getConfigData(),
+				"Vote Reminding Enabled"));
+		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.RemindOnLogin", getConfigData(),
+				"Vote Reminding On Login"));
+		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.RemindOnlyOnce", getConfigData(),
+				"Vote Reminding Only Once"));
+		settingButtons.add(new IntSettingButton(voteRemindingPanel, "VoteReminding.RemindDelay", getConfigData(),
+				"Vote Reminding Delay", 30));
+
+		voteRemindingPanel.add(Box.createVerticalStrut(10)); // Spacer
+		voteRemindingPanel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
+		voteRemindingPanel.add(Box.createVerticalStrut(10)); // Spacer
+
+		voteRemindingPanel.setVisible(false); // Initially hide the panel
+
+		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+		this.settingButtons.addAll(settingButtons);
+
+		JButton toggleButton = new JButton("Show/Hide Vote Reminding Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.addActionListener(event -> voteRemindingPanel.setVisible(!voteRemindingPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(voteRemindingPanel);
+
+		return containerPanel;
 	}
 
 	private JPanel createMySQLSettingsPanel() {
 		JPanel mysqlPanel = new JPanel();
 		mysqlPanel.setLayout(new BoxLayout(mysqlPanel, BoxLayout.Y_AXIS));
 		mysqlPanel.setBorder(BorderFactory.createTitledBorder("MySQL Settings"));
+
+		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
 		settingButtons
 				.add(new StringSettingButton(mysqlPanel, "MySQL.Host", getConfigData(), "MySQL Host", "192.168.0.156"));
@@ -106,12 +145,16 @@ public class ConfigConfig extends YmlConfigHandler {
 		settingButtons.add(
 				new StringSettingButton(mysqlPanel, "MySQL.Name", getConfigData(), "MySQL Name", "VotingPlugin_Users"));
 
+		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+
+		this.settingButtons.addAll(settingButtons);
+
 		mysqlPanel.setVisible(false); // Initially hide the panel
 
 		JButton toggleButton = new JButton("Show/Hide MySQL Settings");
 		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
-		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		toggleButton.addActionListener(event -> mysqlPanel.setVisible(!mysqlPanel.isVisible()));
 
 		JPanel containerPanel = new JPanel();
@@ -125,10 +168,11 @@ public class ConfigConfig extends YmlConfigHandler {
 	public JButton addRewardsButton(String path, String name) {
 		JButton rewardsEdit = new JButton(name);
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
+		rewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) get(path)) {
+			new RewardEditor(getConfigData(path)) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
@@ -150,7 +194,7 @@ public class ConfigConfig extends YmlConfigHandler {
 
 				@Override
 				public Map<String, Object> updateData() {
-					return (Map<String, Object>) get(path);
+					return getConfigData(path);
 				}
 			};
 		});

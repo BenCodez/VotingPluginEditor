@@ -3,6 +3,7 @@ package com.bencodez.votingplugineditor.api.edit.rewards;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
+import com.bencodez.votingplugineditor.api.settng.DoubleSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
@@ -148,7 +150,7 @@ public abstract class RewardEditor {
 		});
 
 		panel.add(itemsButton);
-		
+
 		JPanel timedPanel = new JPanel();
 		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.X_AXIS));
 		timedPanel.add(createDelayedPanel());
@@ -156,10 +158,28 @@ public abstract class RewardEditor {
 		panel.add(timedPanel);
 
 		panel.add(PanelUtils.createSectionLabel("Requirements"));
-		buttons.add(new IntSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
-		buttons.add(new BooleanSettingButton(panel, "RequirePermission", configData, "Require Permission (Set below)"));
-		buttons.add(new StringSettingButton(panel, "Permission", configData, "Permission (Enable above)", ""));
-		
+		buttons.add(new DoubleSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
+
+		// Add the "RequirePermission" setting button
+		BooleanSettingButton requirePermissionButton = new BooleanSettingButton(panel, "RequirePermission", configData,
+				"Require Permission (Set after enabling below)");
+		buttons.add(requirePermissionButton);
+
+		// Add the "Permission" setting button
+		StringSettingButton permissionButton = new StringSettingButton(panel, "Permission", configData, "Permission",
+				"");
+		buttons.add(permissionButton);
+
+		// Initially hide the "Permission" line
+		permissionButton.setVisible(requirePermissionButton.getComponent().isSelected());
+
+		// Add an ItemListener to the "RequirePermission" checkbox
+		requirePermissionButton.getComponent().addItemListener(e -> {
+			boolean selected = e.getStateChange() == ItemEvent.SELECTED;
+			permissionButton.setVisible(selected);
+			panel.revalidate();
+			panel.repaint();
+		});
 
 		panel.add(PanelUtils.createSectionLabel("Rewards"));
 
@@ -215,7 +235,7 @@ public abstract class RewardEditor {
 		JPanel delayedPanel = new JPanel();
 		delayedPanel.setLayout(new BoxLayout(delayedPanel, BoxLayout.Y_AXIS));
 		delayedPanel.setBorder(BorderFactory.createTitledBorder("Delayed Settings"));
-		
+
 		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
 
 		buttons.add(new BooleanSettingButton(delayedPanel, "Delayed.Enabled", configData, "Enabled"));
@@ -236,7 +256,7 @@ public abstract class RewardEditor {
 		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 		containerPanel.add(toggleButton);
 		containerPanel.add(delayedPanel);
-		
+
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 		this.buttons.addAll(buttons);
 
@@ -247,7 +267,7 @@ public abstract class RewardEditor {
 		JPanel timedPanel = new JPanel();
 		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.Y_AXIS));
 		timedPanel.setBorder(BorderFactory.createTitledBorder("Timed Settings"));
-		
+
 		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
 
 		buttons.add(new BooleanSettingButton(timedPanel, "Timed.Enabled", configData, "Enabled"));
@@ -266,7 +286,7 @@ public abstract class RewardEditor {
 		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 		containerPanel.add(toggleButton);
 		containerPanel.add(timedPanel);
-		
+
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 		this.buttons.addAll(buttons);
 

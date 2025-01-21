@@ -82,6 +82,15 @@ public class StringListSettingButton implements SettingButton {
 	}
 	
 	private boolean isWidthSet = false;
+	
+	public JTextArea getComponent() {
+        return textArea;
+	}
+	
+	public void setVisible(boolean visible) {
+        label.setVisible(visible);
+        textArea.setVisible(visible);
+	}
 
 	@Override
 	public void setMaxWidth(int width) {

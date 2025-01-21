@@ -46,6 +46,14 @@ public class BooleanSettingButton implements SettingButton {
 		return checkBox;
 	}
 
+	public JCheckBox getComponent() {
+		return checkBox;
+	}
+
+	public void setVisible(boolean visible) {
+		checkBox.setVisible(visible);
+	}
+
 	@Override
 	public boolean hasChanged() {
 		return !checkBox.isSelected() == initialValue;
@@ -73,7 +81,7 @@ public class BooleanSettingButton implements SettingButton {
 		if (isWidthSet) {
 			return;
 		}
-		checkBox.setMaximumSize(new Dimension(width+50, checkBox.getPreferredSize().height));
+		checkBox.setMaximumSize(new Dimension(width + 50, checkBox.getPreferredSize().height));
 		checkBox.setPreferredSize(new Dimension(width, checkBox.getPreferredSize().height));
 		isWidthSet = true;
 	}

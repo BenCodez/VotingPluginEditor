@@ -111,8 +111,21 @@ public class StringSettingButton implements SettingButton {
 	public void updateValue() {
 		initialValue = (String) getValue();
 	}
-	
+
 	private boolean isWidthSet = false;
+
+	public JTextField getComponent() {
+		return textField;
+	}
+
+	public void setVisible(boolean visible) {
+		label.setVisible(visible);
+		if (textField != null) {
+			textField.setVisible(visible);
+		} else {
+			optionsBox.setVisible(visible);
+		}
+	}
 
 	@Override
 	public void setMaxWidth(int width) {
