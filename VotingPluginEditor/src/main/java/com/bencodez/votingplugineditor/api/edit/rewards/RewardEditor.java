@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -144,13 +145,6 @@ public abstract class RewardEditor {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-		JButton itemsButton = new JButton("Edit Items");
-		itemsButton.addActionListener(event -> {
-			openItemsGUI("Edit Items", "Items");
-		});
-
-		panel.add(itemsButton);
-
 		JPanel timedPanel = new JPanel();
 		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.X_AXIS));
 		timedPanel.add(createDelayedPanel());
@@ -195,25 +189,18 @@ public abstract class RewardEditor {
 		buttonPanel.add(createCollapsiblePanel(panel, "EXPLevels", "EXP Levels Settings",
 				new String[] { "EXPLevels", "EXPLevels.Min", "EXPLevels.Max" }));
 
-		buttons.add(new StringListSettingButton(panel, "Commands", configData, "Commands (one per line, no /):"));
-		buttons.add(new StringListSettingButton(panel, "RandomCommand", configData,
-				"RandomCommand (Picks one command at random):"));
+		panel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-		// Add the new button for editing the title
-		JButton editTitleButton = new JButton("Edit Title");
-		editTitleButton.addActionListener(event -> {
-			openTitleEditor();
+		JButton editCommandsButton = new JButton("Edit Commands");
+		editCommandsButton.addActionListener(event -> openCommandsEditor());
+
+		JPanel itemsPanel = new JPanel();
+		itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.X_AXIS));
+
+		JButton itemsButton = new JButton("Edit Items (Give all items)");
+		itemsButton.addActionListener(event -> {
+			openItemsGUI("Edit Items", "Items");
 		});
-
-		panel.add(editTitleButton);
-
-		// Add the new button for editing the action bar
-		JButton editActionBarButton = new JButton("Edit Action Bar");
-		editActionBarButton.addActionListener(event -> {
-			openActionBarEditor();
-		});
-
-		panel.add(editActionBarButton);
 
 		// RandomItem
 		JButton itemsButton2 = new JButton("Edit Random Item (Only give one item)");
@@ -221,14 +208,96 @@ public abstract class RewardEditor {
 			openItemsGUI("Edit RandomItem", "RandomItem");
 		});
 
-		panel.add(itemsButton2);
+		itemsPanel.add(editCommandsButton);
+		itemsPanel.add(itemsButton);
+		itemsPanel.add(itemsButton2);
 
-		buttons.add(new StringListSettingButton(panel, "Messages.Player", configData,
-				"Messages to player (use %player%):"));
+		panel.add(itemsPanel, BorderLayout.CENTER);
+
+		panel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+		JPanel editPanel = new JPanel();
+		editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.X_AXIS));
+
+		// Add the new button for editing the title
+		JButton editTitleButton = new JButton("Edit Title");
+		editTitleButton.addActionListener(event -> {
+			openTitleEditor();
+		});
+		editPanel.add(editTitleButton);
+
+		// Add the new button for editing the action bar
+		JButton editActionBarButton = new JButton("Edit Action Bar");
+		editActionBarButton.addActionListener(event -> {
+			openActionBarEditor();
+		});
+		editPanel.add(editActionBarButton);
+
+		JButton editMessagesButton = new JButton("Edit Messages");
+		editMessagesButton.addActionListener(event -> openMessagesEditor());
+		editPanel.add(editMessagesButton);
+
+		panel.add(editPanel);
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
 		return panel;
+	}
+
+	private void openMessagesEditor() {
+		JFrame messagesFrame = new JFrame("Edit Messages");
+		messagesFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		messagesFrame.setSize(600, 400);
+		messagesFrame.setLayout(new BorderLayout());
+
+		JPanel messagesPanel = new JPanel();
+		messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.Y_AXIS));
+		messagesPanel.setBorder(BorderFactory.createTitledBorder("Messages"));
+
+		buttons.add(new StringListSettingButton(messagesPanel, "Messages.Player", configData,
+				"Messages to player (use %player%):"));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		messagesFrame.add(messagesPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange());
+
+		messagesFrame.add(saveButton, BorderLayout.SOUTH);
+
+		messagesFrame.setLocationRelativeTo(null);
+		messagesFrame.setVisible(true);
+	}
+
+	private void openCommandsEditor() {
+		JFrame commandsFrame = new JFrame("Edit Commands");
+		commandsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		commandsFrame.setSize(600, 400);
+		commandsFrame.setLayout(new BorderLayout());
+
+		JPanel commandsPanel = new JPanel();
+		commandsPanel.setLayout(new BoxLayout(commandsPanel, BoxLayout.Y_AXIS));
+		commandsPanel.setBorder(BorderFactory.createTitledBorder("Commands"));
+
+		buttons.add(
+				new StringListSettingButton(commandsPanel, "Commands", configData, "Commands (one per line, no /):"));
+		buttons.add(new StringListSettingButton(commandsPanel, "RandomCommand", configData,
+				"RandomCommand (Picks one command at random):"));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		commandsFrame.add(commandsPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange());
+
+		commandsFrame.add(saveButton, BorderLayout.SOUTH);
+
+		commandsFrame.setLocationRelativeTo(null);
+		commandsFrame.setVisible(true);
 	}
 
 	private JPanel createDelayedPanel() {
