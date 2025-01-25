@@ -172,7 +172,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor(getConfigData(path)) {
+			new RewardEditor(getConfigData(path),path) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
@@ -188,7 +188,7 @@ public class ConfigConfig extends YmlConfigHandler {
 
 				@Override
 				public void removePath(String subPath) {
-					remove(path + "." + path);
+					remove(path + "." + subPath);
 					save();
 				}
 

@@ -39,18 +39,21 @@ public abstract class RewardEditor {
 
 	private List<SettingButton> buttons;
 
-	public RewardEditor(Map<String, Object> data) {
+	private String path;
+
+	public RewardEditor(Map<String, Object> data, String path) {
 		configData = data;
 		if (configData == null) {
 			configData = new HashMap<String, Object>();
 		}
 		buttons = new ArrayList<SettingButton>();
 		changes = new HashMap<String, Object>();
-		createAndShowGUI();
+		this.path = path;
+		createAndShowGUI(path);
 	}
 
-	private void createAndShowGUI() {
-		frame = new JFrame("Reward Editor");
+	private void createAndShowGUI(String path) {
+		frame = new JFrame("Reward Editor: " + path);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(800, 900);
 		frame.setLayout(new BorderLayout());
@@ -94,11 +97,100 @@ public abstract class RewardEditor {
 		};
 	}
 
+	public JButton addRewardsButton(String path, String name) {
+		JButton rewardsEdit = new JButton(name);
+		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
+		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
+		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
+		String newPath = this.path;
+		if (newPath.length() > 0) {
+			newPath += ".";
+		}
+		newPath += path;
+		final String path1 = newPath;
+		rewardsEdit.addActionListener(event -> {
+			new RewardEditor((Map<String, Object>) PanelUtils.get(configData, path, new HashMap<String, Object>()),
+					path1) {
+
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					try {
+						for (Entry<String, Object> change : changes.entrySet()) {
+							getChanges().put(path + "." + change.getKey(), change.getValue());
+						}
+						saveChange();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void removePath(String subPath) {
+					removePath(path + "." + subPath);
+					saveChange();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					return updateData1();
+				}
+			};
+		});
+		return rewardsEdit;
+	}
+
+	private Map<String, Object> updateData1() {
+		return updateData();
+	}
+
+	private void openJavaScriptEditor() {
+		JFrame javaScriptFrame = new JFrame("Edit JavaScript Rewards");
+		javaScriptFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		javaScriptFrame.setSize(600, 400);
+		javaScriptFrame.setLayout(new BorderLayout());
+
+		JPanel javaScriptPanel = new JPanel();
+		javaScriptPanel.setLayout(new BoxLayout(javaScriptPanel, BoxLayout.Y_AXIS));
+		javaScriptPanel.setBorder(BorderFactory.createTitledBorder("JavaScript Rewards"));
+
+		buttons.add(new BooleanSettingButton(javaScriptPanel, "Javascript.Enabled", configData, "Enabled"));
+		buttons.add(new StringSettingButton(javaScriptPanel, "Javascript.Expression", configData, "Expression", ""));
+
+		javaScriptPanel.add(addRewardsButton("Javascript.TrueRewards", "Edit True Rewards"));
+
+		javaScriptPanel.add(addRewardsButton("Javascript.FalseRewards", "Edit False Rewards"));
+
+		buttons.add(new StringListSettingButton(javaScriptPanel, "Javascripts", configData, "Javascripts"));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		javaScriptFrame.add(javaScriptPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange());
+
+		javaScriptFrame.add(saveButton, BorderLayout.SOUTH);
+
+		javaScriptFrame.setLocationRelativeTo(null);
+		javaScriptFrame.setVisible(true);
+	}
+
 	private void openItemsGUI(String title, String path) {
 		JFrame itemsFrame = new JFrame(title);
 		itemsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		itemsFrame.setSize(600, 600);
 		itemsFrame.setLayout(new BorderLayout());
+
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+
+		if (path.equalsIgnoreCase("Items")) {
+			buttons.add(new BooleanSettingButton(top, "OnlyOneItemChance", configData, "OnlyOneItemChance"));
+			top.add(Box.createRigidArea(new Dimension(0, 15)));
+		}
+
+		itemsFrame.add(top, BorderLayout.NORTH);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -153,6 +245,8 @@ public abstract class RewardEditor {
 
 		panel.add(PanelUtils.createSectionLabel("Requirements"));
 		buttons.add(new DoubleSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
+
+		buttons.add(new StringSettingButton(panel, "JavascriptExpression", configData, "Javascript Expression", ""));
 
 		// Add the "RequirePermission" setting button
 		BooleanSettingButton requirePermissionButton = new BooleanSettingButton(panel, "RequirePermission", configData,
@@ -239,6 +333,10 @@ public abstract class RewardEditor {
 
 		panel.add(editPanel);
 
+		JButton editJavaScriptButton = new JButton("Edit JavaScript Rewards");
+		editJavaScriptButton.addActionListener(event -> openJavaScriptEditor());
+		panel.add(editJavaScriptButton);
+
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
 		return panel;
@@ -256,10 +354,10 @@ public abstract class RewardEditor {
 
 		buttons.add(new StringListSettingButton(messagesPanel, "Messages.Player", configData,
 				"Messages to player (use %player%):"));
-		
+
 		buttons.add(new StringListSettingButton(messagesPanel, "Messages.Broadcast", configData,
 				"Messages to broadcast (use %player%):"));
-		
+
 		buttons.add(new StringListSettingButton(messagesPanel, "Message", configData,
 				"Messages to player (use %player%):"));
 

@@ -92,7 +92,7 @@ public class VoteSiteEditor {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) siteData.get("Rewards")) {
+			new RewardEditor((Map<String, Object>) siteData.get("Rewards"), voteSiteName + ".Rewards") {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
@@ -178,8 +178,8 @@ public class VoteSiteEditor {
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData, "Display Item Material",
 				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in certain GUI's"));
 
-		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData,
-				"Display Item Amount:", 1, "Used in certain GUI's"));
+		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData, "Display Item Amount:", 1,
+				"Used in certain GUI's"));
 
 		return advancedPanel;
 	}
