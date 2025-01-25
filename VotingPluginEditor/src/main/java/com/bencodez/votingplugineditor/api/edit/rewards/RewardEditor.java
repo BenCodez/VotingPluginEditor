@@ -256,6 +256,12 @@ public abstract class RewardEditor {
 
 		buttons.add(new StringListSettingButton(messagesPanel, "Messages.Player", configData,
 				"Messages to player (use %player%):"));
+		
+		buttons.add(new StringListSettingButton(messagesPanel, "Messages.Broadcast", configData,
+				"Messages to broadcast (use %player%):"));
+		
+		buttons.add(new StringListSettingButton(messagesPanel, "Message", configData,
+				"Messages to player (use %player%):"));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
@@ -274,15 +280,26 @@ public abstract class RewardEditor {
 	private void openCommandsEditor() {
 		JFrame commandsFrame = new JFrame("Edit Commands");
 		commandsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		commandsFrame.setSize(600, 400);
+		commandsFrame.setSize(600, 800);
 		commandsFrame.setLayout(new BorderLayout());
 
 		JPanel commandsPanel = new JPanel();
 		commandsPanel.setLayout(new BoxLayout(commandsPanel, BoxLayout.Y_AXIS));
 		commandsPanel.setBorder(BorderFactory.createTitledBorder("Commands"));
 
-		buttons.add(
-				new StringListSettingButton(commandsPanel, "Commands", configData, "Commands (one per line, no /):"));
+		commandsPanel.add(PanelUtils.createSectionLabel("One per line, no /"));
+		buttons.add(new StringListSettingButton(commandsPanel, "Commands", configData,
+				"Commands (Run as console, same as below):"));
+
+		buttons.add(new StringListSettingButton(commandsPanel, "Commands.Console", configData,
+				"Commands.Console (Use above when possible):"));
+
+		buttons.add(new StringListSettingButton(commandsPanel, "Commands.Player", configData,
+				"Commands.Player (Make player run command (one per line, no /):"));
+
+		buttons.add(new BooleanSettingButton(commandsPanel, "Commands.Stagger", configData,
+				"Commands.Stagger (Delays commands by a tick)", true));
+
 		buttons.add(new StringListSettingButton(commandsPanel, "RandomCommand", configData,
 				"RandomCommand (Picks one command at random):"));
 
