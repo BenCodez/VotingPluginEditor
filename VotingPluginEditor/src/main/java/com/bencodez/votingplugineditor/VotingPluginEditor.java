@@ -84,10 +84,6 @@ public class VotingPluginEditor {
 		fileDropdown = new JComboBox<>(HANDLER_CLASSES.keySet().toArray(new String[0]));
 		frame.add(fileDropdown);
 
-		JButton chooseDirButton = new JButton("Choose VotingPlugin Directory");
-		chooseDirButton.addActionListener(e -> chooseDirectory(frame));
-		frame.add(chooseDirButton);
-
 		JButton openEditorButton = new JButton("Open Editor");
 		openEditorButton.addActionListener(e -> openEditor());
 		frame.add(openEditorButton);
@@ -99,6 +95,10 @@ public class VotingPluginEditor {
 		JButton restoreButton = new JButton("Restore Files");
 		restoreButton.addActionListener(e -> restoreFiles());
 		frame.add(restoreButton);
+
+		JButton chooseDirButton = new JButton("Choose VotingPlugin Directory");
+		chooseDirButton.addActionListener(e -> chooseDirectory(frame));
+		frame.add(chooseDirButton);
 
 		directoryPath = prefs.get(PREF_DIRECTORY, null);
 		if (directoryPath != null) {

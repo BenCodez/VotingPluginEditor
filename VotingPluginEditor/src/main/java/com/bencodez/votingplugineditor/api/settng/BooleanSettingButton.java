@@ -2,6 +2,7 @@ package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.util.Map;
 
 import javax.swing.JCheckBox;
@@ -20,6 +21,10 @@ public class BooleanSettingButton implements SettingButton {
 	private String labelText;
 
 	private JCheckBox checkBox;
+
+	public void addActionListener(ActionListener r) {
+		checkBox.addActionListener(r);
+	}
 
 	public BooleanSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
 		this(panel, key, data, labelText, false, null);
@@ -89,6 +94,10 @@ public class BooleanSettingButton implements SettingButton {
 	@Override
 	public int getWidth() {
 		return checkBox.getFontMetrics(checkBox.getFont()).stringWidth(checkBox.getText());
+	}
+
+	public boolean isSelected() {
+		return checkBox.isSelected();
 	}
 
 }
