@@ -17,6 +17,14 @@ public class RewardFilesConfig extends YmlConfigHandler {
 		openEditorGUI();
 	}
 
+	public RewardFilesConfig(String filePath, String name, boolean open) {
+		super(filePath);
+		this.name = name;
+		if (open) {
+			openEditorGUI();
+		}
+	}
+
 	@Override
 	public void openEditorGUI() {
 		new RewardEditor((Map<String, Object>) getConfigData(), name) {

@@ -76,13 +76,8 @@ public class ConfigConfig extends YmlConfigHandler {
 		return panel;
 	}
 
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getConfigData(String path) {
-		Object data = get(path);
-		if (data instanceof Map) {
-			return (Map<String, Object>) data;
-		}
-		return new HashMap<>();
+	private Object getConfigData(String path) {
+		return get(path);
 	}
 
 	private JPanel createVoteRemindingPanel() {
@@ -172,7 +167,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor(getConfigData(path),path) {
+			new RewardEditor(getConfigData(path), path) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
@@ -194,7 +189,7 @@ public class ConfigConfig extends YmlConfigHandler {
 
 				@Override
 				public Map<String, Object> updateData() {
-					return getConfigData(path);
+					return (Map<String, Object>) getConfigData(path);
 				}
 			};
 		});

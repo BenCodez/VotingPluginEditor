@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,10 +16,12 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -27,6 +30,7 @@ import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
+import com.bencodez.votingplugineditor.files.RewardFilesConfig;
 
 import lombok.Getter;
 
@@ -41,13 +45,57 @@ public abstract class RewardEditor {
 
 	private String path;
 
-	public RewardEditor(Map<String, Object> data, String path) {
-		configData = data;
+	@SuppressWarnings("unchecked")
+	public RewardEditor(Object data, String path) {
+		buttons = new ArrayList<SettingButton>();
+		changes = new HashMap<String, Object>();
+		if (data instanceof Map) {
+			configData = (Map<String, Object>) data;
+		} else if (data instanceof List) {
+			configData = new HashMap<String, Object>();
+			System.out.println("Data is a list");
+
+			int confirmation = JOptionPane.showConfirmDialog(null,
+					"In order to edit this reward, it must be converted to not use reward files.",
+					"Would you like to convert this reward?", JOptionPane.YES_NO_OPTION);
+
+			if (confirmation == JOptionPane.YES_OPTION) {
+				ArrayList<String> rewards = (ArrayList<String>) data;
+				if (rewards.size() == 0) {
+					changes.put("", new HashMap<String, Object>());
+					saveChange();
+				} else if (rewards.size() == 1) {
+					RewardFilesConfig rewardFiles = new RewardFilesConfig(VotingPluginEditor.directoryPath
+							+ File.separator + "Rewards" + File.separator + rewards.get(0) + ".yml",
+							rewards.get(0) + ".yml", false);
+
+					for (Entry<String, Object> entry : rewardFiles.getConfigData().entrySet()) {
+						changes.put(entry.getKey(), entry.getValue());
+					}
+
+					saveChange();
+				} else {
+					for (String reward : rewards) {
+						RewardFilesConfig rewardFiles = new RewardFilesConfig(VotingPluginEditor.directoryPath
+								+ File.separator + "Rewards" + File.separator + reward + ".yml", reward + ".yml",
+								false);
+						for (Entry<String, Object> entry : rewardFiles.getConfigData().entrySet()) {
+							changes.put("AdvancedRewards." + reward + "." + entry.getKey(), entry.getValue());
+						}
+
+					}
+					saveChange();
+				}
+			} else {
+				System.out.println("User declined to convert reward");
+				return;
+			}
+
+		}
 		if (configData == null) {
 			configData = new HashMap<String, Object>();
 		}
-		buttons = new ArrayList<SettingButton>();
-		changes = new HashMap<String, Object>();
+
 		this.path = path;
 		createAndShowGUI(path);
 	}
@@ -63,7 +111,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(frame));
 
 		frame.add(saveButton, BorderLayout.SOUTH);
 
@@ -109,12 +157,12 @@ public abstract class RewardEditor {
 		newPath += path;
 		final String path1 = newPath;
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) PanelUtils.get(configData, path, new HashMap<String, Object>()),
-					path1) {
+			new SubRewardEditor(PanelUtils.get(configData, path, new HashMap<String, Object>()), path1) {
 
 				@Override
-				public void saveChanges(Map<String, Object> changes) {
+				public void saveChanges1(Map<String, Object> changes) {
 					try {
+						System.out.println("Saving " + path1);
 						for (Entry<String, Object> change : changes.entrySet()) {
 							getChanges().put(path + "." + change.getKey(), change.getValue());
 						}
@@ -125,22 +173,17 @@ public abstract class RewardEditor {
 				}
 
 				@Override
-				public void removePath(String subPath) {
+				public void removePath1(String subPath) {
 					removePath(path + "." + subPath);
-					saveChange();
 				}
 
 				@Override
-				public Map<String, Object> updateData() {
-					return updateData1();
+				public Map<String, Object> updateData1() {
+					return updateData();
 				}
 			};
 		});
 		return rewardsEdit;
-	}
-
-	private Map<String, Object> updateData1() {
-		return updateData();
 	}
 
 	private void openJavaScriptEditor() {
@@ -168,7 +211,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(javaScriptFrame));
 
 		javaScriptFrame.add(saveButton, BorderLayout.SOUTH);
 
@@ -367,7 +410,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(messagesFrame));
 
 		messagesFrame.add(saveButton, BorderLayout.SOUTH);
 
@@ -407,7 +450,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(commandsFrame));
 
 		commandsFrame.add(saveButton, BorderLayout.SOUTH);
 
@@ -531,7 +574,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(actionBarFrame));
 
 		actionBarFrame.add(saveButton, BorderLayout.SOUTH);
 
@@ -566,7 +609,7 @@ public abstract class RewardEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange());
+		saveButton.addActionListener(e -> saveChange(titleFrame));
 
 		titleFrame.add(saveButton, BorderLayout.SOUTH);
 
@@ -599,6 +642,10 @@ public abstract class RewardEditor {
 	}
 
 	public void saveChange() {
+		saveChange(null);
+	}
+
+	public void saveChange(JFrame frame) {
 		Map<String, Object> changes = new HashMap<>();
 		for (SettingButton button : buttons) {
 			if (button.hasChanged()) {
@@ -615,12 +662,19 @@ public abstract class RewardEditor {
 			saveChanges(changes);
 
 			configData = updateData();
+			if (frame != null) {
+				frame.dispose();
+			}
 		}
 	}
 
 	public abstract Map<String, Object> updateData();
 
 	public abstract void removePath(String path);
+
+	public void removePath1(String path) {
+		removePath(path);
+	}
 
 	public abstract void saveChanges(Map<String, Object> changes);
 }

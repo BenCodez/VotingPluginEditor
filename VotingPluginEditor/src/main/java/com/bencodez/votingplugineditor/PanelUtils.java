@@ -82,6 +82,9 @@ public class PanelUtils {
 				return (String) ob;
 			}
 		} else {
+			if (data.get(key) instanceof Boolean) {
+				return "" + Boolean.TRUE.equals(data.getOrDefault(key, defaultValue));
+			}
 			return (String) data.getOrDefault(key, defaultValue);
 		}
 		return defaultValue;
@@ -201,7 +204,7 @@ public class PanelUtils {
 				maxWidth = width;
 			}
 		}
-		
+
 		maxWidth += 10;
 
 		System.out.println("Max Width: " + maxWidth);

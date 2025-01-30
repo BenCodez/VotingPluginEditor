@@ -59,7 +59,7 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) get(path),path) {
+			new RewardEditor(get(path), path) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {

@@ -2,6 +2,7 @@ package com.bencodez.votingplugineditor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -51,7 +52,11 @@ public abstract class YmlConfigHandler {
 			if (configData == null) {
 				configData = new LinkedHashMap<>();
 			}
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found: " + filePath);
+			configData = new LinkedHashMap<>();
 		} catch (IOException e) {
+
 			e.printStackTrace();
 		}
 	}

@@ -43,7 +43,7 @@ import lombok.Getter;
 
 public class VotingPluginEditor {
 	private static JComboBox<String> fileDropdown;
-	private static String directoryPath;
+	public static String directoryPath;
 	private static final Map<String, Class<? extends YmlConfigHandler>> HANDLER_CLASSES = new HashMap<>();
 	private static final Preferences prefs = Preferences.userNodeForPackage(VotingPluginEditor.class);
 	private static final String PREF_DIRECTORY = "votingPluginDirectory";

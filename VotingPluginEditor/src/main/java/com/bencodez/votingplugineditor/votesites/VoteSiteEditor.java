@@ -14,10 +14,8 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -92,7 +90,7 @@ public class VoteSiteEditor {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor((Map<String, Object>) siteData.get("Rewards"), voteSiteName + ".Rewards") {
+			new RewardEditor(siteData.get("Rewards"), voteSiteName + ".Rewards") {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
