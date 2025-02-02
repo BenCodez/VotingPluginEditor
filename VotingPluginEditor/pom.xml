@@ -61,7 +61,7 @@
 				</executions>
 				<configuration>
 					<mainClass>
-						com.bencodez.votingplugineditor.generator.MaterialGenerator</mainClass>
+						com.bencodez.votingplugineditor.generator.TypeGenerator</mainClass>
 					<includeProjectDependencies>true</includeProjectDependencies>
 					<classpathScope>compile</classpathScope>
 				</configuration>

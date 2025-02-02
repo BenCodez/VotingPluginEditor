@@ -3,16 +3,14 @@ package com.bencodez.votingplugineditor.api.edit.add;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -21,11 +19,18 @@ import com.bencodez.votingplugineditor.api.settng.SettingButton;
 public abstract class AddEditor {
 
 	private JFrame frame;
-	// private Map<String, Object> configData;
-	private List<SettingButton> buttons;
+	private JTextField textField;
+	private JComboBox<String> comboBox;
+	private List<String> options;
 
 	public AddEditor(String name) {
-		buttons = new ArrayList<>();
+
+		// Create GUI
+		createAndShowGUI(name);
+	}
+
+	public AddEditor(String name, List<String> options) {
+		this.options = options;
 
 		// Create GUI
 		createAndShowGUI(name);
@@ -43,8 +48,6 @@ public abstract class AddEditor {
 		frame.setVisible(true);
 	}
 
-	private JTextField textField;
-
 	private JPanel createMainPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -56,16 +59,28 @@ public abstract class AddEditor {
 		JLabel label = new JLabel("Name:");
 		addPanel.add(label);
 
-		textField = new JTextField("");
-		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
-
-		addPanel.add(textField);
+		if (options != null && !options.isEmpty()) {
+			comboBox = new JComboBox<>();
+			comboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, comboBox.getPreferredSize().height));
+			for (String option : options) {
+				comboBox.addItem(option);
+			}
+			addPanel.add(comboBox);
+		} else {
+			textField = new JTextField("");
+			textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
+			addPanel.add(textField);
+		}
 
 		panel.add(addPanel);
 
 		JButton addButton = new JButton("Click to Add");
 		addButton.addActionListener(event -> {
-			onAdd(textField.getText());
+			if (comboBox != null) {
+				onAdd((String) comboBox.getSelectedItem());
+			} else {
+				onAdd(textField.getText());
+			}
 			frame.dispose();
 		});
 		panel.add(addButton);
@@ -75,5 +90,4 @@ public abstract class AddEditor {
 
 	public abstract void onAdd(String name);
 
-	// public abstract void saveChanges(Map<String, Object> changes);
 }

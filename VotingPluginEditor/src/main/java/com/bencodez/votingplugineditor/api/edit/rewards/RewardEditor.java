@@ -275,6 +275,92 @@ public abstract class RewardEditor {
 		itemsFrame.setVisible(true);
 	}
 
+	private void openBossBarEditor() {
+		JFrame bossBarFrame = new JFrame("Edit BossBar");
+		bossBarFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		bossBarFrame.setSize(600, 400);
+		bossBarFrame.setLayout(new BorderLayout());
+
+		JPanel bossBarPanel = new JPanel();
+		bossBarPanel.setLayout(new BoxLayout(bossBarPanel, BoxLayout.Y_AXIS));
+		bossBarPanel.setBorder(BorderFactory.createTitledBorder("BossBar"));
+
+		buttons.add(new BooleanSettingButton(bossBarPanel, "BossBar.Enabled", configData, "Enabled"));
+		buttons.add(new StringSettingButton(bossBarPanel, "BossBar.Message", configData, "Message", ""));
+		buttons.add(new StringSettingButton(bossBarPanel, "BossBar.Color", configData, "Color", "BLUE"));
+		buttons.add(new StringSettingButton(bossBarPanel, "BossBar.Style", configData, "Style", "SOLID"));
+		buttons.add(new DoubleSettingButton(bossBarPanel, "BossBar.Progress", configData, "Progress", 0.50));
+		buttons.add(new IntSettingButton(bossBarPanel, "BossBar.Delay", configData, "Delay", 30));
+
+		bossBarFrame.add(bossBarPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(bossBarFrame));
+
+		bossBarFrame.add(saveButton, BorderLayout.SOUTH);
+
+		bossBarFrame.setLocationRelativeTo(null);
+		bossBarFrame.setVisible(true);
+	}
+
+	private void openSoundEditor() {
+		JFrame soundFrame = new JFrame("Edit Sound");
+		soundFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		soundFrame.setSize(600, 400);
+		soundFrame.setLayout(new BorderLayout());
+
+		JPanel soundPanel = new JPanel();
+		soundPanel.setLayout(new BoxLayout(soundPanel, BoxLayout.Y_AXIS));
+		soundPanel.setBorder(BorderFactory.createTitledBorder("Sound"));
+
+		buttons.add(new BooleanSettingButton(soundPanel, "Sound.Enabled", configData, "Enabled"));
+		buttons.add(new StringSettingButton(soundPanel, "Sound.Sound", configData, "Sound", "BLOCK_ANVIL_USE"));
+		buttons.add(new DoubleSettingButton(soundPanel, "Sound.Volume", configData, "Volume", 1.0));
+		buttons.add(new DoubleSettingButton(soundPanel, "Sound.Pitch", configData, "Pitch", 1.0));
+
+		soundFrame.add(soundPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(soundFrame));
+
+		soundFrame.add(saveButton, BorderLayout.SOUTH);
+
+		soundFrame.setLocationRelativeTo(null);
+		soundFrame.setVisible(true);
+	}
+
+	private void openLocationDistanceEditor() {
+		JFrame locationDistanceFrame = new JFrame("Edit LocationDistance");
+		locationDistanceFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		locationDistanceFrame.setSize(600, 400);
+		locationDistanceFrame.setLayout(new BorderLayout());
+
+		JPanel locationDistancePanel = new JPanel();
+		locationDistancePanel.setLayout(new BoxLayout(locationDistancePanel, BoxLayout.Y_AXIS));
+		locationDistancePanel.setBorder(BorderFactory.createTitledBorder("LocationDistance"));
+
+		buttons.add(
+				new StringSettingButton(locationDistancePanel, "LocationDistance.World", configData, "World", "world"));
+		buttons.add(new IntSettingButton(locationDistancePanel, "LocationDistance.X", configData, "X", 0));
+		buttons.add(new IntSettingButton(locationDistancePanel, "LocationDistance.Y", configData, "Y", 0));
+		buttons.add(new IntSettingButton(locationDistancePanel, "LocationDistance.Z", configData, "Z", 0));
+		buttons.add(
+				new IntSettingButton(locationDistancePanel, "LocationDistance.Distance", configData, "Distance", 10));
+
+		locationDistanceFrame.add(locationDistancePanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(locationDistanceFrame));
+
+		locationDistanceFrame.add(saveButton, BorderLayout.SOUTH);
+
+		locationDistanceFrame.setLocationRelativeTo(null);
+		locationDistanceFrame.setVisible(true);
+	}
+
 	private JPanel createMainPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -311,6 +397,19 @@ public abstract class RewardEditor {
 			panel.revalidate();
 			panel.repaint();
 		});
+
+		BooleanSettingButton forceOfflineButton = new BooleanSettingButton(panel, "ForceOffline", configData,
+				"Force Offline");
+		buttons.add(forceOfflineButton);
+
+		// Add setting button for RewardType with known values
+		StringSettingButton rewardTypeButton = new StringSettingButton(panel, "RewardType", configData, "Reward Type",
+				"BOTH", new String[] { "BOTH", "OFFLINE", "ONLINE" });
+		buttons.add(rewardTypeButton);
+
+		JButton editLocationDistanceButton = new JButton("Edit LocationDistance");
+		editLocationDistanceButton.addActionListener(event -> openLocationDistanceEditor());
+		panel.add(editLocationDistanceButton);
 
 		panel.add(PanelUtils.createSectionLabel("Rewards"));
 
@@ -380,9 +479,443 @@ public abstract class RewardEditor {
 		editJavaScriptButton.addActionListener(event -> openJavaScriptEditor());
 		panel.add(editJavaScriptButton);
 
+		JButton editAdvancedPriorityButton = new JButton(
+				"Edit Advanced Priority (Give first possible reward from list)");
+		editAdvancedPriorityButton.addActionListener(event -> openAdvancedEditor("AdvancedPriority"));
+		panel.add(editAdvancedPriorityButton);
+
+		JButton editAdvancedWorldButton = new JButton("Edit Advanced World (Give rewards based on world name)");
+		editAdvancedWorldButton.addActionListener(event -> openAdvancedEditor("AdvancedWorld"));
+		panel.add(editAdvancedWorldButton);
+
+		JButton editAdvancedRewardsButton = new JButton("Edit Advanced Rewards (Multiple Sub Rewards)");
+		editAdvancedRewardsButton.addActionListener(event -> openAdvancedEditor("AdvancedRewards"));
+		panel.add(editAdvancedRewardsButton);
+
+		JButton editAdvancedRandomRewardButton = new JButton("Edit Advanced Random Reward (Give a random reward)");
+		editAdvancedRandomRewardButton.addActionListener(event -> openAdvancedEditor("AdvancedRandomReward"));
+		panel.add(editAdvancedRandomRewardButton);
+
+		JButton editSpecialChanceButton = new JButton("Edit Special Chance");
+		editSpecialChanceButton.addActionListener(event -> openSpecialChanceEditor());
+		panel.add(editSpecialChanceButton);
+
+		JButton subRewardsButton = new JButton("Edit Rewards (Sub)");
+		subRewardsButton.addActionListener(event -> openSubEditor("Rewards"));
+		panel.add(subRewardsButton);
+
+		JButton editWorldsButton = new JButton("Edit Worlds");
+		editWorldsButton.addActionListener(event -> openWorldsEditor("Worlds"));
+		panel.add(editWorldsButton);
+
+		JButton editBlackListedWorldsButton = new JButton("Edit BlackListedWorlds");
+		editBlackListedWorldsButton.addActionListener(event -> openWorldsEditor("BlackListedWorlds"));
+		panel.add(editBlackListedWorldsButton);
+
+		JButton editBossBarButton = new JButton("Edit BossBar");
+		editBossBarButton.addActionListener(event -> openBossBarEditor());
+		panel.add(editBossBarButton);
+
+		JButton editSoundButton = new JButton("Edit Sound");
+		editSoundButton.addActionListener(event -> openSoundEditor());
+		panel.add(editSoundButton);
+
+		JButton editFireworkButton = new JButton("Edit Firework");
+		editFireworkButton.addActionListener(event -> openFireworkEditor());
+		panel.add(editFireworkButton);
+
+		JButton editLuckyButton = new JButton("Edit Lucky");
+		editLuckyButton.addActionListener(event -> openLuckyEditor());
+		panel.add(editLuckyButton);
+
+		JButton editPotionsButton = new JButton("Edit Potions");
+		editPotionsButton.addActionListener(event -> openPotionsEditor());
+		panel.add(editPotionsButton);
+
+		JButton editPriorityButton = new JButton("Edit Priority");
+		editPriorityButton.addActionListener(event -> openRewardEditor("Priority"));
+		panel.add(editPriorityButton);
+
+		// Add button for Javascripts
+		JButton editJavascriptsButton = new JButton("Edit Javascripts");
+		editJavascriptsButton.addActionListener(event -> openRewardEditor("Javascripts"));
+		panel.add(editJavascriptsButton);
+
+		// Add button for RandomReward
+		JButton editRandomRewardButton = new JButton("Edit RandomReward");
+		editRandomRewardButton.addActionListener(event -> openRewardEditor("RandomReward"));
+		panel.add(editRandomRewardButton);
+
+		// Add button for RandomCommand
+		JButton editRandomCommandButton = new JButton("Edit RandomCommand");
+		editRandomCommandButton.addActionListener(event -> openRewardEditor("RandomCommand"));
+		panel.add(editRandomCommandButton);
+
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
 		return panel;
+	}
+
+	private void openRewardEditor(String type) {
+		JFrame rewardFrame = new JFrame("Edit " + type);
+		rewardFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		rewardFrame.setSize(600, 400);
+		rewardFrame.setLayout(new BorderLayout());
+
+		JPanel rewardPanel = new JPanel();
+		rewardPanel.setLayout(new BoxLayout(rewardPanel, BoxLayout.Y_AXIS));
+		rewardPanel.setBorder(BorderFactory.createTitledBorder(type));
+
+		// Add settings buttons based on the type
+		switch (type) {
+		case "Priority":
+			buttons.add(new StringListSettingButton(rewardPanel, "Priority", configData, "Priority"));
+			break;
+		case "Javascripts":
+			buttons.add(new StringListSettingButton(rewardPanel, "Javascripts", configData, "Javascripts"));
+			break;
+		case "RandomReward":
+			buttons.add(new StringListSettingButton(rewardPanel, "RandomReward", configData, "RandomReward"));
+			break;
+		case "RandomCommand":
+			buttons.add(new StringListSettingButton(rewardPanel, "RandomCommand", configData, "RandomCommand"));
+			break;
+		}
+
+		rewardFrame.add(rewardPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(rewardFrame));
+
+		rewardFrame.add(saveButton, BorderLayout.SOUTH);
+
+		rewardFrame.setLocationRelativeTo(null);
+		rewardFrame.setVisible(true);
+	}
+
+	private void openPotionsEditor() {
+		JFrame potionsFrame = new JFrame("Edit Potions");
+		potionsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		potionsFrame.setSize(600, 400);
+		potionsFrame.setLayout(new BorderLayout());
+
+		JPanel potionsPanel = new JPanel();
+		potionsPanel.setLayout(new BoxLayout(potionsPanel, BoxLayout.Y_AXIS));
+		potionsPanel.setBorder(BorderFactory.createTitledBorder("Potions"));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(potionsFrame.getWidth()) {
+			@Override
+			public void onItemRemove(String name) {
+				removePath("Potions." + name);
+				potionsFrame.dispose();
+				openPotionsEditor();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put("Potions." + name + ".Duration", 100);
+				changes.put("Potions." + name + ".Amplifier", 1);
+				saveChange();
+				potionsFrame.dispose();
+				openPotionsEditor();
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				// Handle item selection if needed
+			}
+		};
+
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, "Potions",
+				new HashMap<String, Object>());
+
+		potionsPanel.add(
+				addRemoveEditor.getAddButton("Add Potion", "Add new potion", VotingPluginEditor.getPotionEffects()));
+		potionsPanel.add(addRemoveEditor.getRemoveButton("Remove Potion", "Remove potion",
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(potionsPanel, PanelUtils.convertSetToArray(map.keySet()));
+
+		potionsFrame.add(potionsPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(potionsFrame));
+
+		potionsFrame.add(saveButton, BorderLayout.SOUTH);
+
+		potionsFrame.setLocationRelativeTo(null);
+		potionsFrame.setVisible(true);
+	}
+
+	private void openLuckyEditor() {
+		JFrame luckyFrame = new JFrame("Edit Lucky");
+		luckyFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		luckyFrame.setSize(600, 400);
+		luckyFrame.setLayout(new BorderLayout());
+
+		JPanel luckyPanel = new JPanel();
+		luckyPanel.setLayout(new BoxLayout(luckyPanel, BoxLayout.Y_AXIS));
+		luckyPanel.setBorder(BorderFactory.createTitledBorder("Lucky"));
+
+		buttons.add(new BooleanSettingButton(luckyPanel, "OnlyOneLucky", configData, "OnlyOneLucky"));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(luckyFrame.getWidth()) {
+			@Override
+			public void onItemRemove(String name) {
+				removePath("Lucky." + name);
+				luckyFrame.dispose();
+				openLuckyEditor();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put("Lucky." + name + ".Messages.Player", "You were lucky and received an extra reward!");
+				changes.put("Lucky." + name + ".Money", 100);
+				saveChange();
+				luckyFrame.dispose();
+				openLuckyEditor();
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				openSubEditor("Lucky." + name);
+			}
+		};
+
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, "Lucky",
+				new HashMap<String, Object>());
+
+		luckyPanel.add(addRemoveEditor.getAddButton("Add Lucky", "Add new lucky reward"));
+		luckyPanel.add(addRemoveEditor.getRemoveButton("Remove Lucky", "Remove lucky reward",
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(luckyPanel, PanelUtils.convertSetToArray(map.keySet()));
+
+		luckyFrame.add(luckyPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(luckyFrame));
+
+		luckyFrame.add(saveButton, BorderLayout.SOUTH);
+
+		luckyFrame.setLocationRelativeTo(null);
+		luckyFrame.setVisible(true);
+	}
+
+	private void openFireworkEditor() {
+		JFrame fireworkFrame = new JFrame("Edit Firework");
+		fireworkFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		fireworkFrame.setSize(600, 400);
+		fireworkFrame.setLayout(new BorderLayout());
+
+		JPanel fireworkPanel = new JPanel();
+		fireworkPanel.setLayout(new BoxLayout(fireworkPanel, BoxLayout.Y_AXIS));
+		fireworkPanel.setBorder(BorderFactory.createTitledBorder("Firework"));
+
+		buttons.add(new BooleanSettingButton(fireworkPanel, "Firework.Enabled", configData, "Enabled"));
+		buttons.add(new IntSettingButton(fireworkPanel, "Firework.Power", configData, "Power", 2));
+		buttons.add(new StringListSettingButton(fireworkPanel, "Firework.Colors", configData, "Colors"));
+		buttons.add(new StringListSettingButton(fireworkPanel, "Firework.FadeOutColor", configData, "FadeOutColor"));
+		buttons.add(new BooleanSettingButton(fireworkPanel, "Firework.Trail", configData, "Trail"));
+		buttons.add(new BooleanSettingButton(fireworkPanel, "Firework.Flicker", configData, "Flicker"));
+		buttons.add(new StringListSettingButton(fireworkPanel, "Firework.Types", configData, "Types"));
+		buttons.add(new BooleanSettingButton(fireworkPanel, "Firework.Detonate", configData, "Detonate"));
+
+		fireworkFrame.add(fireworkPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(fireworkFrame));
+
+		fireworkFrame.add(saveButton, BorderLayout.SOUTH);
+
+		fireworkFrame.setLocationRelativeTo(null);
+		fireworkFrame.setVisible(true);
+	}
+
+	private void openWorldsEditor(String type) {
+		JFrame worldsFrame = new JFrame("Edit " + type);
+		worldsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		worldsFrame.setSize(600, 800);
+		worldsFrame.setLayout(new BorderLayout());
+
+		JPanel worldsPanel = new JPanel();
+		worldsPanel.setLayout(new BoxLayout(worldsPanel, BoxLayout.Y_AXIS));
+		worldsPanel.setBorder(BorderFactory.createTitledBorder(type));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(worldsFrame.getWidth()) {
+
+			@Override
+			public void onItemRemove(String name) {
+				removePath(type + "." + name);
+				worldsFrame.dispose();
+				openWorldsEditor(type);
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put(type + "." + name, new ArrayList<String>());
+				saveChange();
+				worldsFrame.dispose();
+				openWorldsEditor(type);
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				openSubEditor(type + "." + name);
+			}
+		};
+
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, type, new HashMap<String, Object>());
+
+		worldsPanel.add(addRemoveEditor.getAddButton("Add " + type, "Add new " + type.toLowerCase()));
+		worldsPanel.add(addRemoveEditor.getRemoveButton("Remove " + type, "Remove " + type.toLowerCase(),
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(worldsPanel, PanelUtils.convertSetToArray(map.keySet()));
+
+		worldsFrame.add(worldsPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(worldsFrame));
+
+		worldsFrame.add(saveButton, BorderLayout.SOUTH);
+
+		worldsFrame.setLocationRelativeTo(null);
+		worldsFrame.setVisible(true);
+	}
+
+	private void openSpecialChanceEditor() {
+		JFrame specialChanceFrame = new JFrame("Edit Special Chance");
+		specialChanceFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		specialChanceFrame.setSize(600, 800);
+		specialChanceFrame.setLayout(new BorderLayout());
+
+		JPanel specialChancePanel = new JPanel();
+		specialChancePanel.setLayout(new BoxLayout(specialChancePanel, BoxLayout.Y_AXIS));
+		specialChancePanel.setBorder(BorderFactory.createTitledBorder("Special Chance"));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(specialChanceFrame.getWidth()) {
+
+			@Override
+			public void onItemRemove(String name) {
+				removePath("SpecialChance." + name);
+				specialChanceFrame.dispose();
+				openSpecialChanceEditor();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put("SpecialChance." + name + ".Commands", new ArrayList<String>());
+				saveChange();
+				specialChanceFrame.dispose();
+				openSpecialChanceEditor();
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				openSubEditor("SpecialChance." + name);
+			}
+		};
+
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, "SpecialChance",
+				new HashMap<String, Object>());
+
+		specialChancePanel.add(addRemoveEditor.getAddButton("Add Special Chance", "Add new special chance"));
+		specialChancePanel.add(addRemoveEditor.getRemoveButton("Remove Special Chance", "Remove special chance",
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(specialChancePanel, PanelUtils.convertSetToArray(map.keySet()));
+
+		specialChanceFrame.add(specialChancePanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(specialChanceFrame));
+
+		specialChanceFrame.add(saveButton, BorderLayout.SOUTH);
+
+		specialChanceFrame.setLocationRelativeTo(null);
+		specialChanceFrame.setVisible(true);
+	}
+
+	private void openSubEditor(String path) {
+		new SubRewardEditor(PanelUtils.get(configData, path, new HashMap<String, Object>()), path) {
+
+			@Override
+			public void saveChanges1(Map<String, Object> changes) {
+				try {
+					for (Entry<String, Object> change : changes.entrySet()) {
+						getChanges().put(path + "." + change.getKey(), change.getValue());
+					}
+					saveChange();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void removePath1(String subPath) {
+				removePath(path + "." + subPath);
+			}
+
+			@Override
+			public Map<String, Object> updateData1() {
+				return updateData();
+			}
+		};
+	}
+
+	private void openAdvancedEditor(String type) {
+		JFrame advancedFrame = new JFrame("Edit " + type);
+		advancedFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		advancedFrame.setSize(600, 800);
+		advancedFrame.setLayout(new BorderLayout());
+
+		JPanel advancedPanel = new JPanel();
+		advancedPanel.setLayout(new BoxLayout(advancedPanel, BoxLayout.Y_AXIS));
+		advancedPanel.setBorder(BorderFactory.createTitledBorder(type));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(advancedFrame.getWidth()) {
+
+			@Override
+			public void onItemRemove(String name) {
+				removePath(type + "." + name);
+				advancedFrame.dispose();
+				openAdvancedEditor(type);
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				changes.put(type + "." + name + ".Commands", new ArrayList<String>());
+				saveChange();
+				advancedFrame.dispose();
+				openAdvancedEditor(type);
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				openSubEditor(type + "." + name);
+			}
+		};
+
+		Map<String, Object> map = (Map<String, Object>) PanelUtils.get(configData, type, new HashMap<String, Object>());
+
+		advancedPanel.add(addRemoveEditor.getAddButton("Add " + type, "Add new " + type.toLowerCase()));
+		advancedPanel.add(addRemoveEditor.getRemoveButton("Remove " + type, "Remove " + type.toLowerCase(),
+				PanelUtils.convertSetToArray(map.keySet())));
+		addRemoveEditor.getOptionsButtons(advancedPanel, PanelUtils.convertSetToArray(map.keySet()));
+
+		advancedFrame.add(advancedPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(advancedFrame));
+
+		advancedFrame.add(saveButton, BorderLayout.SOUTH);
+
+		advancedFrame.setLocationRelativeTo(null);
+		advancedFrame.setVisible(true);
 	}
 
 	private void openMessagesEditor() {

@@ -38,6 +38,7 @@ import com.bencodez.votingplugineditor.files.ShopConfig;
 import com.bencodez.votingplugineditor.files.SpecialRewardsConfig;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
 import com.bencodez.votingplugineditor.generator.MaterialLoader;
+import com.bencodez.votingplugineditor.generator.PotionLoader;
 
 import lombok.Getter;
 
@@ -49,6 +50,8 @@ public class VotingPluginEditor {
 	private static final String PREF_DIRECTORY = "votingPluginDirectory";
 	@Getter
 	private static List<String> materials;
+	@Getter
+	private static List<String> potionEffects;
 
 	static {
 		HANDLER_CLASSES.put("VoteSites.yml", VoteSitesConfig.class);
@@ -61,6 +64,7 @@ public class VotingPluginEditor {
 
 	public static void main(String[] args) {
 		materials = MaterialLoader.loadMaterials();
+		potionEffects = PotionLoader.loadPotions();
 		SwingUtilities.invokeLater(VotingPluginEditor::createAndShowGUI);
 	}
 

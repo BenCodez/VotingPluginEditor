@@ -3,6 +3,7 @@ package com.bencodez.votingplugineditor.api.edit.add;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.Box;
@@ -26,6 +27,22 @@ public abstract class AddRemoveEditor {
 		addButton.setSize(width, 30);
 		addButton.addActionListener(event -> {
 			new AddEditor(title) {
+
+				@Override
+				public void onAdd(String name) {
+					onItemAdd(name);
+				}
+			};
+		});
+		return addButton;
+	}
+
+	public JButton getAddButton(String label, String title, List<String> options) {
+		JButton addButton = new JButton(label);
+		addButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, addButton.getPreferredSize().height));
+		addButton.setSize(width, 30);
+		addButton.addActionListener(event -> {
+			new AddEditor(title, options) {
 
 				@Override
 				public void onAdd(String name) {
