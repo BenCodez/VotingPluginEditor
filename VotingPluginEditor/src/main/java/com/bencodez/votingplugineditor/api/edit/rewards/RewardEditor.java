@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
@@ -98,27 +99,6 @@ public abstract class RewardEditor {
 
 		this.path = path;
 		createAndShowGUI(path);
-	}
-
-	private void createAndShowGUI(String path) {
-		frame = new JFrame("Reward Editor: " + path);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(800, 900);
-		frame.setLayout(new BorderLayout());
-
-		JPanel panel = createMainPanel();
-		frame.add(panel, BorderLayout.CENTER);
-
-		JButton saveButton = new JButton("Save and Apply Changes");
-		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		saveButton.addActionListener(e -> saveChange(frame));
-
-		frame.add(saveButton, BorderLayout.SOUTH);
-
-		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
-
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
 	}
 
 	private void openItemsGUIItem(String path, String name) {
@@ -361,36 +341,53 @@ public abstract class RewardEditor {
 		locationDistanceFrame.setVisible(true);
 	}
 
-	private JPanel createMainPanel() {
+	private void createAndShowGUI(String path) {
+		frame = new JFrame("Reward Editor: " + path);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(800, 900);
+		frame.setLayout(new BorderLayout());
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+
+		JPanel requirementsPanel = createRequirementsPanel();
+		JPanel rewardsPanel = createRewardsPanel();
+
+		tabbedPane.addTab("Requirements", requirementsPanel);
+		tabbedPane.addTab("Rewards", rewardsPanel);
+
+		frame.add(tabbedPane, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(frame));
+
+		frame.add(saveButton, BorderLayout.SOUTH);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+	}
+
+	private JPanel createRequirementsPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-		JPanel timedPanel = new JPanel();
-		timedPanel.setLayout(new BoxLayout(timedPanel, BoxLayout.X_AXIS));
-		timedPanel.add(createDelayedPanel());
-		timedPanel.add(createTimedPanel());
-		panel.add(timedPanel);
-
 		panel.add(PanelUtils.createSectionLabel("Requirements"));
 		buttons.add(new DoubleSettingButton(panel, "Chance", configData, "Chance to give this entire reward", 0));
-
 		buttons.add(new StringSettingButton(panel, "JavascriptExpression", configData, "Javascript Expression", ""));
 
-		// Add the "RequirePermission" setting button
 		BooleanSettingButton requirePermissionButton = new BooleanSettingButton(panel, "RequirePermission", configData,
 				"Require Permission (Set after enabling below)");
 		buttons.add(requirePermissionButton);
 
-		// Add the "Permission" setting button
 		StringSettingButton permissionButton = new StringSettingButton(panel, "Permission", configData, "Permission",
 				"");
 		buttons.add(permissionButton);
 
-		// Initially hide the "Permission" line
 		permissionButton.setVisible(requirePermissionButton.getComponent().isSelected());
 
-		// Add an ItemListener to the "RequirePermission" checkbox
 		requirePermissionButton.getComponent().addItemListener(e -> {
 			boolean selected = e.getStateChange() == ItemEvent.SELECTED;
 			permissionButton.setVisible(selected);
@@ -402,7 +399,6 @@ public abstract class RewardEditor {
 				"Force Offline");
 		buttons.add(forceOfflineButton);
 
-		// Add setting button for RewardType with known values
 		StringSettingButton rewardTypeButton = new StringSettingButton(panel, "RewardType", configData, "Reward Type",
 				"BOTH", new String[] { "BOTH", "OFFLINE", "ONLINE" });
 		buttons.add(rewardTypeButton);
@@ -411,13 +407,18 @@ public abstract class RewardEditor {
 		editLocationDistanceButton.addActionListener(event -> openLocationDistanceEditor());
 		panel.add(editLocationDistanceButton);
 
+		return panel;
+	}
+
+	private JPanel createRewardsPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
 		panel.add(PanelUtils.createSectionLabel("Rewards"));
 
 		JPanel buttonPanel = new JPanel();
-
-		panel.add(buttonPanel);
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-		// Add Money, EXP, and EXPLevels settings with toggle buttons
 		buttonPanel.add(createCollapsiblePanel(panel, "Money", "Money Settings",
 				new String[] { "Money", "Money.Min", "Money.Max", "Money.Round" }));
 		buttonPanel.add(
@@ -425,7 +426,7 @@ public abstract class RewardEditor {
 		buttonPanel.add(createCollapsiblePanel(panel, "EXPLevels", "EXP Levels Settings",
 				new String[] { "EXPLevels", "EXPLevels.Min", "EXPLevels.Max" }));
 
-		panel.add(Box.createRigidArea(new Dimension(0, 15)));
+		panel.add(buttonPanel);
 
 		JButton editCommandsButton = new JButton("Edit Commands");
 		editCommandsButton.addActionListener(event -> openCommandsEditor());
@@ -434,39 +435,28 @@ public abstract class RewardEditor {
 		itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.X_AXIS));
 
 		JButton itemsButton = new JButton("Edit Items (Give all items)");
-		itemsButton.addActionListener(event -> {
-			openItemsGUI("Edit Items", "Items");
-		});
+		itemsButton.addActionListener(event -> openItemsGUI("Edit Items", "Items"));
 
-		// RandomItem
 		JButton itemsButton2 = new JButton("Edit Random Item (Only give one item)");
-		itemsButton2.addActionListener(event -> {
-			openItemsGUI("Edit RandomItem", "RandomItem");
-		});
+		itemsButton2.addActionListener(event -> openItemsGUI("Edit RandomItem", "RandomItem"));
 
 		itemsPanel.add(editCommandsButton);
 		itemsPanel.add(itemsButton);
 		itemsPanel.add(itemsButton2);
 
-		panel.add(itemsPanel, BorderLayout.CENTER);
+		panel.add(itemsPanel);
 
 		panel.add(Box.createRigidArea(new Dimension(0, 15)));
 
 		JPanel editPanel = new JPanel();
 		editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.X_AXIS));
 
-		// Add the new button for editing the title
 		JButton editTitleButton = new JButton("Edit Title");
-		editTitleButton.addActionListener(event -> {
-			openTitleEditor();
-		});
+		editTitleButton.addActionListener(event -> openTitleEditor());
 		editPanel.add(editTitleButton);
 
-		// Add the new button for editing the action bar
 		JButton editActionBarButton = new JButton("Edit Action Bar");
-		editActionBarButton.addActionListener(event -> {
-			openActionBarEditor();
-		});
+		editActionBarButton.addActionListener(event -> openActionBarEditor());
 		editPanel.add(editActionBarButton);
 
 		JButton editMessagesButton = new JButton("Edit Messages");
@@ -536,17 +526,14 @@ public abstract class RewardEditor {
 		editPriorityButton.addActionListener(event -> openRewardEditor("Priority"));
 		panel.add(editPriorityButton);
 
-		// Add button for Javascripts
 		JButton editJavascriptsButton = new JButton("Edit Javascripts");
 		editJavascriptsButton.addActionListener(event -> openRewardEditor("Javascripts"));
 		panel.add(editJavascriptsButton);
 
-		// Add button for RandomReward
 		JButton editRandomRewardButton = new JButton("Edit RandomReward");
 		editRandomRewardButton.addActionListener(event -> openRewardEditor("RandomReward"));
 		panel.add(editRandomRewardButton);
 
-		// Add button for RandomCommand
 		JButton editRandomCommandButton = new JButton("Edit RandomCommand");
 		editRandomCommandButton.addActionListener(event -> openRewardEditor("RandomCommand"));
 		panel.add(editRandomCommandButton);
