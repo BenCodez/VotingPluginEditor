@@ -17,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
@@ -45,107 +46,100 @@ public class ShopConfig extends YmlConfigHandler {
 	@Getter
 	private Map<String, Object> changes;
 
-	@Override
-	public void openEditorGUI() {
-		frame = new JFrame("Shop.yml VoteShop Editor");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(800, 600);
-		frame.setLayout(new BorderLayout());
+	 @Override
+	 public void openEditorGUI() {
+	  frame = new JFrame("Shop.yml VoteShop Editor");
+	  frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	  frame.setSize(800, 600);
+	  frame.setLayout(new BorderLayout());
 
-		JPanel mainPanel = createMainEditorPanel();
-		frame.add(mainPanel, BorderLayout.NORTH);
+	  JTabbedPane tabbedPane = new JTabbedPane();
 
-		frame.add(Box.createVerticalStrut(10)); // Spacer
+	  JPanel mainPanel = createMainEditorPanel();
+	  tabbedPane.addTab("Shops", mainPanel);
 
-		JPanel generalPanel = new JPanel();
-		generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
-		// generalPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		// generalPanel.add(new JLabel("General VoteShop Settings"));
-		generalPanel.add(PanelUtils.createSectionLabel("General VoteShop Settings"));
+	  JPanel globalPanel = createGlobalSettingsPanel();
+	  tabbedPane.addTab("Global Settings", globalPanel);
 
-		settingButtons
-				.add(new BooleanSettingButton(generalPanel, "VoteShop.Enabled", getConfigData(), "VoteShop Enabled"));
+	  frame.add(tabbedPane, BorderLayout.CENTER);
 
-		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name",
-				"VoteShop"));
-		settingButtons.add(
-				new BooleanSettingButton(generalPanel, "VoteShop.BackButton", getConfigData(), "Vote Shop BackButton"));
-		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.HideLimitedReached", getConfigData(),
-				"Hide items in vote shop which user can not buy"));
-		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.LimitReached", getConfigData(),
-				"VoteShop LimitReached", "&aYou reached your limit"));
-		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.RequireConfirmation", getConfigData(),
-				"VoteShop RequireConfirmation (Global setting)"));
-		settingButtons.add(new StringSettingButton(generalPanel, "VoteShop.Disabled", getConfigData(),
-				"VoteShop Disabled Message", "&cVote shop disabled"));
-		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.ReopenGUIOnPurchase", getConfigData(),
-				"ReopenGUIOnPurchase"));
-		settingButtons.add(new BooleanSettingButton(generalPanel, "VoteShop.HideLimitReached", getConfigData(),
-				"HideLimitReached"));
+	  JButton saveButton = new JButton("Save and Apply Changes");
+	  saveButton.addActionListener(e -> saveChanges());
+	  frame.add(saveButton, BorderLayout.SOUTH);
 
-		settingButtons.add(new StringSettingButton(generalPanel, "ShopConfirmPurchase.Title", getConfigData(),
-				"ShopConfirmPurchase Title", "Confirm Purchase?"));
+	  frame.setLocationRelativeTo(null);
+	  frame.setVisible(true);
+	 }
+	 
+	 private JPanel createGlobalSettingsPanel() {
+		  JPanel panel = new JPanel();
+		  panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		  panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		JPanel confirmPanel = new JPanel();
-		confirmPanel.setLayout(new BoxLayout(confirmPanel, BoxLayout.X_AXIS));
+		  panel.add(PanelUtils.createSectionLabel("General VoteShop Settings"));
 
-		JButton yesButton = new JButton("Confirmation Yes Item");
-		yesButton.addActionListener(e -> {
-			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.YesItem")) {
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.Enabled", getConfigData(), "VoteShop Enabled"));
+		  settingButtons.add(new StringSettingButton(panel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name", "VoteShop"));
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.BackButton", getConfigData(), "Vote Shop BackButton"));
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.HideLimitedReached", getConfigData(), "Hide items in vote shop which user can not buy"));
+		  settingButtons.add(new StringSettingButton(panel, "VoteShop.LimitReached", getConfigData(), "VoteShop LimitReached", "&aYou reached your limit"));
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.RequireConfirmation", getConfigData(), "VoteShop RequireConfirmation (Global setting)"));
+		  settingButtons.add(new StringSettingButton(panel, "VoteShop.Disabled", getConfigData(), "VoteShop Disabled Message", "&cVote shop disabled"));
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.ReopenGUIOnPurchase", getConfigData(), "ReopenGUIOnPurchase"));
+		  settingButtons.add(new BooleanSettingButton(panel, "VoteShop.HideLimitReached", getConfigData(), "HideLimitReached"));
+		  settingButtons.add(new StringSettingButton(panel, "ShopConfirmPurchase.Title", getConfigData(), "ShopConfirmPurchase Title", "Confirm Purchase?"));
 
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					for (Entry<String, Object> change : changes.entrySet()) {
-						getChanges().put("ShopConfirmPurchase.YesItem." + change.getKey(), change.getValue());
-					}
-					if (!changes.isEmpty()) {
-						saveChange();
-					}
-				}
+		  JPanel confirmPanel = new JPanel();
+		  confirmPanel.setLayout(new BoxLayout(confirmPanel, BoxLayout.X_AXIS));
 
-				@Override
-				public void removeItemPath(String path) {
-					remove("ShopConfirmPurchase.YesItem." + path);
-					save();
-				}
-			};
-		});
-		confirmPanel.add(yesButton);
+		  JButton yesButton = new JButton("Confirmation Yes Item");
+		  yesButton.addActionListener(e -> {
+		   new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.YesItem")) {
+		    @Override
+		    public void saveChanges(Map<String, Object> changes) {
+		     for (Entry<String, Object> change : changes.entrySet()) {
+		      getChanges().put("ShopConfirmPurchase.YesItem." + change.getKey(), change.getValue());
+		     }
+		     if (!changes.isEmpty()) {
+		      saveChange();
+		     }
+		    }
 
-		JButton noButton = new JButton("Confirmation No Item");
-		noButton.addActionListener(e -> {
-			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.NoItem")) {
+		    @Override
+		    public void removeItemPath(String path) {
+		     remove("ShopConfirmPurchase.YesItem." + path);
+		     save();
+		    }
+		   };
+		  });
+		  confirmPanel.add(yesButton);
 
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					for (Entry<String, Object> change : changes.entrySet()) {
-						getChanges().put("ShopConfirmPurchase.NoItem." + change.getKey(), change.getValue());
-					}
-					if (!changes.isEmpty()) {
-						saveChange();
-					}
-				}
+		  JButton noButton = new JButton("Confirmation No Item");
+		  noButton.addActionListener(e -> {
+		   new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.NoItem")) {
+		    @Override
+		    public void saveChanges(Map<String, Object> changes) {
+		     for (Entry<String, Object> change : changes.entrySet()) {
+		      getChanges().put("ShopConfirmPurchase.NoItem." + change.getKey(), change.getValue());
+		     }
+		     if (!changes.isEmpty()) {
+		      saveChange();
+		     }
+		    }
 
-				@Override
-				public void removeItemPath(String path) {
-					remove("ShopConfirmPurchase.NoItem." + path);
-					save();
-				}
-			};
-		});
-		confirmPanel.add(noButton);
+		    @Override
+		    public void removeItemPath(String path) {
+		     remove("ShopConfirmPurchase.NoItem." + path);
+		     save();
+		    }
+		   };
+		  });
+		  confirmPanel.add(noButton);
 
-		generalPanel.add(confirmPanel);
+		  panel.add(confirmPanel);
 
-		frame.add(generalPanel);
-
-		JButton saveButton = new JButton("Save and Apply Changes");
-		saveButton.addActionListener(e -> saveChanges());
-		frame.add(saveButton, BorderLayout.SOUTH);
-
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-	}
+		  return panel;
+		 }
 
 	private void openShopEditor(String shop) {
 		JFrame frame = new JFrame("Shop: " + shop);

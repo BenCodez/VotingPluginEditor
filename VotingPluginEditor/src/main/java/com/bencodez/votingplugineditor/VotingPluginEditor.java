@@ -24,7 +24,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -82,13 +81,9 @@ public class VotingPluginEditor {
 		editRewardFilesButton.addActionListener(e -> openRewardFileEditor());
 		frame.add(editRewardFilesButton);
 
-		JLabel label = new JLabel("Select a file to edit:", JLabel.CENTER);
-		frame.add(label);
+		frame.add(Box.createRigidArea(new Dimension(0, 50)));
 
-		fileDropdown = new JComboBox<>(HANDLER_CLASSES.keySet().toArray(new String[0]));
-		frame.add(fileDropdown);
-
-		JButton openEditorButton = new JButton("Open Editor");
+		JButton openEditorButton = new JButton("Open Editor (Select file)");
 		openEditorButton.addActionListener(e -> openEditor());
 		frame.add(openEditorButton);
 
@@ -293,18 +288,38 @@ public class VotingPluginEditor {
 	}
 
 	private static void openEditor() {
-		String selectedFile = (String) fileDropdown.getSelectedItem();
-		if (selectedFile != null && directoryPath != null) {
-			try {
-				String filePath = directoryPath + File.separator + selectedFile;
-				YmlConfigHandler handler = HANDLER_CLASSES.get(selectedFile).getDeclaredConstructor(String.class)
-						.newInstance(filePath);
-				handler.openEditorGUI();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else {
-			JOptionPane.showMessageDialog(null, "Please select a file and a directory.");
-		}
+	    if (directoryPath != null) {
+	        String[] files = HANDLER_CLASSES.keySet().toArray(new String[0]);
+
+	        if (files != null && files.length > 0) {
+	            String selectedFile = (String) JOptionPane.showInputDialog(
+	                null,
+	                "Select a file to edit:",
+	                "File Selection",
+	                JOptionPane.PLAIN_MESSAGE,
+	                null,
+	                files,
+	                files[0]
+	            );
+
+	            if (selectedFile != null && selectedFile.length() > 0) {
+	                try {
+	                    String filePath = directoryPath + File.separator + selectedFile;
+	                    YmlConfigHandler handler = HANDLER_CLASSES.get(selectedFile)
+	                        .getDeclaredConstructor(String.class).newInstance(filePath);
+	                    handler.openEditorGUI();
+	                } catch (Exception e) {
+	                    e.printStackTrace();
+	                    JOptionPane.showMessageDialog(null, "Failed to open " + selectedFile);
+	                }
+	            } else {
+	                JOptionPane.showMessageDialog(null, "No file selected.");
+	            }
+	        } else {
+	            JOptionPane.showMessageDialog(null, "No .yml files found in the directory.");
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(null, "Please select a directory.");
+	    }
 	}
 }

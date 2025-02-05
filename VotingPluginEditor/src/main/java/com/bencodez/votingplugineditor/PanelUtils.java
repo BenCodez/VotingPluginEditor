@@ -207,7 +207,7 @@ public class PanelUtils {
 
 		maxWidth += 10;
 
-		System.out.println("Max Width: " + maxWidth);
+		// System.out.println("Max Width: " + maxWidth);
 
 		// Set each button's maximum width to the calculated value
 		for (SettingButton button : buttons) {

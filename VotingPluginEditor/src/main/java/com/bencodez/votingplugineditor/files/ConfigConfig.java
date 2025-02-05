@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
@@ -42,8 +43,21 @@ public class ConfigConfig extends YmlConfigHandler {
 		frame.setSize(800, 600);
 		frame.setLayout(new BorderLayout());
 
+		JTabbedPane tabbedPane = new JTabbedPane();
+
 		JPanel mainPanel = createMainEditorPanel();
-		frame.add(mainPanel, BorderLayout.CENTER);
+		tabbedPane.addTab("Main Settings", mainPanel);
+
+		JPanel voteRemindingPanel = createVoteRemindingPanel();
+		tabbedPane.addTab("Vote Reminding", voteRemindingPanel);
+
+		JPanel formattingPanel = createFormattingPanel();
+		tabbedPane.addTab("Formatting Settings", formattingPanel);
+
+		JPanel topVoterSettingsPanel = createTopVoterSettingsPanel();
+		tabbedPane.addTab("Top Voter Settings", topVoterSettingsPanel);
+
+		frame.add(tabbedPane, BorderLayout.CENTER);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
@@ -57,8 +71,9 @@ public class ConfigConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		
-		settingButtons.add(new StringSettingButton(panel, "DebugLevel", getConfigData(), "Debug Level", "NONE", new String[] { "NONE", "INFO", "EXTRA" }));
+
+		settingButtons.add(new StringSettingButton(panel, "DebugLevel", getConfigData(), "Debug Level", "NONE",
+				new String[] { "NONE", "INFO", "EXTRA" }));
 
 		settingButtons.add(new BooleanSettingButton(panel, "AdvancedServiceSiteHandling", getConfigData(),
 				"Advanced Service Site Handling"));
@@ -73,9 +88,6 @@ public class ConfigConfig extends YmlConfigHandler {
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 
 		panel.add(createMySQLSettingsPanel());
-		panel.add(createVoteRemindingPanel());
-		panel.add(createFormattingPanel());
-		panel.add(createTopVoterSettingsPanel());
 
 		return panel;
 	}
@@ -83,46 +95,7 @@ public class ConfigConfig extends YmlConfigHandler {
 	private Object getConfigData(String path) {
 		return get(path);
 	}
-	
-	private JPanel createTopVoterSettingsPanel() {
-	    JPanel topVoterSettingsPanel = new JPanel();
-	    topVoterSettingsPanel.setLayout(new BoxLayout(topVoterSettingsPanel, BoxLayout.Y_AXIS));
-	    topVoterSettingsPanel.setBorder(BorderFactory.createTitledBorder("Top Voter Settings"));
 
-	    ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-
-	    // Add your top voter settings here
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterIgnorePermission", getConfigData(), "Top Voter Ignore Permission"));
-	    settingButtons.add(new StringSettingButton(topVoterSettingsPanel, "VoteTopDefault", getConfigData(), "Vote Top Default", "Monthly", new String[] { "AllTime", "Monthly", "Weekly", "Daily" }));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterAwardsTies", getConfigData(), "Top Voter Awards Ties"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.AllTime", getConfigData(), "Load Top Voter AllTime"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Monthly", getConfigData(), "Load Top Voter Monthly"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Weekly", getConfigData(), "Load Top Voter Weekly"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Daily", getConfigData(), "Load Top Voter Daily"));
-	    settingButtons.add(new IntSettingButton(topVoterSettingsPanel, "MaxiumNumberOfTopVotersToLoad", getConfigData(), "Maximum Number Of Top Voters To Load", 1000));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "StoreTopVoters.Weekly", getConfigData(), "Store Top Voters Weekly"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "StoreTopVoters.Daily", getConfigData(), "Store Top Voters Daily"));
-	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LimitMonthlyVotes", getConfigData(), "Limit Monthly Votes"));
-
-	    PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-	    this.settingButtons.addAll(settingButtons);
-
-	    topVoterSettingsPanel.setVisible(false); // Initially hide the panel
-
-	    JButton toggleButton = new JButton("Show/Hide Top Voter Settings");
-	    toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
-	    toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
-	    toggleButton.addActionListener(event -> topVoterSettingsPanel.setVisible(!topVoterSettingsPanel.isVisible()));
-
-	    JPanel containerPanel = new JPanel();
-	    containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
-	    containerPanel.add(toggleButton);
-	    containerPanel.add(topVoterSettingsPanel);
-
-	    return containerPanel;
-	}
-	
 	private JPanel createFormattingPanel() {
 	    JPanel formattingPanel = new JPanel();
 	    formattingPanel.setLayout(new BoxLayout(formattingPanel, BoxLayout.Y_AXIS));
@@ -131,16 +104,22 @@ public class ConfigConfig extends YmlConfigHandler {
 	    ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
 	    // Add your formatting settings here
-	    settingButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line", "&6%Command% - &6%HelpMessage%"));
-	    settingButtons.add(new StringSettingButton(formattingPanel, "Format.BroadcastMsg", getConfigData(), "Broadcast Message", "&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %SiteName%"));
+	    settingButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line",
+	        "&6%Command% - &6%HelpMessage%"));
+	    settingButtons.add(new StringSettingButton(formattingPanel, "Format.BroadcastMsg", getConfigData(),
+	        "Broadcast Message", "&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %SiteName%"));
 
-	    BooleanSettingButton onlyOneOfflineBroadcastButton = new BooleanSettingButton(formattingPanel, "Format.OnlyOneOfflineBroadcast", getConfigData(), "Only One Offline Broadcast");
+	    BooleanSettingButton onlyOneOfflineBroadcastButton = new BooleanSettingButton(formattingPanel,
+	        "Format.OnlyOneOfflineBroadcast", getConfigData(), "Only One Offline Broadcast");
 	    settingButtons.add(onlyOneOfflineBroadcastButton);
 
-	    StringSettingButton offlineBroadcastButton = new StringSettingButton(formattingPanel, "Format.OfflineBroadcast", getConfigData(), "Offline Broadcast", "&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %numberofvotes% times!");
+	    StringSettingButton offlineBroadcastButton = new StringSettingButton(formattingPanel, "Format.OfflineBroadcast",
+	        getConfigData(), "Offline Broadcast",
+	        "&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %numberofvotes% times!");
 	    settingButtons.add(offlineBroadcastButton);
 
-	    settingButtons.add(new BooleanSettingButton(formattingPanel, "Format.BroadcastWhenOnline", getConfigData(), "Broadcast When Online"));
+	    settingButtons.add(new BooleanSettingButton(formattingPanel, "Format.BroadcastWhenOnline", getConfigData(),
+	        "Broadcast When Online"));
 
 	    // Add more settings as needed
 
@@ -155,20 +134,44 @@ public class ConfigConfig extends YmlConfigHandler {
 	        offlineBroadcastButton.setVisible(onlyOneOfflineBroadcastButton.isSelected());
 	    });
 
-	    formattingPanel.setVisible(false); // Initially hide the panel
+	    return formattingPanel;
+	}
 
-	    JButton toggleButton = new JButton("Show/Hide Formatting Settings");
-	    toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
-	    toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
-	    toggleButton.addActionListener(event -> formattingPanel.setVisible(!formattingPanel.isVisible()));
+	private JPanel createTopVoterSettingsPanel() {
+	    JPanel topVoterSettingsPanel = new JPanel();
+	    topVoterSettingsPanel.setLayout(new BoxLayout(topVoterSettingsPanel, BoxLayout.Y_AXIS));
+	    topVoterSettingsPanel.setBorder(BorderFactory.createTitledBorder("Top Voter Settings"));
 
-	    JPanel containerPanel = new JPanel();
-	    containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
-	    containerPanel.add(toggleButton);
-	    containerPanel.add(formattingPanel);
+	    ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
-	    return containerPanel;
+	    // Add your top voter settings here
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterIgnorePermission", getConfigData(),
+	        "Top Voter Ignore Permission"));
+	    settingButtons.add(new StringSettingButton(topVoterSettingsPanel, "VoteTopDefault", getConfigData(),
+	        "Vote Top Default", "Monthly", new String[] { "AllTime", "Monthly", "Weekly", "Daily" }));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterAwardsTies", getConfigData(),
+	        "Top Voter Awards Ties"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.AllTime", getConfigData(),
+	        "Load Top Voter AllTime"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Monthly", getConfigData(),
+	        "Load Top Voter Monthly"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Weekly", getConfigData(),
+	        "Load Top Voter Weekly"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LoadTopVoter.Daily", getConfigData(),
+	        "Load Top Voter Daily"));
+	    settingButtons.add(new IntSettingButton(topVoterSettingsPanel, "MaxiumNumberOfTopVotersToLoad", getConfigData(),
+	        "Maximum Number Of Top Voters To Load", 1000));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "StoreTopVoters.Weekly", getConfigData(),
+	        "Store Top Voters Weekly"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "StoreTopVoters.Daily", getConfigData(),
+	        "Store Top Voters Daily"));
+	    settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "LimitMonthlyVotes", getConfigData(),
+	        "Limit Monthly Votes"));
+
+	    PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+	    this.settingButtons.addAll(settingButtons);
+
+	    return topVoterSettingsPanel;
 	}
 
 	private JPanel createVoteRemindingPanel() {
@@ -192,23 +195,10 @@ public class ConfigConfig extends YmlConfigHandler {
 		voteRemindingPanel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
 		voteRemindingPanel.add(Box.createVerticalStrut(10)); // Spacer
 
-		voteRemindingPanel.setVisible(false); // Initially hide the panel
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
 
-		JButton toggleButton = new JButton("Show/Hide Vote Reminding Settings");
-		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
-		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
-		toggleButton.addActionListener(event -> voteRemindingPanel.setVisible(!voteRemindingPanel.isVisible()));
-
-		JPanel containerPanel = new JPanel();
-		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
-		containerPanel.add(toggleButton);
-		containerPanel.add(voteRemindingPanel);
-
-		return containerPanel;
+		return voteRemindingPanel;
 	}
 
 	private JPanel createMySQLSettingsPanel() {
