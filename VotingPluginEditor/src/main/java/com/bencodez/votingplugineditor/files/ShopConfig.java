@@ -137,6 +137,8 @@ public class ShopConfig extends YmlConfigHandler {
 		  confirmPanel.add(noButton);
 
 		  panel.add(confirmPanel);
+		  
+		  PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 
 		  return panel;
 		 }
