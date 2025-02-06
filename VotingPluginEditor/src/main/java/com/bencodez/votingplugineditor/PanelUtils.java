@@ -169,8 +169,10 @@ public class PanelUtils {
 		return list != null ? list.toArray(new String[0]) : new String[0];
 	}
 
-	public static String[] convertSetToArray(Set<String> set) {
-		return set != null ? set.toArray(new String[0]) : new String[0];
+	public static String[] convertSetToArray(Set<?> set) {
+		if (set == null)
+			return new String[0];
+		return set.stream().map(String::valueOf).toArray(String[]::new);
 	}
 
 	public static JPanel createLabelAndCheckbox(String labelText, boolean isSelected) {

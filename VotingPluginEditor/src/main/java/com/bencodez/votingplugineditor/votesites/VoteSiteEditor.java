@@ -89,6 +89,7 @@ public class VoteSiteEditor {
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
+		rewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
 			new RewardEditor(siteData.get("Rewards"), voteSiteName + ".Rewards") {
 
@@ -132,7 +133,59 @@ public class VoteSiteEditor {
 				}
 			};
 		});
-		panel1.add(rewardsEdit);
+		
+		panel.add(rewardsEdit);
+		
+		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
+	    coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
+	    coolDownEndRewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, coolDownEndRewardsEdit.getPreferredSize().height));
+	    coolDownEndRewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
+	    coolDownEndRewardsEdit.addActionListener(event -> {
+	        new RewardEditor(siteData.get("CoolDownEndRewards"), voteSiteName + ".CoolDownEndRewards") {
+
+	            @Override
+	            public void saveChanges(Map<String, Object> changes) {
+	                try {
+	                    for (Entry<String, Object> change : changes.entrySet()) {
+	                        boolean isInt = false;
+	                        try {
+	                            Integer.parseInt((String) change.getValue());
+	                            isInt = true;
+	                        } catch (Exception e) {
+	                        }
+	                        if (isInt) {
+	                            voteSitesConfig.set("VoteSites." + voteSiteName + ".CoolDownEndRewards." + change.getKey(),
+	                                    Integer.parseInt((String) change.getValue()));
+	                        } else {
+	                            voteSitesConfig.set("VoteSites." + voteSiteName + ".CoolDownEndRewards." + change.getKey(),
+	                                    change.getValue());
+	                        }
+	                    }
+	                    voteSitesConfig.save();
+	                    JOptionPane.showMessageDialog(null, "Changes have been saved.");
+	                } catch (Exception e) {
+	                    e.printStackTrace();
+	                    JOptionPane.showMessageDialog(null, "Failed to save changes.");
+	                }
+	            }
+
+	            @Override
+	            public void removePath(String path) {
+	                voteSitesConfig.remove("VoteSites." + voteSiteName + ".CoolDownEndRewards." + path);
+	                voteSitesConfig.save();
+	            }
+
+	            @Override
+	            public Map<String, Object> updateData() {
+	                return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".CoolDownEndRewards",
+	                        new HashMap<>());
+	            }
+	        };
+	    });
+	    panel1.add(coolDownEndRewardsEdit);
+
+	    panel.add(Box.createVerticalStrut(10));
+	
 
 		panel.add(Box.createVerticalStrut(10));
 
@@ -153,6 +206,7 @@ public class VoteSiteEditor {
 
 		return panel;
 	}
+	
 
 	private JPanel createAdvancedOptionsPanel(Map<String, Object> siteData) {
 		JPanel advancedPanel = new JPanel();
