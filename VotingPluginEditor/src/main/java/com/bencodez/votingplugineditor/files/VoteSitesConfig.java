@@ -55,7 +55,9 @@ public class VoteSitesConfig extends YmlConfigHandler {
 			public void onItemAdd(String name) {
 				if (map.containsKey(name)) {
 					JOptionPane.showMessageDialog(panel, "VoteSite already exists");
+
 				} else {
+					name = name.replaceAll(".", "_");
 					set("VoteSites." + name + ".Enabled", true);
 					set("VoteSites." + name + ".VoteDelay", 24);
 					set("VoteSites." + name + ".Name", name);

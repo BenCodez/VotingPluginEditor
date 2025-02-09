@@ -403,11 +403,107 @@ public abstract class RewardEditor {
 				"BOTH", new String[] { "BOTH", "OFFLINE", "ONLINE" });
 		buttons.add(rewardTypeButton);
 
+		buttons.add(new IntSettingButton(panel, "RewardExpiration", configData, "Reward Expiration (minutes)", -1));
+
+		panel.add(createWorldsPanel());
+
+		panel.add(createServerPanel());
+
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+
 		JButton editLocationDistanceButton = new JButton("Edit LocationDistance");
+		editLocationDistanceButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editLocationDistanceButton.addActionListener(event -> openLocationDistanceEditor());
-		panel.add(editLocationDistanceButton);
+		buttonPanel.add(editLocationDistanceButton);
+
+		JButton editDayOfMonthButton = new JButton("Edit DayOfMonth");
+		editDayOfMonthButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editDayOfMonthButton.addActionListener(event -> openDayOfMonthEditor());
+		buttonPanel.add(editDayOfMonthButton);
+
+		panel.add(buttonPanel);
 
 		return panel;
+	}
+
+	private JPanel createWorldsPanel() {
+		JPanel worldsPanel = new JPanel();
+		worldsPanel.setLayout(new BoxLayout(worldsPanel, BoxLayout.Y_AXIS));
+		worldsPanel.setBorder(BorderFactory.createTitledBorder("Worlds Settings"));
+
+		buttons.add(new StringListSettingButton(worldsPanel, "Worlds", configData, "Worlds"));
+		buttons.add(new StringListSettingButton(worldsPanel, "BlackListedWorlds", configData, "BlackListed Worlds"));
+
+		worldsPanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton("Worlds Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> worldsPanel.setVisible(!worldsPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(worldsPanel);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		return containerPanel;
+	}
+
+	private JPanel createServerPanel() {
+		JPanel serverPanel = new JPanel();
+		serverPanel.setLayout(new BoxLayout(serverPanel, BoxLayout.Y_AXIS));
+		serverPanel.setBorder(BorderFactory.createTitledBorder("Server Settings"));
+
+		buttons.add(new StringSettingButton(serverPanel, "Server", configData, "Server", ""));
+		buttons.add(new StringListSettingButton(serverPanel, "BlockedServers", configData, "Blocked Servers"));
+
+		serverPanel.setVisible(false); // Initially hide the panel
+
+		JButton toggleButton = new JButton("Server Settings");
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		toggleButton.addActionListener(event -> serverPanel.setVisible(!serverPanel.isVisible()));
+
+		JPanel containerPanel = new JPanel();
+		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
+		containerPanel.add(toggleButton);
+		containerPanel.add(serverPanel);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+
+		return containerPanel;
+	}
+
+	private void openDayOfMonthEditor() {
+		JFrame dayOfMonthFrame = new JFrame("Edit DayOfMonth");
+		dayOfMonthFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		dayOfMonthFrame.setSize(600, 400);
+		dayOfMonthFrame.setLayout(new BorderLayout());
+
+		JPanel dayOfMonthPanel = new JPanel();
+		dayOfMonthPanel.setLayout(new BoxLayout(dayOfMonthPanel, BoxLayout.Y_AXIS));
+		dayOfMonthPanel.setBorder(BorderFactory.createTitledBorder("DayOfMonth"));
+
+		buttons.add(new BooleanSettingButton(dayOfMonthPanel, "DayOfMonth.Enabled", configData, "Enabled"));
+		buttons.add(new StringListSettingButton(dayOfMonthPanel, "DayOfMonth.Days", configData, "Days"));
+
+		dayOfMonthFrame.add(dayOfMonthPanel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(dayOfMonthFrame));
+
+		dayOfMonthFrame.add(saveButton, BorderLayout.SOUTH);
+
+		dayOfMonthFrame.setLocationRelativeTo(null);
+		dayOfMonthFrame.setVisible(true);
 	}
 
 	private JPanel createRewardsPanel() {

@@ -16,6 +16,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
@@ -29,9 +30,6 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
 
 public class VoteSiteEditor {
-
-	private static JPanel advancedPanel;
-	private static boolean advancedVisible = false;
 
 	private List<SettingButton> buttons;
 	private String siteName;
@@ -47,13 +45,18 @@ public class VoteSiteEditor {
 	private void createAndShowGUI(String siteName, Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
 		JFrame frame = new JFrame("VoteSite Editor - " + siteName);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(800, 600);
+		frame.setSize(500, 400);
 		frame.setLayout(new BorderLayout());
 
-		JPanel panel = createMainPanel(siteName, siteData, voteSitesConfig);
+		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// Add panel to frame
-		frame.add(panel, BorderLayout.CENTER);
+		JPanel mainPanel = createMainPanel(siteName, siteData, voteSitesConfig);
+		tabbedPane.addTab("Main", mainPanel);
+
+		JPanel advancedPanel = createAdvancedOptionsPanel(siteData, voteSitesConfig);
+		tabbedPane.addTab("Advanced Options", advancedPanel);
+
+		frame.add(tabbedPane, BorderLayout.CENTER);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -92,7 +95,6 @@ public class VoteSiteEditor {
 		rewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
 			new RewardEditor(siteData.get("Rewards"), voteSiteName + ".Rewards") {
-
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
@@ -102,7 +104,6 @@ public class VoteSiteEditor {
 								Integer.parseInt((String) change.getValue());
 								isInt = true;
 							} catch (Exception e) {
-
 							}
 							if (isInt) {
 								voteSitesConfig.set("VoteSites." + voteSiteName + ".Rewards." + change.getKey(),
@@ -133,112 +134,84 @@ public class VoteSiteEditor {
 				}
 			};
 		});
-		
+
 		panel.add(rewardsEdit);
-		
-		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
-	    coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
-	    coolDownEndRewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, coolDownEndRewardsEdit.getPreferredSize().height));
-	    coolDownEndRewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
-	    coolDownEndRewardsEdit.addActionListener(event -> {
-	        new RewardEditor(siteData.get("CoolDownEndRewards"), voteSiteName + ".CoolDownEndRewards") {
-
-	            @Override
-	            public void saveChanges(Map<String, Object> changes) {
-	                try {
-	                    for (Entry<String, Object> change : changes.entrySet()) {
-	                        boolean isInt = false;
-	                        try {
-	                            Integer.parseInt((String) change.getValue());
-	                            isInt = true;
-	                        } catch (Exception e) {
-	                        }
-	                        if (isInt) {
-	                            voteSitesConfig.set("VoteSites." + voteSiteName + ".CoolDownEndRewards." + change.getKey(),
-	                                    Integer.parseInt((String) change.getValue()));
-	                        } else {
-	                            voteSitesConfig.set("VoteSites." + voteSiteName + ".CoolDownEndRewards." + change.getKey(),
-	                                    change.getValue());
-	                        }
-	                    }
-	                    voteSitesConfig.save();
-	                    JOptionPane.showMessageDialog(null, "Changes have been saved.");
-	                } catch (Exception e) {
-	                    e.printStackTrace();
-	                    JOptionPane.showMessageDialog(null, "Failed to save changes.");
-	                }
-	            }
-
-	            @Override
-	            public void removePath(String path) {
-	                voteSitesConfig.remove("VoteSites." + voteSiteName + ".CoolDownEndRewards." + path);
-	                voteSitesConfig.save();
-	            }
-
-	            @Override
-	            public Map<String, Object> updateData() {
-	                return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".CoolDownEndRewards",
-	                        new HashMap<>());
-	            }
-	        };
-	    });
-	    panel1.add(coolDownEndRewardsEdit);
-
-	    panel.add(Box.createVerticalStrut(10));
-	
 
 		panel.add(Box.createVerticalStrut(10));
 
-		// Advanced Options Button
-		JButton advancedButton = new JButton("Advanced Options");
-		advancedButton.setHorizontalAlignment(SwingConstants.CENTER);
-		advancedButton.addActionListener(e -> toggleAdvancedOptions());
-		panel1.add(advancedButton);
-		panel1.add(Box.createVerticalStrut(10));
-
-		panel.add(panel1);
-
-		// Advanced Options Panel
-		advancedPanel = createAdvancedOptionsPanel(siteData);
-		panel.add(advancedPanel);
-		advancedPanel.setVisible(advancedVisible);
-		panel.add(Box.createVerticalStrut(20));
-
 		return panel;
 	}
-	
 
-	private JPanel createAdvancedOptionsPanel(Map<String, Object> siteData) {
+	private JPanel createAdvancedOptionsPanel(Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
 		JPanel advancedPanel = new JPanel();
 		advancedPanel.setLayout(new BoxLayout(advancedPanel, BoxLayout.Y_AXIS));
 		advancedPanel.setBorder(BorderFactory.createTitledBorder("Advanced Options"));
+
 		buttons.add(new BooleanSettingButton(advancedPanel, "WaitUntilVoteDelay", siteData, "Wait Until Vote Delay:",
 				false, "Blocks votes with VoteDelay"));
-
 		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData, "VoteDelayDaily:", false,
 				"VoteDelay is daily instead of hourly"));
-
 		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData, "ForceOffline:", false,
 				"Forces runs rewards while player is offline"));
-
 		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData, "Hidden:", false,
 				"(Hide votesite in GUI's and from counters)"));
-
 		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority:", 5,
 				"Used to orders sites in VoteURL GUI"));
-
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData, "Display Item Material",
 				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in certain GUI's"));
-
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData, "Display Item Amount:", 1,
 				"Used in certain GUI's"));
 
-		return advancedPanel;
-	}
+		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
+		coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
+		coolDownEndRewardsEdit
+				.setMaximumSize(new Dimension(Integer.MAX_VALUE, coolDownEndRewardsEdit.getPreferredSize().height));
+		coolDownEndRewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
+		coolDownEndRewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
+		coolDownEndRewardsEdit.addActionListener(event -> {
+			new RewardEditor(siteData.get("CoolDownEndRewards"), siteName + ".CoolDownEndRewards") {
+				@Override
+				public void saveChanges(Map<String, Object> changes) {
+					try {
+						for (Entry<String, Object> change : changes.entrySet()) {
+							boolean isInt = false;
+							try {
+								Integer.parseInt((String) change.getValue());
+								isInt = true;
+							} catch (Exception e) {
+							}
+							if (isInt) {
+								voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
+										Integer.parseInt((String) change.getValue()));
+							} else {
+								voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
+										change.getValue());
+							}
+						}
+						voteSitesConfig.save();
+						JOptionPane.showMessageDialog(null, "Changes have been saved.");
+					} catch (Exception e) {
+						e.printStackTrace();
+						JOptionPane.showMessageDialog(null, "Failed to save changes.");
+					}
+				}
 
-	private void toggleAdvancedOptions() {
-		advancedVisible = !advancedVisible;
-		advancedPanel.setVisible(advancedVisible);
+				@Override
+				public void removePath(String path) {
+					voteSitesConfig.remove("VoteSites." + siteName + ".CoolDownEndRewards." + path);
+					voteSitesConfig.save();
+				}
+
+				@Override
+				public Map<String, Object> updateData() {
+					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".CoolDownEndRewards",
+							new HashMap<>());
+				}
+			};
+		});
+		advancedPanel.add(coolDownEndRewardsEdit);
+
+		return advancedPanel;
 	}
 
 	private void saveChanges(String voteSiteName, VoteSitesConfig voteSitesConfig) {
