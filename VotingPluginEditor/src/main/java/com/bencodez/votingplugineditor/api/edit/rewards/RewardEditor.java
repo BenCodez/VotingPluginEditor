@@ -421,10 +421,45 @@ public abstract class RewardEditor {
 		editDayOfMonthButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editDayOfMonthButton.addActionListener(event -> openDayOfMonthEditor());
 		buttonPanel.add(editDayOfMonthButton);
+		
+		JButton editVoteTotalButton = new JButton("Edit VoteTotal");
+	    editVoteTotalButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    editVoteTotalButton.addActionListener(event -> openVoteTotalEditor());
+	    buttonPanel.add(editVoteTotalButton);
 
 		panel.add(buttonPanel);
 
 		return panel;
+	}
+	
+	private void openVoteTotalEditor() {
+	    JFrame voteTotalFrame = new JFrame("Edit VoteTotal");
+	    voteTotalFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	    voteTotalFrame.setSize(600, 400);
+	    voteTotalFrame.setLayout(new BorderLayout());
+
+	    JPanel voteTotalPanel = new JPanel();
+	    voteTotalPanel.setLayout(new BoxLayout(voteTotalPanel, BoxLayout.Y_AXIS));
+	    voteTotalPanel.setBorder(BorderFactory.createTitledBorder("VoteTotal"));
+
+	    buttons.add(new BooleanSettingButton(voteTotalPanel, "VoteTotal.AtleastMode", configData, "AtleastMode"));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Daily", configData, "Daily", -1));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Weekly", configData, "Weekly", -1));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Monthly", configData, "Monthly", -1));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.AllTime", configData, "AllTime", -1));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Points", configData, "Points", -1));
+	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.MilestoneCount", configData, "MilestoneCount", -1));
+
+	    voteTotalFrame.add(voteTotalPanel, BorderLayout.CENTER);
+
+	    JButton saveButton = new JButton("Save");
+	    saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+	    saveButton.addActionListener(e -> saveChange(voteTotalFrame));
+
+	    voteTotalFrame.add(saveButton, BorderLayout.SOUTH);
+
+	    voteTotalFrame.setLocationRelativeTo(null);
+	    voteTotalFrame.setVisible(true);
 	}
 
 	private JPanel createWorldsPanel() {

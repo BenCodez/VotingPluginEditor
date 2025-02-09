@@ -70,8 +70,8 @@ public class VotingPluginEditor {
 	private static void createAndShowGUI() {
 		JFrame frame = new JFrame("VotingPlugin File Selector");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(400, 300);
-		frame.setLayout(new GridLayout(8, 1)); // Updated to 7 rows
+		frame.setSize(400, 600);
+		frame.setLayout(new GridLayout(13, 1));
 
 		JButton editVoteSitesButton = new JButton("Edit VoteSites (Opens VoteSites.yml)");
 		editVoteSitesButton.addActionListener(e -> openVoteSitesEditor());
@@ -80,6 +80,26 @@ public class VotingPluginEditor {
 		JButton editRewardFilesButton = new JButton("Edit Reward Files");
 		editRewardFilesButton.addActionListener(e -> openRewardFileEditor());
 		frame.add(editRewardFilesButton);
+		
+	    JButton openConfigButton = new JButton("Open Config.yml");
+	    openConfigButton.addActionListener(e -> openSpecificFileEditor("Config.yml"));
+	    frame.add(openConfigButton);
+
+	    JButton openSpecialRewardsButton = new JButton("Open SpecialRewards.yml (Special Rewards)");
+	    openSpecialRewardsButton.addActionListener(e -> openSpecificFileEditor("SpecialRewards.yml"));
+	    frame.add(openSpecialRewardsButton);
+
+	    JButton openGUIButton = new JButton("Open GUI.yml (GUI's)");
+	    openGUIButton.addActionListener(e -> openSpecificFileEditor("GUI.yml"));
+	    frame.add(openGUIButton);
+
+	    JButton openShopButton = new JButton("Edit VoteShop");
+	    openShopButton.addActionListener(e -> openSpecificFileEditor("Shop.yml"));
+	    frame.add(openShopButton);
+	    
+	    JButton openBungeeSettingsButton = new JButton("Open BungeeSettings.yml");
+	    openBungeeSettingsButton.addActionListener(e -> openSpecificFileEditor("BungeeSettings.yml"));
+	    frame.add(openBungeeSettingsButton);
 
 		frame.add(Box.createRigidArea(new Dimension(0, 50)));
 
@@ -94,6 +114,8 @@ public class VotingPluginEditor {
 		JButton restoreButton = new JButton("Restore Files");
 		restoreButton.addActionListener(e -> restoreFiles());
 		frame.add(restoreButton);
+		
+		frame.add(Box.createRigidArea(new Dimension(0, 50)));
 
 		JButton chooseDirButton = new JButton("Choose VotingPlugin Directory");
 		chooseDirButton.addActionListener(e -> chooseDirectory(frame));
@@ -108,6 +130,21 @@ public class VotingPluginEditor {
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+	}
+	
+	private static void openSpecificFileEditor(String fileName) {
+	    if (directoryPath != null) {
+	        String filePath = directoryPath + File.separator + fileName;
+	        try {
+	            YmlConfigHandler handler = HANDLER_CLASSES.get(fileName).getDeclaredConstructor(String.class).newInstance(filePath);
+	            handler.openEditorGUI();
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(null, "Failed to open " + fileName);
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(null, "Please select a directory.");
+	    }
 	}
 
 	private static void openRewardFileEditor() {
