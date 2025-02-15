@@ -12,6 +12,14 @@ To run the jar file, use the following command in your terminal:
 java -jar VotingPluginEditor.jar
 ```
 
+### Future Plans:
+- Proxy setup (Setup proxy setups with almost one click)
+- Only show configured rewards (With toggle)
+- Preset of advanced rewards
+- Present list of votesites to be added (Auto generate list?)
+- And much more
+  
+
 Pictuires (As of version 1.0):
 
 ![](https://i.imgur.com/Uj3cCxo.png)
