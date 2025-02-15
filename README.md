@@ -12,8 +12,14 @@ To run the jar file, use the following command in your terminal:
 java -jar VotingPluginEditor.jar
 ```
 
-Some sample pictures:
+Pictuires (As of version 1.0):
 
-![](https://i.imgur.com/34nzdaZ.png)
+![](https://i.imgur.com/Uj3cCxo.png)
 
-![](https://i.imgur.com/ZuKbVIF.png)
+![](https://i.imgur.com/IFJmZUZ.png)
+
+![](https://i.imgur.com/F2gBbnE.png)
+
+![](https://i.imgur.com/Edy6keP.png)
+
+![](https://i.imgur.com/ceA7Bs2.png)
