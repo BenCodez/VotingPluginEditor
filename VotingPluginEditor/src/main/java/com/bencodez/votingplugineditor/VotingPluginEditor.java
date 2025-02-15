@@ -24,9 +24,16 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.files.BungeeSettingsConfig;
@@ -61,6 +68,21 @@ public class VotingPluginEditor {
 		HANDLER_CLASSES.put("BungeeSettings.yml", BungeeSettingsConfig.class);
 	}
 
+	private static String getVersionFromPom() {
+		try {
+			File pomFile = new File("pom.xml");
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(pomFile);
+			doc.getDocumentElement().normalize();
+			Element versionElement = (Element) doc.getElementsByTagName("version").item(0);
+			return versionElement.getTextContent();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "Unknown";
+		}
+	}
+
 	public static void main(String[] args) {
 		materials = MaterialLoader.loadMaterials();
 		potionEffects = PotionLoader.loadPotions();
@@ -68,10 +90,19 @@ public class VotingPluginEditor {
 	}
 
 	private static void createAndShowGUI() {
-		JFrame frame = new JFrame("VotingPlugin File Selector");
+		JFrame frame = new JFrame("VotingPluginEditor Main Menu");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(400, 600);
-		frame.setLayout(new GridLayout(13, 1));
+		frame.setLayout(new GridLayout(15, 1));
+
+		String version = getVersionFromPom();
+		JLabel versionLabel = new JLabel("VotingPluginEditor: " + version);
+		versionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		frame.add(versionLabel);
+
+		JLabel secondLine = new JLabel("Ensure you have a backup before editing files.");
+		secondLine.setHorizontalAlignment(SwingConstants.CENTER);
+		frame.add(secondLine);
 
 		JButton editVoteSitesButton = new JButton("Edit VoteSites (Opens VoteSites.yml)");
 		editVoteSitesButton.addActionListener(e -> openVoteSitesEditor());
@@ -80,28 +111,28 @@ public class VotingPluginEditor {
 		JButton editRewardFilesButton = new JButton("Edit Reward Files");
 		editRewardFilesButton.addActionListener(e -> openRewardFileEditor());
 		frame.add(editRewardFilesButton);
-		
-	    JButton openConfigButton = new JButton("Open Config.yml");
-	    openConfigButton.addActionListener(e -> openSpecificFileEditor("Config.yml"));
-	    frame.add(openConfigButton);
 
-	    JButton openSpecialRewardsButton = new JButton("Open SpecialRewards.yml (Special Rewards)");
-	    openSpecialRewardsButton.addActionListener(e -> openSpecificFileEditor("SpecialRewards.yml"));
-	    frame.add(openSpecialRewardsButton);
+		JButton openConfigButton = new JButton("Open Config.yml");
+		openConfigButton.addActionListener(e -> openSpecificFileEditor("Config.yml"));
+		frame.add(openConfigButton);
 
-	    JButton openGUIButton = new JButton("Open GUI.yml (GUI's)");
-	    openGUIButton.addActionListener(e -> openSpecificFileEditor("GUI.yml"));
-	    frame.add(openGUIButton);
+		JButton openSpecialRewardsButton = new JButton("Open SpecialRewards.yml (Special Rewards)");
+		openSpecialRewardsButton.addActionListener(e -> openSpecificFileEditor("SpecialRewards.yml"));
+		frame.add(openSpecialRewardsButton);
 
-	    JButton openShopButton = new JButton("Edit VoteShop");
-	    openShopButton.addActionListener(e -> openSpecificFileEditor("Shop.yml"));
-	    frame.add(openShopButton);
-	    
-	    JButton openBungeeSettingsButton = new JButton("Open BungeeSettings.yml");
-	    openBungeeSettingsButton.addActionListener(e -> openSpecificFileEditor("BungeeSettings.yml"));
-	    frame.add(openBungeeSettingsButton);
+		JButton openGUIButton = new JButton("Open GUI.yml (GUI's)");
+		openGUIButton.addActionListener(e -> openSpecificFileEditor("GUI.yml"));
+		frame.add(openGUIButton);
 
-		frame.add(Box.createRigidArea(new Dimension(0, 50)));
+		JButton openShopButton = new JButton("Edit VoteShop");
+		openShopButton.addActionListener(e -> openSpecificFileEditor("Shop.yml"));
+		frame.add(openShopButton);
+
+		JButton openBungeeSettingsButton = new JButton("Open BungeeSettings.yml");
+		openBungeeSettingsButton.addActionListener(e -> openSpecificFileEditor("BungeeSettings.yml"));
+		frame.add(openBungeeSettingsButton);
+
+		frame.add(Box.createRigidArea(new Dimension(0, 10)));
 
 		JButton openEditorButton = new JButton("Open Editor (Select file)");
 		openEditorButton.addActionListener(e -> openEditor());
@@ -114,8 +145,8 @@ public class VotingPluginEditor {
 		JButton restoreButton = new JButton("Restore Files");
 		restoreButton.addActionListener(e -> restoreFiles());
 		frame.add(restoreButton);
-		
-		frame.add(Box.createRigidArea(new Dimension(0, 50)));
+
+		frame.add(Box.createRigidArea(new Dimension(0, 10)));
 
 		JButton chooseDirButton = new JButton("Choose VotingPlugin Directory");
 		chooseDirButton.addActionListener(e -> chooseDirectory(frame));
@@ -131,20 +162,21 @@ public class VotingPluginEditor {
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
-	
+
 	private static void openSpecificFileEditor(String fileName) {
-	    if (directoryPath != null) {
-	        String filePath = directoryPath + File.separator + fileName;
-	        try {
-	            YmlConfigHandler handler = HANDLER_CLASSES.get(fileName).getDeclaredConstructor(String.class).newInstance(filePath);
-	            handler.openEditorGUI();
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            JOptionPane.showMessageDialog(null, "Failed to open " + fileName);
-	        }
-	    } else {
-	        JOptionPane.showMessageDialog(null, "Please select a directory.");
-	    }
+		if (directoryPath != null) {
+			String filePath = directoryPath + File.separator + fileName;
+			try {
+				YmlConfigHandler handler = HANDLER_CLASSES.get(fileName).getDeclaredConstructor(String.class)
+						.newInstance(filePath);
+				handler.openEditorGUI();
+			} catch (Exception e) {
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Failed to open " + fileName);
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Please select a directory.");
+		}
 	}
 
 	private static void openRewardFileEditor() {
@@ -325,38 +357,31 @@ public class VotingPluginEditor {
 	}
 
 	private static void openEditor() {
-	    if (directoryPath != null) {
-	        String[] files = HANDLER_CLASSES.keySet().toArray(new String[0]);
+		if (directoryPath != null) {
+			String[] files = HANDLER_CLASSES.keySet().toArray(new String[0]);
 
-	        if (files != null && files.length > 0) {
-	            String selectedFile = (String) JOptionPane.showInputDialog(
-	                null,
-	                "Select a file to edit:",
-	                "File Selection",
-	                JOptionPane.PLAIN_MESSAGE,
-	                null,
-	                files,
-	                files[0]
-	            );
+			if (files != null && files.length > 0) {
+				String selectedFile = (String) JOptionPane.showInputDialog(null, "Select a file to edit:",
+						"File Selection", JOptionPane.PLAIN_MESSAGE, null, files, files[0]);
 
-	            if (selectedFile != null && selectedFile.length() > 0) {
-	                try {
-	                    String filePath = directoryPath + File.separator + selectedFile;
-	                    YmlConfigHandler handler = HANDLER_CLASSES.get(selectedFile)
-	                        .getDeclaredConstructor(String.class).newInstance(filePath);
-	                    handler.openEditorGUI();
-	                } catch (Exception e) {
-	                    e.printStackTrace();
-	                    JOptionPane.showMessageDialog(null, "Failed to open " + selectedFile);
-	                }
-	            } else {
-	                JOptionPane.showMessageDialog(null, "No file selected.");
-	            }
-	        } else {
-	            JOptionPane.showMessageDialog(null, "No .yml files found in the directory.");
-	        }
-	    } else {
-	        JOptionPane.showMessageDialog(null, "Please select a directory.");
-	    }
+				if (selectedFile != null && selectedFile.length() > 0) {
+					try {
+						String filePath = directoryPath + File.separator + selectedFile;
+						YmlConfigHandler handler = HANDLER_CLASSES.get(selectedFile)
+								.getDeclaredConstructor(String.class).newInstance(filePath);
+						handler.openEditorGUI();
+					} catch (Exception e) {
+						e.printStackTrace();
+						JOptionPane.showMessageDialog(null, "Failed to open " + selectedFile);
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "No file selected.");
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "No .yml files found in the directory.");
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Please select a directory.");
+		}
 	}
 }

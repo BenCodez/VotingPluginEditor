@@ -421,45 +421,45 @@ public abstract class RewardEditor {
 		editDayOfMonthButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editDayOfMonthButton.addActionListener(event -> openDayOfMonthEditor());
 		buttonPanel.add(editDayOfMonthButton);
-		
+
 		JButton editVoteTotalButton = new JButton("Edit VoteTotal");
-	    editVoteTotalButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    editVoteTotalButton.addActionListener(event -> openVoteTotalEditor());
-	    buttonPanel.add(editVoteTotalButton);
+		editVoteTotalButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editVoteTotalButton.addActionListener(event -> openVoteTotalEditor());
+		buttonPanel.add(editVoteTotalButton);
 
 		panel.add(buttonPanel);
 
 		return panel;
 	}
-	
+
 	private void openVoteTotalEditor() {
-	    JFrame voteTotalFrame = new JFrame("Edit VoteTotal");
-	    voteTotalFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	    voteTotalFrame.setSize(600, 400);
-	    voteTotalFrame.setLayout(new BorderLayout());
+		JFrame voteTotalFrame = new JFrame("Edit VoteTotal");
+		voteTotalFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		voteTotalFrame.setSize(600, 400);
+		voteTotalFrame.setLayout(new BorderLayout());
 
-	    JPanel voteTotalPanel = new JPanel();
-	    voteTotalPanel.setLayout(new BoxLayout(voteTotalPanel, BoxLayout.Y_AXIS));
-	    voteTotalPanel.setBorder(BorderFactory.createTitledBorder("VoteTotal"));
+		JPanel voteTotalPanel = new JPanel();
+		voteTotalPanel.setLayout(new BoxLayout(voteTotalPanel, BoxLayout.Y_AXIS));
+		voteTotalPanel.setBorder(BorderFactory.createTitledBorder("VoteTotal"));
 
-	    buttons.add(new BooleanSettingButton(voteTotalPanel, "VoteTotal.AtleastMode", configData, "AtleastMode"));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Daily", configData, "Daily", -1));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Weekly", configData, "Weekly", -1));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Monthly", configData, "Monthly", -1));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.AllTime", configData, "AllTime", -1));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Points", configData, "Points", -1));
-	    buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.MilestoneCount", configData, "MilestoneCount", -1));
+		buttons.add(new BooleanSettingButton(voteTotalPanel, "VoteTotal.AtleastMode", configData, "AtleastMode"));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Daily", configData, "Daily", -1));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Weekly", configData, "Weekly", -1));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Monthly", configData, "Monthly", -1));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.AllTime", configData, "AllTime", -1));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.Points", configData, "Points", -1));
+		buttons.add(new IntSettingButton(voteTotalPanel, "VoteTotal.MilestoneCount", configData, "MilestoneCount", -1));
 
-	    voteTotalFrame.add(voteTotalPanel, BorderLayout.CENTER);
+		voteTotalFrame.add(voteTotalPanel, BorderLayout.CENTER);
 
-	    JButton saveButton = new JButton("Save");
-	    saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-	    saveButton.addActionListener(e -> saveChange(voteTotalFrame));
+		JButton saveButton = new JButton("Save");
+		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		saveButton.addActionListener(e -> saveChange(voteTotalFrame));
 
-	    voteTotalFrame.add(saveButton, BorderLayout.SOUTH);
+		voteTotalFrame.add(saveButton, BorderLayout.SOUTH);
 
-	    voteTotalFrame.setLocationRelativeTo(null);
-	    voteTotalFrame.setVisible(true);
+		voteTotalFrame.setLocationRelativeTo(null);
+		voteTotalFrame.setVisible(true);
 	}
 
 	private JPanel createWorldsPanel() {
@@ -560,15 +560,18 @@ public abstract class RewardEditor {
 		panel.add(buttonPanel);
 
 		JButton editCommandsButton = new JButton("Edit Commands");
+		editCommandsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editCommandsButton.addActionListener(event -> openCommandsEditor());
 
 		JPanel itemsPanel = new JPanel();
 		itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.X_AXIS));
 
 		JButton itemsButton = new JButton("Edit Items (Give all items)");
+		itemsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		itemsButton.addActionListener(event -> openItemsGUI("Edit Items", "Items"));
 
 		JButton itemsButton2 = new JButton("Edit Random Item (Only give one item)");
+		itemsButton2.setAlignmentX(Component.CENTER_ALIGNMENT);
 		itemsButton2.addActionListener(event -> openItemsGUI("Edit RandomItem", "RandomItem"));
 
 		itemsPanel.add(editCommandsButton);
@@ -583,91 +586,123 @@ public abstract class RewardEditor {
 		editPanel.setLayout(new BoxLayout(editPanel, BoxLayout.X_AXIS));
 
 		JButton editTitleButton = new JButton("Edit Title");
+		editTitleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editTitleButton.addActionListener(event -> openTitleEditor());
 		editPanel.add(editTitleButton);
 
 		JButton editActionBarButton = new JButton("Edit Action Bar");
+		editActionBarButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editActionBarButton.addActionListener(event -> openActionBarEditor());
 		editPanel.add(editActionBarButton);
 
 		JButton editMessagesButton = new JButton("Edit Messages");
+		editMessagesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editMessagesButton.addActionListener(event -> openMessagesEditor());
 		editPanel.add(editMessagesButton);
 
 		panel.add(editPanel);
 
-		JButton editJavaScriptButton = new JButton("Edit JavaScript Rewards");
-		editJavaScriptButton.addActionListener(event -> openJavaScriptEditor());
-		panel.add(editJavaScriptButton);
-
 		JButton editAdvancedPriorityButton = new JButton(
 				"Edit Advanced Priority (Give first possible reward from list)");
+		editAdvancedPriorityButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editAdvancedPriorityButton.addActionListener(event -> openAdvancedEditor("AdvancedPriority"));
-		panel.add(editAdvancedPriorityButton);
 
 		JButton editAdvancedWorldButton = new JButton("Edit Advanced World (Give rewards based on world name)");
+		editAdvancedWorldButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editAdvancedWorldButton.addActionListener(event -> openAdvancedEditor("AdvancedWorld"));
-		panel.add(editAdvancedWorldButton);
 
 		JButton editAdvancedRewardsButton = new JButton("Edit Advanced Rewards (Multiple Sub Rewards)");
+		editAdvancedRewardsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editAdvancedRewardsButton.addActionListener(event -> openAdvancedEditor("AdvancedRewards"));
-		panel.add(editAdvancedRewardsButton);
 
 		JButton editAdvancedRandomRewardButton = new JButton("Edit Advanced Random Reward (Give a random reward)");
+		editAdvancedRandomRewardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editAdvancedRandomRewardButton.addActionListener(event -> openAdvancedEditor("AdvancedRandomReward"));
-		panel.add(editAdvancedRandomRewardButton);
-
-		JButton editSpecialChanceButton = new JButton("Edit Special Chance");
-		editSpecialChanceButton.addActionListener(event -> openSpecialChanceEditor());
-		panel.add(editSpecialChanceButton);
 
 		JButton subRewardsButton = new JButton("Edit Rewards (Sub)");
+		subRewardsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		subRewardsButton.addActionListener(event -> openSubEditor("Rewards"));
-		panel.add(subRewardsButton);
 
-		JButton editWorldsButton = new JButton("Edit Worlds");
-		editWorldsButton.addActionListener(event -> openWorldsEditor("Worlds"));
-		panel.add(editWorldsButton);
+		JPanel centeredPanel = new JPanel();
+		centeredPanel.setLayout(new BoxLayout(centeredPanel, BoxLayout.Y_AXIS));
+		centeredPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		centeredPanel.add(editAdvancedPriorityButton);
+		centeredPanel.add(editAdvancedWorldButton);
+		centeredPanel.add(editAdvancedRewardsButton);
+		centeredPanel.add(editAdvancedRandomRewardButton);
+		centeredPanel.add(subRewardsButton);
 
-		JButton editBlackListedWorldsButton = new JButton("Edit BlackListedWorlds");
-		editBlackListedWorldsButton.addActionListener(event -> openWorldsEditor("BlackListedWorlds"));
-		panel.add(editBlackListedWorldsButton);
+		panel.add(centeredPanel);
 
-		JButton editBossBarButton = new JButton("Edit BossBar");
-		editBossBarButton.addActionListener(event -> openBossBarEditor());
-		panel.add(editBossBarButton);
-
-		JButton editSoundButton = new JButton("Edit Sound");
-		editSoundButton.addActionListener(event -> openSoundEditor());
-		panel.add(editSoundButton);
-
-		JButton editFireworkButton = new JButton("Edit Firework");
-		editFireworkButton.addActionListener(event -> openFireworkEditor());
-		panel.add(editFireworkButton);
-
-		JButton editLuckyButton = new JButton("Edit Lucky");
-		editLuckyButton.addActionListener(event -> openLuckyEditor());
-		panel.add(editLuckyButton);
-
-		JButton editPotionsButton = new JButton("Edit Potions");
-		editPotionsButton.addActionListener(event -> openPotionsEditor());
-		panel.add(editPotionsButton);
+		JPanel horizontalPanel = new JPanel();
+		horizontalPanel.setLayout(new BoxLayout(horizontalPanel, BoxLayout.X_AXIS));
 
 		JButton editPriorityButton = new JButton("Edit Priority");
+		editPriorityButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editPriorityButton.addActionListener(event -> openRewardEditor("Priority"));
-		panel.add(editPriorityButton);
+		horizontalPanel.add(editPriorityButton);
 
 		JButton editJavascriptsButton = new JButton("Edit Javascripts");
+		editJavascriptsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editJavascriptsButton.addActionListener(event -> openRewardEditor("Javascripts"));
-		panel.add(editJavascriptsButton);
+		horizontalPanel.add(editJavascriptsButton);
 
 		JButton editRandomRewardButton = new JButton("Edit RandomReward");
+		editRandomRewardButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editRandomRewardButton.addActionListener(event -> openRewardEditor("RandomReward"));
-		panel.add(editRandomRewardButton);
+		horizontalPanel.add(editRandomRewardButton);
+
+		panel.add(horizontalPanel);
+
+		JPanel horizontalPanel2 = new JPanel();
+		horizontalPanel2.setLayout(new BoxLayout(horizontalPanel2, BoxLayout.X_AXIS));
+
+		JButton editBossBarButton = new JButton("Edit BossBar");
+		editBossBarButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editBossBarButton.addActionListener(event -> openBossBarEditor());
+		horizontalPanel2.add(editBossBarButton);
+
+		JButton editSoundButton = new JButton("Edit Sound");
+		editSoundButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editSoundButton.addActionListener(event -> openSoundEditor());
+		horizontalPanel2.add(editSoundButton);
+
+		JButton editFireworkButton = new JButton("Edit Firework");
+		editFireworkButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editFireworkButton.addActionListener(event -> openFireworkEditor());
+		horizontalPanel2.add(editFireworkButton);
+
+		JButton editPotionsButton = new JButton("Edit Potions");
+		editPotionsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editPotionsButton.addActionListener(event -> openPotionsEditor());
+		horizontalPanel2.add(editPotionsButton);
+
+		panel.add(horizontalPanel2);
+
+		JPanel horizontalPanel3 = new JPanel();
+		horizontalPanel3.setLayout(new BoxLayout(horizontalPanel3, BoxLayout.X_AXIS));
 
 		JButton editRandomCommandButton = new JButton("Edit RandomCommand");
+		editRandomCommandButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		editRandomCommandButton.addActionListener(event -> openRewardEditor("RandomCommand"));
-		panel.add(editRandomCommandButton);
+		horizontalPanel3.add(editRandomCommandButton);
+
+		JButton editSpecialChanceButton = new JButton("Edit Special Chance");
+		editSpecialChanceButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editSpecialChanceButton.addActionListener(event -> openSpecialChanceEditor());
+		horizontalPanel3.add(editSpecialChanceButton);
+
+		JButton editLuckyButton = new JButton("Edit Lucky");
+		editLuckyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editLuckyButton.addActionListener(event -> openLuckyEditor());
+		horizontalPanel3.add(editLuckyButton);
+
+		JButton editJavaScriptButton = new JButton("Edit JavaScript Rewards");
+		editJavaScriptButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		editJavaScriptButton.addActionListener(event -> openJavaScriptEditor());
+		horizontalPanel3.add(editJavaScriptButton);
+
+		panel.add(horizontalPanel3);
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 
