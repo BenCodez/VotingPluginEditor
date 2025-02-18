@@ -34,8 +34,8 @@ public class GUIConfig extends YmlConfigHandler {
 
 	private final List<SettingButton> settingButtons;
 
-	public GUIConfig(String filePath) {
-		super(filePath);
+	public GUIConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		this.settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -201,6 +201,11 @@ public class GUIConfig extends YmlConfigHandler {
 				@Override
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) get(path);
+				}
+				
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});

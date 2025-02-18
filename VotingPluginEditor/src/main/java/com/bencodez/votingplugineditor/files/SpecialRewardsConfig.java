@@ -32,8 +32,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 public class SpecialRewardsConfig extends YmlConfigHandler {
 	private final ArrayList<SettingButton> settingButtons;
 
-	public SpecialRewardsConfig(String filePath) {
-		super(filePath);
+	public SpecialRewardsConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -229,6 +229,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 					public Map<String, Object> updateData() {
 						load();
 						return (Map<String, Object>) get("WeeklyAwards." + name + ".Rewards");
+					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
 					}
 				};
 			}
@@ -428,6 +433,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Day." + name + ".Rewards");
 					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
+					}
 				};
 			}
 		};
@@ -582,6 +592,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("DailyAwards." + name + ".Rewards");
 					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
+					}
 				};
 			}
 		};
@@ -650,6 +665,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("MonthlyAwards." + name + ".Rewards");
 					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
+					}
 				};
 			}
 		};
@@ -698,6 +718,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 				public Map<String, Object> updateData() {
 					load();
 					return (Map<String, Object>) get(path);
+				}
+				
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});
@@ -757,6 +782,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 					public Map<String, Object> updateData() {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Week." + name + ".Rewards");
+					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
 					}
 				};
 			}
@@ -828,6 +858,11 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 					public Map<String, Object> updateData() {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Month." + name + ".Rewards");
+					}
+					
+					@Override
+					public String getVotingPluginDirectory() {
+						return getPluginDirectory();
 					}
 				};
 			}

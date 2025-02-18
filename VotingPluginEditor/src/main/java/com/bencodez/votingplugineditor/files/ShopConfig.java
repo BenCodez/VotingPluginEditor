@@ -37,8 +37,8 @@ public class ShopConfig extends YmlConfigHandler {
 
 	private JFrame frame;
 
-	public ShopConfig(String filePath) {
-		super(filePath);
+	public ShopConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		settingButtons = new ArrayList<SettingButton>();
 		changes = new HashMap<String, Object>();
 	}
@@ -283,6 +283,11 @@ public class ShopConfig extends YmlConfigHandler {
 				@Override
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) get(path);
+				}
+				
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});

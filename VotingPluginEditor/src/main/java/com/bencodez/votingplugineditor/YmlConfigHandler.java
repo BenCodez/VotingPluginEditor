@@ -18,13 +18,17 @@ import lombok.Getter;
 public abstract class YmlConfigHandler {
 	protected String filePath;
 	@Getter
+	private String pluginDirectory;
+
+	@Getter
 	protected Map<String, Object> configData;
 	protected Map<String, String> commentMap;
 
-	public YmlConfigHandler(String filePath) {
+	public YmlConfigHandler(String filePath, String votingPluginDirectory) {
 		this.filePath = filePath;
 		this.configData = new LinkedHashMap<>();
 		this.commentMap = new LinkedHashMap<>();
+		this.pluginDirectory = votingPluginDirectory;
 		load();
 	}
 

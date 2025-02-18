@@ -26,7 +26,14 @@ public abstract class SubRewardEditor {
 			public void removePath(String path) {
 				removePath1(path);
 			}
+
+			@Override
+			public String getVotingPluginDirectory() {
+				return getVotingPluginDirectory1();
+			}
 		};
 	}
+
+	public abstract String getVotingPluginDirectory1();
 
 }

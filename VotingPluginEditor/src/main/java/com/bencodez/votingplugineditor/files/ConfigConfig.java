@@ -31,8 +31,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 public class ConfigConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
-	public ConfigConfig(String filePath) {
-		super(filePath);
+	public ConfigConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -87,7 +87,8 @@ public class ConfigConfig extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(panel, "UseMonthDateTotalsAsPrimaryTotal", getConfigData(),
 				"Use Month Date Totals As Primary Total"));
 		settingButtons.add(new BooleanSettingButton(panel, "AllowUnjoined", getConfigData(), "AllowUnjoined"));
-		settingButtons.add(new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission"));
+		settingButtons.add(
+				new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission"));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
@@ -273,6 +274,11 @@ public class ConfigConfig extends YmlConfigHandler {
 				@Override
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) getConfigData(path);
+				}
+
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});

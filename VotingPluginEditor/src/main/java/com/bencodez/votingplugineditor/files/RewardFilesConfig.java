@@ -10,15 +10,15 @@ public class RewardFilesConfig extends YmlConfigHandler {
 	// private final List<SettingButton> settingButtons;
 	private final String name;
 
-	public RewardFilesConfig(String filePath, String name) {
-		super(filePath);
+	public RewardFilesConfig(String filePath, String name, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		this.name = name;
 		// settingButtons = new ArrayList<SettingButton>();
 		openEditorGUI();
 	}
 
-	public RewardFilesConfig(String filePath, String name, boolean open) {
-		super(filePath);
+	public RewardFilesConfig(String filePath, String name, boolean open, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		this.name = name;
 		if (open) {
 			openEditorGUI();
@@ -51,6 +51,11 @@ public class RewardFilesConfig extends YmlConfigHandler {
 			public Map<String, Object> updateData() {
 				load();
 				return getConfigData();
+			}
+
+			@Override
+			public String getVotingPluginDirectory() {
+				return getPluginDirectory();
 			}
 		};
 	}

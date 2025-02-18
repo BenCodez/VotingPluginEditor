@@ -22,8 +22,8 @@ import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {
-	public VoteSitesConfig(String filePath) {
-		super(filePath);
+	public VoteSitesConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 	}
 
 	@Override
@@ -117,6 +117,11 @@ public class VoteSitesConfig extends YmlConfigHandler {
 				public Map<String, Object> updateData() {
 					load();
 					return (Map<String, Object>) get("EverySiteReward");
+				}
+
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});

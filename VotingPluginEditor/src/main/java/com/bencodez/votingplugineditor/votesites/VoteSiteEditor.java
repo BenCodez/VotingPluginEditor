@@ -132,6 +132,11 @@ public class VoteSiteEditor {
 					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".Rewards",
 							new HashMap<>());
 				}
+
+				@Override
+				public String getVotingPluginDirectory() {
+					return voteSitesConfig.getPluginDirectory();
+				}
 			};
 		});
 
@@ -206,6 +211,11 @@ public class VoteSiteEditor {
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".CoolDownEndRewards",
 							new HashMap<>());
+				}
+
+				@Override
+				public String getVotingPluginDirectory() {
+					return voteSitesConfig.getPluginDirectory();
 				}
 			};
 		});

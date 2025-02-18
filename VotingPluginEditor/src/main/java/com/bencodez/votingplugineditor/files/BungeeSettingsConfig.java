@@ -31,8 +31,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 public class BungeeSettingsConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
-	public BungeeSettingsConfig(String filePath) {
-		super(filePath);
+	public BungeeSettingsConfig(String filePath, String votingPluginDirectory) {
+		super(filePath, votingPluginDirectory);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -223,6 +223,11 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 				@Override
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) get(path);
+				}
+
+				@Override
+				public String getVotingPluginDirectory() {
+					return getPluginDirectory();
 				}
 			};
 		});
