@@ -2,6 +2,8 @@ package com.bencodez.votingplugineditor.api.edit.rewards;
 
 import java.util.Map;
 
+import com.bencodez.votingplugineditor.SFTPSettings;
+
 public abstract class SubRewardEditor {
 	public abstract void saveChanges1(Map<String, Object> changes);
 
@@ -31,8 +33,15 @@ public abstract class SubRewardEditor {
 			public String getVotingPluginDirectory() {
 				return getVotingPluginDirectory1();
 			}
+
+			@Override
+			public SFTPSettings getSFTPSetting() {
+				return getSFTPSettings1();
+			}
 		};
 	}
+
+	protected abstract SFTPSettings getSFTPSettings1();
 
 	public abstract String getVotingPluginDirectory1();
 

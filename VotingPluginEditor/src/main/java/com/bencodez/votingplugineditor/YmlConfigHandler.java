@@ -2,10 +2,13 @@ package com.bencodez.votingplugineditor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +16,12 @@ import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+
 import lombok.Getter;
+import lombok.Setter;
 
 public abstract class YmlConfigHandler {
 	protected String filePath;
@@ -24,15 +32,92 @@ public abstract class YmlConfigHandler {
 	protected Map<String, Object> configData;
 	protected Map<String, String> commentMap;
 
-	public YmlConfigHandler(String filePath, String votingPluginDirectory) {
+	@Getter
+	@Setter
+	private boolean useSFTP = false;
+
+	@Getter
+	@Setter
+	private SFTPSettings sFTPSettings;
+
+	public YmlConfigHandler(String filePath, String votingPluginDirectory, SFTPSettings sftpSettings) {
 		this.filePath = filePath;
 		this.configData = new LinkedHashMap<>();
 		this.commentMap = new LinkedHashMap<>();
 		this.pluginDirectory = votingPluginDirectory;
+		this.sFTPSettings = sftpSettings;
 		load();
 	}
 
-	public void load() {
+	public String loadConfigFromSFTP(String host, int port, String user, String password, String remotePath) {
+		StringBuilder content = new StringBuilder();
+		JSch jsch = new JSch();
+		Session session = null;
+		ChannelSftp channelSftp = null;
+		try {
+			session = jsch.getSession(user, host, port);
+			session.setPassword(password);
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
+			session.connect();
+
+			channelSftp = (ChannelSftp) session.openChannel("sftp");
+			channelSftp.connect();
+
+			InputStream input = channelSftp.get(remotePath);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				content.append(line).append("\n");
+			}
+			reader.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			// Handle exceptions appropriately
+		} finally {
+			if (channelSftp != null && channelSftp.isConnected()) {
+				channelSftp.disconnect();
+			}
+			if (session != null && session.isConnected()) {
+				session.disconnect();
+			}
+		}
+		return content.toString();
+	}
+
+	public void saveConfigToSFTP(String host, int port, String user, String password, String remotePath,
+			String content) {
+		JSch jsch = new JSch();
+		Session session = null;
+		ChannelSftp channelSftp = null;
+		try {
+			session = jsch.getSession(user, host, port);
+			session.setPassword(password);
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
+			session.connect();
+
+			channelSftp = (ChannelSftp) session.openChannel("sftp");
+			channelSftp.connect();
+
+			InputStream inputStream = new ByteArrayInputStream(content.getBytes());
+			channelSftp.put(inputStream, remotePath);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			// Handle exceptions appropriately
+		} finally {
+			if (channelSftp != null && channelSftp.isConnected()) {
+				channelSftp.disconnect();
+			}
+			if (session != null && session.isConnected()) {
+				session.disconnect();
+			}
+		}
+	}
+
+	public String loadFromLocal() {
 		try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
 			StringBuilder yamlContent = new StringBuilder();
 			String lastComment = "";
@@ -51,18 +136,29 @@ public abstract class YmlConfigHandler {
 					yamlContent.append(line).append(System.lineSeparator());
 				}
 			}
-			Yaml yaml = new Yaml();
-			configData = yaml.load(yamlContent.toString());
-			if (configData == null) {
-				configData = new LinkedHashMap<>();
-			}
+
+			return yamlContent.toString();
+
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found: " + filePath);
-			configData = new LinkedHashMap<>();
 		} catch (IOException e) {
-
 			e.printStackTrace();
 		}
+
+		return null;
+	}
+
+	public void load() {
+		String yamlContent = useSFTP
+				? loadConfigFromSFTP(getSFTPSettings().getHost(), getSFTPSettings().getPort(),
+						getSFTPSettings().getUser(), getSFTPSettings().getPassword(), pluginDirectory)
+				: loadFromLocal();
+		if (yamlContent == null) {
+			return;
+		}
+
+		Yaml yaml = new Yaml();
+		configData = yaml.load(yamlContent);
 	}
 
 	public void save() {
@@ -73,44 +169,52 @@ public abstract class YmlConfigHandler {
 			options.setIndent(2);
 			Yaml yaml = new Yaml(options);
 
+			StringBuilder yamlContent = new StringBuilder();
 			for (Map.Entry<String, Object> entry : configData.entrySet()) {
 				String key = entry.getKey();
 				if (commentMap.containsKey(key)) {
-					writer.write(commentMap.get(key));
+					yamlContent.append(commentMap.get(key));
 				}
-				writeYaml(writer, yaml, key, entry.getValue(), 0);
+				writeYaml(yamlContent, yaml, key, entry.getValue(), 0);
+			}
+
+			if (useSFTP) {
+				saveConfigToSFTP("host", 22, "user", "password", filePath, yamlContent.toString());
+			} else {
+				writer.write(yamlContent.toString());
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void writeYaml(BufferedWriter writer, Yaml yaml, String key, Object value, int indentLevel)
+	private void writeYaml(Appendable appendable, Yaml yaml, String key, Object value, int indentLevel)
 			throws IOException {
 		String indent = "  ".repeat(indentLevel);
 		String formattedKey = convertKeyToString(key);
 
 		if (value instanceof Map) {
-			writer.write(indent + formattedKey + ":\n");
+			appendable.append(indent).append(formattedKey).append(":\n");
 			@SuppressWarnings("unchecked")
 			Map<String, Object> map = (Map<String, Object>) value;
 			for (Map.Entry<String, Object> entry : map.entrySet()) {
-				writeYaml(writer, yaml, convertKeyToString(entry.getKey()), entry.getValue(), indentLevel + 1);
+				writeYaml(appendable, yaml, convertKeyToString(entry.getKey()), entry.getValue(), indentLevel + 1);
 			}
 		} else if (value instanceof List) {
-			writer.write(indent + formattedKey + ":\n");
+			appendable.append(indent).append(formattedKey).append(":\n");
 			@SuppressWarnings("unchecked")
 			List<Object> list = (List<Object>) value;
 			for (Object item : list) {
-				writer.write(indent + "  - " + convertValueToString(item) + "\n");
+				appendable.append(indent).append("  - ").append(convertValueToString(item)).append("\n");
 			}
 		} else if (value instanceof String[]) {
-			writer.write(indent + formattedKey + ":\n");
+			appendable.append(indent).append(formattedKey).append(":\n");
 			for (String item : (String[]) value) {
-				writer.write(indent + "  - " + quoteIfNeeded(item) + "\n");
+				appendable.append(indent).append("  - ").append(quoteIfNeeded(item)).append("\n");
 			}
 		} else {
-			writer.write(indent + formattedKey + ": " + convertValueToString(value) + "\n");
+			appendable.append(indent).append(formattedKey).append(": ").append(convertValueToString(value))
+					.append("\n");
 		}
 	}
 

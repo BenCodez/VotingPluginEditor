@@ -20,6 +20,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -31,8 +32,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 public class BungeeSettingsConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
-	public BungeeSettingsConfig(String filePath, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public BungeeSettingsConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory,	sftp);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -228,6 +229,11 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 				@Override
 				public String getVotingPluginDirectory() {
 					return getPluginDirectory();
+				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return getSFTPSettings();
 				}
 			};
 		});

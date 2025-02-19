@@ -16,14 +16,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {
-	public VoteSitesConfig(String filePath, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public VoteSitesConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory, sftp);
 	}
 
 	@Override
@@ -122,6 +123,11 @@ public class VoteSitesConfig extends YmlConfigHandler {
 				@Override
 				public String getVotingPluginDirectory() {
 					return getPluginDirectory();
+				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return getSFTPSettings();
 				}
 			};
 		});

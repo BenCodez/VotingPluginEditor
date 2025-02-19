@@ -3,6 +3,7 @@ package com.bencodez.votingplugineditor.files;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 
@@ -10,15 +11,16 @@ public class RewardFilesConfig extends YmlConfigHandler {
 	// private final List<SettingButton> settingButtons;
 	private final String name;
 
-	public RewardFilesConfig(String filePath, String name, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public RewardFilesConfig(String filePath, String name, String votingPluginDirectory, SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory, sftp);
 		this.name = name;
 		// settingButtons = new ArrayList<SettingButton>();
 		openEditorGUI();
 	}
 
-	public RewardFilesConfig(String filePath, String name, boolean open, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public RewardFilesConfig(String filePath, String name, boolean open, String votingPluginDirectory,
+			SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory, sftp);
 		this.name = name;
 		if (open) {
 			openEditorGUI();
@@ -56,6 +58,11 @@ public class RewardFilesConfig extends YmlConfigHandler {
 			@Override
 			public String getVotingPluginDirectory() {
 				return getPluginDirectory();
+			}
+
+			@Override
+			public SFTPSettings getSFTPSetting() {
+				return getSFTPSettings();
 			}
 		};
 	}

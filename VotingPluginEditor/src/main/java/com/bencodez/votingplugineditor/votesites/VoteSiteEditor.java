@@ -21,6 +21,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -137,6 +138,11 @@ public class VoteSiteEditor {
 				public String getVotingPluginDirectory() {
 					return voteSitesConfig.getPluginDirectory();
 				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return voteSitesConfig.getSFTPSettings();
+				}
 			};
 		});
 
@@ -216,6 +222,11 @@ public class VoteSiteEditor {
 				@Override
 				public String getVotingPluginDirectory() {
 					return voteSitesConfig.getPluginDirectory();
+				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return voteSitesConfig.getSFTPSettings();
 				}
 			};
 		});

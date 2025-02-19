@@ -20,6 +20,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
@@ -32,8 +33,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 public class SpecialRewardsConfig extends YmlConfigHandler {
 	private final ArrayList<SettingButton> settingButtons;
 
-	public SpecialRewardsConfig(String filePath, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public SpecialRewardsConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory, sftp);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -230,10 +231,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("WeeklyAwards." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}
@@ -433,10 +439,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Day." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}
@@ -592,10 +603,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("DailyAwards." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}
@@ -665,10 +681,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("MonthlyAwards." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}
@@ -719,10 +740,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 					load();
 					return (Map<String, Object>) get(path);
 				}
-				
+
 				@Override
 				public String getVotingPluginDirectory() {
 					return getPluginDirectory();
+				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return getSFTPSettings();
 				}
 			};
 		});
@@ -783,10 +809,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Week." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+					
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}
@@ -859,10 +890,15 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 						load();
 						return (Map<String, Object>) get("VoteStreak.Month." + name + ".Rewards");
 					}
-					
+
 					@Override
 					public String getVotingPluginDirectory() {
 						return getPluginDirectory();
+					}
+					
+					@Override
+					public SFTPSettings getSFTPSetting() {
+						return getSFTPSettings();
 					}
 				};
 			}

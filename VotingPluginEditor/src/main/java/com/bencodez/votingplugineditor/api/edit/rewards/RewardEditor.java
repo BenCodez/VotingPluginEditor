@@ -22,6 +22,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
@@ -48,6 +49,8 @@ public abstract class RewardEditor {
 
 	public abstract String getVotingPluginDirectory();
 
+	public abstract SFTPSettings getSFTPSetting();
+
 	@SuppressWarnings("unchecked")
 	public RewardEditor(Object data, String path) {
 		buttons = new ArrayList<SettingButton>();
@@ -68,9 +71,10 @@ public abstract class RewardEditor {
 					changes.put("", new HashMap<String, Object>());
 					saveChange();
 				} else if (rewards.size() == 1) {
-					RewardFilesConfig rewardFiles = new RewardFilesConfig(getVotingPluginDirectory() + File.separator
-							+ "Rewards" + File.separator + rewards.get(0) + ".yml", rewards.get(0) + ".yml", false,
-							getVotingPluginDirectory());
+					RewardFilesConfig rewardFiles = new RewardFilesConfig(
+							getVotingPluginDirectory() + File.separator + "Rewards" + File.separator + rewards.get(0)
+									+ ".yml",
+							rewards.get(0) + ".yml", false, getVotingPluginDirectory(), getSFTPSetting());
 
 					for (Entry<String, Object> entry : rewardFiles.getConfigData().entrySet()) {
 						changes.put(entry.getKey(), entry.getValue());
@@ -81,7 +85,7 @@ public abstract class RewardEditor {
 					for (String reward : rewards) {
 						RewardFilesConfig rewardFiles = new RewardFilesConfig(getVotingPluginDirectory()
 								+ File.separator + "Rewards" + File.separator + reward + ".yml", reward + ".yml", false,
-								getVotingPluginDirectory());
+								getVotingPluginDirectory(), getSFTPSetting());
 						for (Entry<String, Object> entry : rewardFiles.getConfigData().entrySet()) {
 							changes.put("AdvancedRewards." + reward + "." + entry.getKey(), entry.getValue());
 						}
@@ -167,6 +171,11 @@ public abstract class RewardEditor {
 				@Override
 				public String getVotingPluginDirectory1() {
 					return getVotingPluginDirectory();
+				}
+
+				@Override
+				protected SFTPSettings getSFTPSettings1() {
+					return getSFTPSetting();
 				}
 			};
 		});
@@ -1027,6 +1036,11 @@ public abstract class RewardEditor {
 			@Override
 			public String getVotingPluginDirectory1() {
 				return getVotingPluginDirectory();
+			}
+
+			@Override
+			protected SFTPSettings getSFTPSettings1() {
+				return getSFTPSetting();
 			}
 		};
 	}

@@ -14,16 +14,14 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
-import com.bencodez.votingplugineditor.api.edit.add.AddEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
-import com.bencodez.votingplugineditor.api.edit.add.RemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -34,8 +32,8 @@ public class GUIConfig extends YmlConfigHandler {
 
 	private final List<SettingButton> settingButtons;
 
-	public GUIConfig(String filePath, String votingPluginDirectory) {
-		super(filePath, votingPluginDirectory);
+	public GUIConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
+		super(filePath, votingPluginDirectory, sftp);
 		this.settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -178,7 +176,7 @@ public class GUIConfig extends YmlConfigHandler {
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
-			new RewardEditor(get(path),path) {
+			new RewardEditor(get(path), path) {
 
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
@@ -202,10 +200,15 @@ public class GUIConfig extends YmlConfigHandler {
 				public Map<String, Object> updateData() {
 					return (Map<String, Object>) get(path);
 				}
-				
+
 				@Override
 				public String getVotingPluginDirectory() {
 					return getPluginDirectory();
+				}
+
+				@Override
+				public SFTPSettings getSFTPSetting() {
+					return getSFTPSettings();
 				}
 			};
 		});
