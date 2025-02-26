@@ -10,21 +10,30 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -87,6 +96,91 @@ public class BackEndServerEditor {
 	private static JLabel sftpPortLabel;
 	private static JLabel sftpUserLabel;
 	private static JLabel sftpPasswordLabel;
+
+	// Method to convert SecretKey to a string
+	private static String secretKeyToString(SecretKey secretKey) {
+		return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+	}
+
+	// Method to convert a string back to SecretKey
+	private static SecretKey stringToSecretKey(String keyString) {
+		byte[] decodedKey = Base64.getDecoder().decode(keyString);
+		return new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+	}
+
+	private static SecretKey generateSecretKey() {
+		try {
+			KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+			keyGen.init(256); // for example, 256-bit AES
+			return keyGen.generateKey();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static String encryptPassword(String password, SecretKey secretKey)
+			throws GeneralSecurityException, UnsupportedEncodingException {
+		Cipher cipher = Cipher.getInstance("AES");
+		cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+		byte[] encryptedBytes = cipher.doFinal(password.getBytes("UTF-8"));
+		return Base64.getEncoder().encodeToString(encryptedBytes);
+	}
+
+	private static String decryptPassword(String encryptedPassword, SecretKey secretKey)
+			throws GeneralSecurityException, UnsupportedEncodingException {
+		Cipher cipher = Cipher.getInstance("AES");
+		cipher.init(Cipher.DECRYPT_MODE, secretKey);
+		byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedPassword));
+		return new String(decryptedBytes, "UTF-8");
+	}
+
+	private void openSFTPSettingsDialog(JFrame parentFrame) {
+		JDialog sftpDialog = new JDialog(parentFrame, "SFTP Settings", true);
+		sftpDialog.setSize(300, 200);
+		sftpDialog.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(5, 5, 5, 5);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+
+		sftpDialog.add(sftpHostLabel, gbc);
+		gbc.gridx++;
+		sftpDialog.add(sftpHostField, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy++;
+		sftpDialog.add(sftpPortLabel, gbc);
+		gbc.gridx++;
+		sftpDialog.add(sftpPortField, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy++;
+		sftpDialog.add(sftpUserLabel, gbc);
+		gbc.gridx++;
+		sftpDialog.add(sftpUserField, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy++;
+		sftpDialog.add(sftpPasswordLabel, gbc);
+		gbc.gridx++;
+		sftpDialog.add(sftpPasswordField, gbc);
+
+		JButton saveButton = new JButton("Save");
+		saveButton.addActionListener(e -> {
+			saveSFTPSettings(server, sftpHostField.getText(), Integer.parseInt(sftpPortField.getText()),
+					sftpUserField.getText(), generateSecretKey());
+			sftpDialog.dispose();
+		});
+		gbc.gridx = 0;
+		gbc.gridy++;
+		gbc.gridwidth = 2;
+		sftpDialog.add(saveButton, gbc);
+
+		sftpDialog.setLocationRelativeTo(parentFrame);
+		sftpDialog.setVisible(true);
+	}
 
 	private void createAndShowGUI(String server) {
 		JFrame frame = new JFrame("VotingPluginEditor Back-End Server: " + server);
@@ -180,36 +274,15 @@ public class BackEndServerEditor {
 
 		gbc.gridx = 0;
 		gbc.gridy++;
-		frame.add(sftpHostLabel, gbc);
-		gbc.gridx++;
-		frame.add(sftpHostField, gbc);
+		gbc.gridwidth = 2;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.weightx = 1.0;
 
-		gbc.gridx = 0;
-		gbc.gridy++;
-		frame.add(sftpPortLabel, gbc);
-		gbc.gridx++;
-		frame.add(sftpPortField, gbc);
-
-		gbc.gridx = 0;
-		gbc.gridy++;
-		frame.add(sftpUserLabel, gbc);
-		gbc.gridx++;
-		frame.add(sftpUserField, gbc);
-
-		gbc.gridx = 0;
-		gbc.gridy++;
-		frame.add(sftpPasswordLabel, gbc);
-		gbc.gridx++;
-		frame.add(sftpPasswordField, gbc);
+		JButton sftpSettingsButton = new JButton("SFTP Settings");
+		sftpSettingsButton.addActionListener(e -> openSFTPSettingsDialog(frame));
+		frame.add(sftpSettingsButton, gbc);
 
 		toggleSFTPSettings();
-
-		directoryPath = VotingPluginEditor.getPrefs().get(server + PREF_DIRECTORY, null);
-		if (directoryPath != null) {
-			SwingUtilities.invokeLater(() -> {
-				JOptionPane.showMessageDialog(frame, "Using saved directory: " + directoryPath);
-			});
-		}
 
 		SFTPSettings sftpSettings = loadSFTPSettings(server);
 		sftpHostField.setText(sftpSettings.getHost());
@@ -221,6 +294,18 @@ public class BackEndServerEditor {
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+
+		directoryPath = VotingPluginEditor.getPrefs().get(server + PREF_DIRECTORY, null);
+		if (directoryPath != null) {
+			String storageType = "Local Path";
+			if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
+				storageType = "SFTP";
+			}
+			String message = "Using saved directory: " + directoryPath + " (" + storageType + ")";
+			SwingUtilities.invokeLater(() -> {
+				JOptionPane.showMessageDialog(frame, message);
+			});
+		}
 	}
 
 	private static void openRewardFileEditor() {
@@ -503,7 +588,7 @@ public class BackEndServerEditor {
 			String user = sftpUserField.getText();
 			String password = new String(sftpPasswordField.getPassword());
 
-			saveSFTPSettings(server, host, port, user);
+			saveSFTPSettings(server, host, port, user, generateSecretKey());
 
 			try {
 				Session session = SFTPConnection.createSession(host, port, user, password);
@@ -772,8 +857,7 @@ public class BackEndServerEditor {
 
 	private static final String SFTP_SETTINGS_FILE = "sftp_settings.properties";
 
-	// Save SFTP settings including password
-	private static void saveSFTPSettings(String server, String host, int port, String user) {
+	private static void saveSFTPSettings(String server, String host, int port, String user, SecretKey secretKey) {
 		Properties properties = new Properties();
 		try (FileInputStream in = new FileInputStream(SFTP_SETTINGS_FILE)) {
 			properties.load(in);
@@ -783,8 +867,14 @@ public class BackEndServerEditor {
 		properties.setProperty(server + ".host", host);
 		properties.setProperty(server + ".port", String.valueOf(port));
 		properties.setProperty(server + ".user", user);
-		properties.setProperty(server + ".password", new String(sftpPasswordField.getPassword()));
+		try {
+			properties.setProperty(server + ".password",
+					encryptPassword(new String(sftpPasswordField.getPassword()), secretKey));
+		} catch (GeneralSecurityException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		properties.setProperty(server + ".enabled", "" + "SFTP".equals(storageTypeDropdown.getSelectedItem()));
+		properties.setProperty(server + ".secretKey", secretKeyToString(secretKey));
 
 		try (FileOutputStream out = new FileOutputStream(SFTP_SETTINGS_FILE)) {
 			properties.store(out, null);
@@ -793,7 +883,6 @@ public class BackEndServerEditor {
 		}
 	}
 
-	// Load SFTP settings including password
 	private static SFTPSettings loadSFTPSettings(String server) {
 		Properties properties = new Properties();
 		File file = new File(SFTP_SETTINGS_FILE);
@@ -807,7 +896,20 @@ public class BackEndServerEditor {
 		String host = properties.getProperty(server + ".host", "");
 		int port = Integer.parseInt(properties.getProperty(server + ".port", "22"));
 		String user = properties.getProperty(server + ".user", "");
-		String password = properties.getProperty(server + ".password", "");
+		String encryptedPassword = properties.getProperty(server + ".password", "");
+		String secretKeyString = properties.getProperty(server + ".secretKey", "");
+		String password = "";
+
+		if (!secretKeyString.isEmpty()) {
+
+			SecretKey secretKey = stringToSecretKey(secretKeyString);
+			try {
+
+				password = decryptPassword(encryptedPassword, secretKey);
+			} catch (GeneralSecurityException | UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
 		boolean enabled = Boolean.parseBoolean(properties.getProperty(server + ".enabled", "false"));
 		if (enabled) {
 			storageTypeDropdown.setSelectedItem("SFTP");
