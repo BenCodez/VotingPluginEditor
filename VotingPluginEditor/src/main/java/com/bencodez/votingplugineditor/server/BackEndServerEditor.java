@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor;
+package com.bencodez.votingplugineditor.server;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -44,6 +44,11 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.SFTPConnection;
+import com.bencodez.votingplugineditor.SFTPSettings;
+import com.bencodez.votingplugineditor.VotingPluginEditor;
+import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.files.BungeeSettingsConfig;
 import com.bencodez.votingplugineditor.files.ConfigConfig;

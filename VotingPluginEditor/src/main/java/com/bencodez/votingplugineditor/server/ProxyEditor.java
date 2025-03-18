@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor;
+package com.bencodez.votingplugineditor.server;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -36,6 +36,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import com.bencodez.votingplugineditor.SFTPConnection;
+import com.bencodez.votingplugineditor.SFTPSettings;
+import com.bencodez.votingplugineditor.VotingPluginEditor;
+import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.files.BungeeConfigFile;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;

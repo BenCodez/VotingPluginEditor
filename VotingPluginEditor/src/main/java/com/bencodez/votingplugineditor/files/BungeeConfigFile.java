@@ -102,17 +102,15 @@ public class BungeeConfigFile extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(panel, "PluginMessageEncryption", getConfigData(),
 				"Plugin Message Encryption"));
 		settingButtons.add(new BooleanSettingButton(panel, "AllowUnJoined", getConfigData(), "Allow UnJoined"));
-		
-		
+
 		settingButtons.add(new BooleanSettingButton(panel, "UUIDLookup", getConfigData(), "UUID Lookup"));
-		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode"));
+		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode", true));
 
 		settingButtons.add(new IntSettingButton(panel, "TimeHourOffSet", getConfigData(), "Time Hour Offset", 0));
-		
-		
+
 		settingButtons.add(new IntSettingButton(panel, "PointsOnVote", getConfigData(), "Points On Vote", 1));
 		settingButtons.add(new IntSettingButton(panel, "VoteCacheTime", getConfigData(), "Vote Cache Time", -1));
-		
+
 		settingButtons.add(new IntSettingButton(panel, "MaxAmountOfVotesPerDay", getConfigData(),
 				"Max Amount Of Votes Per Day", -1));
 		settingButtons.add(new IntSettingButton(panel, "LimitVotePoints", getConfigData(), "Limit Vote Points", -1));

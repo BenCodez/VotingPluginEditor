@@ -24,6 +24,8 @@ import org.w3c.dom.Element;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.generator.MaterialLoader;
 import com.bencodez.votingplugineditor.generator.PotionLoader;
+import com.bencodez.votingplugineditor.server.BackEndServerEditor;
+import com.bencodez.votingplugineditor.server.ProxyEditor;
 
 import lombok.Getter;
 
