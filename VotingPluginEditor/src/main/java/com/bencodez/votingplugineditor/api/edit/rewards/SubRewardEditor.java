@@ -2,7 +2,7 @@ package com.bencodez.votingplugineditor.api.edit.rewards;
 
 import java.util.Map;
 
-import com.bencodez.votingplugineditor.SFTPSettings;
+import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 public abstract class SubRewardEditor {
 	public abstract void saveChanges1(Map<String, Object> changes);

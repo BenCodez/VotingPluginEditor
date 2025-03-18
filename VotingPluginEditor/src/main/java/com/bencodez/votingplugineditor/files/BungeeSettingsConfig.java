@@ -20,7 +20,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
-import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
@@ -28,6 +27,7 @@ import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
+import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 public class BungeeSettingsConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;

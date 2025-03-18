@@ -16,10 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.PanelUtils;
-import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 
 public class VoteSitesConfig extends YmlConfigHandler {

@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor;
+package com.bencodez.votingplugineditor.api.sftp;
 
 import lombok.Getter;
 import lombok.Setter;

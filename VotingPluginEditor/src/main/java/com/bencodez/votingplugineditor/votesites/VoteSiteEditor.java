@@ -21,13 +21,13 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.PanelUtils;
-import com.bencodez.votingplugineditor.SFTPSettings;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
+import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
 
 public class VoteSiteEditor {
