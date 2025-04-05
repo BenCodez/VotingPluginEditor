@@ -17,9 +17,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;

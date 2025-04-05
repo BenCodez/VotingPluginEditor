@@ -20,9 +20,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import com.bencodez.votingplugineditor.PanelUtils;
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;

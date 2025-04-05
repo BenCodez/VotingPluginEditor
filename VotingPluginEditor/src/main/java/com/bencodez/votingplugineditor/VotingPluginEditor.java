@@ -22,6 +22,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.generator.MaterialLoader;
 import com.bencodez.votingplugineditor.generator.PotionLoader;
 import com.bencodez.votingplugineditor.server.BackEndServerEditor;

@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 
-import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 
 import lombok.Getter;
 

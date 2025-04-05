@@ -18,12 +18,12 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-import com.bencodez.votingplugineditor.PanelUtils;
-import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.misc.LoadingDialog;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.misc.ServiceSiteHandler;
+import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.votesites.VoteSiteEditor;
 

@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 
 public abstract class AddRemoveEditor {
 	private int width;

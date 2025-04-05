@@ -1,4 +1,4 @@
-package com.bencodez.votingplugineditor;
+package com.bencodez.votingplugineditor.api.misc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

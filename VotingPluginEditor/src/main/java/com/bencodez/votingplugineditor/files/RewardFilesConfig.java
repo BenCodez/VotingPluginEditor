@@ -3,8 +3,8 @@ package com.bencodez.votingplugineditor.files;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 public class RewardFilesConfig extends YmlConfigHandler {

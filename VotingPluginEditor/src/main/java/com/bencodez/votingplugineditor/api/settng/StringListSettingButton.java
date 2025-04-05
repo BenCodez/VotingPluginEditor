@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 
 import lombok.Getter;
 

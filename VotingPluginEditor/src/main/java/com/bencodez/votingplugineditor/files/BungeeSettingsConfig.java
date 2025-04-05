@@ -19,9 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
-import com.bencodez.votingplugineditor.PanelUtils;
-import com.bencodez.votingplugineditor.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;

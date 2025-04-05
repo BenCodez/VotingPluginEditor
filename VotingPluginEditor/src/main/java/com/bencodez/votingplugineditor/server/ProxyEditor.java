@@ -26,7 +26,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.VotingPluginEditor;
-import com.bencodez.votingplugineditor.YmlConfigHandler;
+import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.files.BungeeConfigFile;

@@ -10,7 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 
 import lombok.Getter;
 

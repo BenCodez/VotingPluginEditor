@@ -5,7 +5,7 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import com.bencodez.votingplugineditor.PanelUtils;
+import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 
 public abstract class AddEditor {
 
