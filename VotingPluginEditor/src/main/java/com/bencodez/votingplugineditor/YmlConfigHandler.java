@@ -242,7 +242,7 @@ public abstract class YmlConfigHandler {
 	}
 
 	private String quoteIfNeeded(String value) {
-		if (value.matches("^\\w+$")) {
+		if (value.matches("^[a-zA-Z0-9_-]+$")) {
 			return value;
 		}
 		return "'" + value.replace("'", "''") + "'";
