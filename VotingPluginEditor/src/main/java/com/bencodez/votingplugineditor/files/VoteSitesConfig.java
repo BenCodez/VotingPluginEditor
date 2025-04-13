@@ -69,7 +69,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 					set("VoteSites." + name + ".Name", name);
 					set("VoteSites." + name + ".DisplayItem.Material", "DIAMOND");
 					set("VoteSites." + name + ".DisplayItem.Amount", 1);
-					set("VoteSites." + name + ".VoteURL", "PLEASE SET");
+					set("VoteSites." + name + ".VoteURL", "http://www.example.com");
 					set("VoteSites." + name + ".ServiceSite", "PLEASE SET");
 					set("VoteSites." + name + ".Rewards.Messages.Player", "You voted");
 
