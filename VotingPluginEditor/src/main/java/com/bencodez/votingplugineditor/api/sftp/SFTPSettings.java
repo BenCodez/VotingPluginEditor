@@ -17,7 +17,12 @@ public class SFTPSettings {
 	@Setter
 	private String password;
 
-	public SFTPSettings(String host, int port, String user, String pass) {
+	@Getter
+	@Setter
+	private boolean enabled;
+
+	public SFTPSettings(boolean enabled, String host, int port, String user, String pass) {
+		this.enabled = enabled;
 		this.host = host;
 		this.port = port;
 		this.user = user;

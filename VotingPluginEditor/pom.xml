@@ -44,12 +44,6 @@
             <artifactId>jsch</artifactId>
             <version>0.2.25</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.jcraft</groupId>
-                    <artifactId>jsch</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

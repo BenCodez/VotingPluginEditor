@@ -53,8 +53,9 @@ public class ProxyEditor {
 	}
 
 	public static SFTPSettings getSFTPSettingsFromFields() {
-		return new SFTPSettings(sftpHostField.getText(), Integer.parseInt(sftpPortField.getText()),
-				sftpUserField.getText(), new String(sftpPasswordField.getPassword()));
+		return new SFTPSettings("SFTP".equals(storageTypeDropdown.getSelectedItem()), sftpHostField.getText(),
+				Integer.parseInt(sftpPortField.getText()), sftpUserField.getText(),
+				new String(sftpPasswordField.getPassword()));
 	}
 
 	private static JComboBox<String> storageTypeDropdown;
@@ -103,9 +104,9 @@ public class ProxyEditor {
 
 		JButton saveButton = new JButton("Save");
 		saveButton.addActionListener(e -> {
-			ServerEditorUtils.saveSFTPSettings("", server, sftpHostField.getText(),
-					Integer.parseInt(sftpPortField.getText()), sftpUserField.getText(), sftpPasswordField.getText(),
-					ServerEditorUtils.generateSecretKey());
+			ServerEditorUtils.saveSFTPSettings("SFTP".equals(storageTypeDropdown.getSelectedItem()), "", server,
+					sftpHostField.getText(), Integer.parseInt(sftpPortField.getText()), sftpUserField.getText(),
+					sftpPasswordField.getText(), ServerEditorUtils.generateSecretKey());
 			sftpDialog.dispose();
 		});
 		gbc.gridx = 0;
@@ -185,6 +186,11 @@ public class ProxyEditor {
 		toggleSFTPSettings();
 
 		SFTPSettings sftpSettings = ServerEditorUtils.loadSFTPSettings("", server);
+		if (sftpSettings.isEnabled()) {
+			storageTypeDropdown.setSelectedItem("SFTP");
+		} else {
+			storageTypeDropdown.setSelectedItem("Local Path");
+		}
 		sftpHostField.setText(sftpSettings.getHost());
 		sftpPortField.setText(String.valueOf(sftpSettings.getPort()));
 		sftpUserField.setText(sftpSettings.getUser());
@@ -295,8 +301,8 @@ public class ProxyEditor {
 			String user = sftpUserField.getText();
 			String password = new String(sftpPasswordField.getPassword());
 
-			ServerEditorUtils.saveSFTPSettings("", server, host, port, user, password,
-					ServerEditorUtils.generateSecretKey());
+			ServerEditorUtils.saveSFTPSettings("SFTP".equals(storageTypeDropdown.getSelectedItem()), "", server, host,
+					port, user, password, ServerEditorUtils.generateSecretKey());
 
 			try {
 				Session session = SFTPConnection.createSession(host, port, user, password);

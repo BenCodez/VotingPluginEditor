@@ -205,7 +205,7 @@ public class ServerEditorUtils {
 	 * @param plainPassword  the plain–text password.
 	 * @param secretKey      the SecretKey used to encrypt the password.
 	 */
-	public static void saveSFTPSettings(String propertyPrefix, String server, String host, int port, String user,
+	public static void saveSFTPSettings(boolean enabled, String propertyPrefix, String server, String host, int port, String user,
 			String plainPassword, SecretKey secretKey) {
 		Properties properties = new Properties();
 		// Use the properties file; if it already exists, load it first.
@@ -227,7 +227,7 @@ public class ServerEditorUtils {
 			e.printStackTrace();
 		}
 		// We also store whether SFTP mode is enabled
-		properties.setProperty(keyPrefix + ".enabled", "true");
+		properties.setProperty(keyPrefix + ".enabled", "" + enabled);
 		properties.setProperty(keyPrefix + ".secretKey", secretKeyToString(secretKey));
 		try (FileOutputStream out = new FileOutputStream(SFTP_SETTINGS_FILE)) {
 			properties.store(out, null);
@@ -255,7 +255,7 @@ public class ServerEditorUtils {
 		}
 		String keyPrefix = (propertyPrefix == null || propertyPrefix.isEmpty()) ? server
 				: propertyPrefix + "." + server;
-
+		boolean enabled = Boolean.parseBoolean(properties.getProperty(keyPrefix + ".enabled", "false"));
 		String host = properties.getProperty(keyPrefix + ".host", "");
 		int port = Integer.parseInt(properties.getProperty(keyPrefix + ".port", "22"));
 		String user = properties.getProperty(keyPrefix + ".user", "");
@@ -270,7 +270,7 @@ public class ServerEditorUtils {
 				e.printStackTrace();
 			}
 		}
-		return new SFTPSettings(host, port, user, password);
+		return new SFTPSettings(enabled, host, port, user, password);
 	}
 
 	// ----- Local Backup and Restore Helpers --------
