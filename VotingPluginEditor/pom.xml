@@ -40,11 +40,10 @@
 			<scope>provided</scope>
 		</dependency>
         <dependency>
-            <groupId>com.github.mwiede</groupId>
-            <artifactId>jsch</artifactId>
-            <version>0.2.25</version>
-            <scope>compile</scope>
-        </dependency>
+  <groupId>com.hierynomus</groupId>
+  <artifactId>sshj</artifactId>
+  <version>0.38.0</version>
+</dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -91,7 +90,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<minimizeJar>true</minimizeJar>
+							<minimizeJar>false</minimizeJar>
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -99,6 +98,15 @@
 										com.bencodez.votingplugineditor.VotingPluginEditor</mainClass>
 								</transformer>
 							</transformers>
+							 <filters>
+                       <filter>
+                           <artifact>*:*</artifact>
+                           <excludes>
+                               <exclude>META-INF/*.DSA</exclude>
+                               <exclude>META-INF/*.RSA</exclude>
+                           </excludes>
+                       </filter>
+                   </filters>
 						</configuration>
 					</execution>
 				</executions>

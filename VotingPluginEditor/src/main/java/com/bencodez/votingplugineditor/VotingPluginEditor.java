@@ -69,18 +69,7 @@ public class VotingPluginEditor {
 	}
 
 	private static String getVersionFromPom() {
-		try {
-			File pomFile = new File("pom.xml");
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(pomFile);
-			doc.getDocumentElement().normalize();
-			Element versionElement = (Element) doc.getElementsByTagName("version").item(0);
-			return versionElement.getTextContent();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "Unknown";
-		}
+		return "1.1";
 	}
 
 	public static void main(String[] args) {

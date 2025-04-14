@@ -13,6 +13,7 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Properties;
 
 import javax.crypto.Cipher;
@@ -20,12 +21,12 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
+
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.RemoteResourceInfo;
+import net.schmizz.sshj.sftp.SFTPClient;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
 public class ServerEditorUtils {
 	private static final String SFTP_SETTINGS_FILE = "sftp_settings.properties";
@@ -77,115 +78,89 @@ public class ServerEditorUtils {
 	// ----- SFTP File Operations --------
 
 	// Lists all remote .yml files in the provided remote folder.
-	public static ArrayList<String> listRemoteYmlFiles(String remoteDir, SFTPSettings settings)
-			throws JSchException, SftpException {
+	public static ArrayList<String> listRemoteYmlFiles(String remoteDir, SFTPSettings settings) throws IOException {
 		ArrayList<String> files = new ArrayList<>();
-		Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(), settings.getUser(),
-				settings.getPassword());
-		ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-		sftpChannel.connect();
-		@SuppressWarnings("unchecked")
-		java.util.Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(remoteDir);
-		for (ChannelSftp.LsEntry entry : list) {
-			String name = entry.getFilename();
-			if (name.endsWith(".yml")) {
-				files.add(name);
+		try (SSHClient sshClient = new SSHClient()) {
+			sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+			sshClient.connect(settings.getHost(), settings.getPort());
+			sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+			try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+				List<RemoteResourceInfo> list = sftpClient.ls(remoteDir);
+				for (RemoteResourceInfo entry : list) {
+					if (entry.getName().endsWith(".yml")) {
+						files.add(entry.getName());
+					}
+				}
 			}
 		}
-		sftpChannel.disconnect();
-		session.disconnect();
 		return files;
 	}
 
 	// Downloads a remote file (by its full remotePath) into the given local File.
-	public static void downloadRemoteFile(String remotePath, File localFile, SFTPSettings settings)
-			throws JSchException, SftpException, IOException {
-		Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(), settings.getUser(),
-				settings.getPassword());
-		ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-		sftpChannel.connect();
-		try (FileOutputStream fos = new FileOutputStream(localFile)) {
-			sftpChannel.get(remotePath, fos);
+	public static void downloadRemoteFile(String remotePath, File localFile, SFTPSettings settings) throws IOException {
+		try (SSHClient sshClient = new SSHClient()) {
+			sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+			sshClient.connect(settings.getHost(), settings.getPort());
+			sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+			try (SFTPClient sftpClient = sshClient.newSFTPClient();
+					FileOutputStream fos = new FileOutputStream(localFile)) {
+				sftpClient.get(remotePath, localFile.getAbsolutePath());
+			}
 		}
-		sftpChannel.disconnect();
-		session.disconnect();
 	}
 
 	// Uploads a local file (localFile) to the specified remotePath.
-	public static void uploadRemoteFile(File localFile, String remotePath, SFTPSettings settings)
-			throws JSchException, SftpException, IOException {
-		Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(), settings.getUser(),
-				settings.getPassword());
-		ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-		sftpChannel.connect();
-		try (FileInputStream fis = new FileInputStream(localFile)) {
-			sftpChannel.put(fis, remotePath);
+	public static void uploadRemoteFile(File localFile, String remotePath, SFTPSettings settings) throws IOException {
+		try (SSHClient sshClient = new SSHClient()) {
+			sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+			sshClient.connect(settings.getHost(), settings.getPort());
+			sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+			try (SFTPClient sftpClient = sshClient.newSFTPClient();
+					FileInputStream fis = new FileInputStream(localFile)) {
+			}
 		}
-		sftpChannel.disconnect();
-		session.disconnect();
 	}
 
 	// Recursively backs up the remote directory from sourceDir to backupDir.
-	public static void backupRemoteDirectory(ChannelSftp sftpChannel, String sourceDir, String backupDir)
-			throws SftpException {
+	public static void backupRemoteDirectory(SFTPClient sftpClient, String sourceDir, String backupDir)
+			throws IOException {
 		try {
-			sftpChannel.mkdir(backupDir);
-		} catch (SftpException e) {
-			// If directory exists, ignore error.
+			sftpClient.mkdir(backupDir);
+		} catch (IOException e) {
+			// Ignore if directory already exists.
 		}
-		@SuppressWarnings("unchecked")
-		java.util.Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(sourceDir);
-		for (ChannelSftp.LsEntry entry : list) {
-			String filename = entry.getFilename();
-			if (filename.equals(".") || filename.equals(".."))
-				continue;
-			String sourcePath = sourceDir + "/" + filename;
-			String backupPath = backupDir + "/" + filename;
-			if (entry.getAttrs().isDir()) {
-				backupRemoteDirectory(sftpChannel, sourcePath, backupPath);
+		List<RemoteResourceInfo> list = sftpClient.ls(sourceDir);
+		for (RemoteResourceInfo entry : list) {
+			String sourcePath = sourceDir + "/" + entry.getName();
+			String backupPath = backupDir + "/" + entry.getName();
+			if (entry.isDirectory()) {
+				backupRemoteDirectory(sftpClient, sourcePath, backupPath);
 			} else {
-				try {
-					File tempFile = File.createTempFile("sftp_backup", null);
-					tempFile.deleteOnExit();
-					sftpChannel.get(sourcePath, new FileOutputStream(tempFile));
-					sftpChannel.put(new FileInputStream(tempFile), backupPath);
-					tempFile.delete();
-				} catch (IOException ex) {
-					throw new SftpException(0, "Backup failed for file: " + sourcePath, ex);
-				}
+				sftpClient.get(sourcePath, backupPath);
 			}
 		}
 	}
 
 	// Recursively restores files from backupDir to destinationDir on the remote
 	// server.
-	public static void restoreRemoteDirectory(ChannelSftp sftpChannel, String backupDir, String destinationDir)
-			throws SftpException {
+	public static void restoreRemoteDirectory(SFTPClient sftpClient, String backupDir, String destinationDir)
+			throws IOException {
 		try {
-			sftpChannel.mkdir(destinationDir);
-		} catch (SftpException e) {
-			// Ignore if directory exists.
+			sftpClient.mkdir(destinationDir);
+		} catch (IOException e) {
+			// Ignore if directory already exists.
 		}
-		@SuppressWarnings("unchecked")
-		java.util.Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(backupDir);
-		for (ChannelSftp.LsEntry entry : list) {
-			String filename = entry.getFilename();
-			if (filename.equals(".") || filename.equals(".."))
-				continue;
-			String backupPath = backupDir + "/" + filename;
-			String destPath = destinationDir + "/" + filename;
-			if (entry.getAttrs().isDir()) {
-				restoreRemoteDirectory(sftpChannel, backupPath, destPath);
+		List<RemoteResourceInfo> list = sftpClient.ls(backupDir);
+		for (RemoteResourceInfo entry : list) {
+			String backupPath = backupDir + "/" + entry.getName();
+			String destPath = destinationDir + "/" + entry.getName();
+			if (entry.isDirectory()) {
+				restoreRemoteDirectory(sftpClient, backupPath, destPath);
 			} else {
-				try {
-					File tempFile = File.createTempFile("sftp_restore", null);
-					tempFile.deleteOnExit();
-					sftpChannel.get(backupPath, new FileOutputStream(tempFile));
-					sftpChannel.put(new FileInputStream(tempFile), destPath);
-					tempFile.delete();
-				} catch (IOException ex) {
-					throw new SftpException(0, "Restore failed for file: " + backupPath, ex);
-				}
+				sftpClient.put(backupPath, destPath);
 			}
 		}
 	}
@@ -205,8 +180,8 @@ public class ServerEditorUtils {
 	 * @param plainPassword  the plain–text password.
 	 * @param secretKey      the SecretKey used to encrypt the password.
 	 */
-	public static void saveSFTPSettings(boolean enabled, String propertyPrefix, String server, String host, int port, String user,
-			String plainPassword, SecretKey secretKey) {
+	public static void saveSFTPSettings(boolean enabled, String propertyPrefix, String server, String host, int port,
+			String user, String plainPassword, SecretKey secretKey) {
 		Properties properties = new Properties();
 		// Use the properties file; if it already exists, load it first.
 		try (FileInputStream in = new FileInputStream(SFTP_SETTINGS_FILE)) {

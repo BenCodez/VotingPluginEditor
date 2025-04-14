@@ -5,12 +5,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -27,14 +24,13 @@ import javax.swing.SwingUtilities;
 
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
-import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.files.BungeeConfigFile;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
+
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.RemoteResourceInfo;
+import net.schmizz.sshj.sftp.SFTPClient;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
 public class ProxyEditor {
 	public static String directoryPath;
@@ -295,161 +291,134 @@ public class ProxyEditor {
 	}
 
 	private static void chooseDirectory(JFrame frame) {
-		if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
-			String host = sftpHostField.getText();
-			int port = Integer.parseInt(sftpPortField.getText());
-			String user = sftpUserField.getText();
-			String password = new String(sftpPasswordField.getPassword());
+	    if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
+	        SFTPSettings settings = getSFTPSettingsFromFields();
+	        try (SSHClient sshClient = new SSHClient()) {
+	            sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+	            sshClient.connect(settings.getHost(), settings.getPort());
+	            sshClient.authPassword(settings.getUser(), settings.getPassword());
 
-			ServerEditorUtils.saveSFTPSettings("SFTP".equals(storageTypeDropdown.getSelectedItem()), "", server, host,
-					port, user, password, ServerEditorUtils.generateSecretKey());
+	            try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+	                String remotePath = ".";
+	                boolean finished = false;
 
-			try {
-				Session session = SFTPConnection.createSession(host, port, user, password);
-				Channel channel = session.openChannel("sftp");
-				channel.connect();
-				ChannelSftp sftpChannel = (ChannelSftp) channel;
+	                while (!finished) {
+	                    List<RemoteResourceInfo> list = sftpClient.ls(remotePath);
+	                    ArrayList<String> options = new ArrayList<>();
+	                    options.add("<<Select current directory>>");
+	                    if (!remotePath.equals("/")) {
+	                        options.add("<<Go up>>");
+	                    }
+	                    for (RemoteResourceInfo entry : list) {
+	                        if (entry.isDirectory() && !entry.getName().equals(".") && !entry.getName().equals("..")) {
+	                            options.add(entry.getName());
+	                        }
+	                    }
 
-				// Start navigation at the current working directory on the SFTP server
-				String remotePath = sftpChannel.pwd();
-				boolean finished = false;
-				while (!finished) {
-					// List entries in the current remotePath and filter directories
-					@SuppressWarnings("unchecked")
-					java.util.Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(remotePath);
-					ArrayList<String> options = new ArrayList<>();
+	                    String selected = (String) JOptionPane.showInputDialog(frame,
+	                            "Current Remote Directory:\n" + remotePath + "\n\nSelect an option:",
+	                            "Remote Directory Navigation", JOptionPane.QUESTION_MESSAGE, null,
+	                            options.toArray(new String[0]), options.get(0));
 
-					// Option to select the current directory
-					options.add("<<Select current directory>>");
-					// Option to go up, if we're not at root
-					if (!remotePath.equals("/")) {
-						options.add("<<Go up>>");
-					}
-					// Add subdirectories
-					for (ChannelSftp.LsEntry entry : list) {
-						String filename = entry.getFilename();
-						if (entry.getAttrs().isDir() && !filename.equals(".") && !filename.equals("..")) {
-							options.add(filename);
-						}
-					}
+	                    if (selected == null) {
+	                        return;
+	                    } else if (selected.equals("<<Select current directory>>")) {
+	                        finished = true;
+	                    } else if (selected.equals("<<Go up>>")) {
+	                        remotePath = new File(remotePath).getParent();
+	                        if (remotePath == null || remotePath.isEmpty()) {
+	                            remotePath = "/";
+	                        }
+	                    } else {
+	                        remotePath = remotePath.equals("/") ? "/" + selected : remotePath + "/" + selected;
+	                    }
+	                }
 
-					// Show a dialog with the current directory and options
-					String selected = (String) JOptionPane.showInputDialog(frame,
-							"Current Remote Directory:\n" + remotePath + "\n\nSelect an option:",
-							"Remote Directory Navigation", JOptionPane.QUESTION_MESSAGE, null,
-							options.toArray(new String[0]), options.get(0));
+	                directoryPath = remotePath;
+	                VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
+	                JOptionPane.showMessageDialog(frame, "Remote directory saved: " + directoryPath);
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(frame, "Failed to connect to SFTP server or list directories:\n" + e.getMessage());
+	        }
+	    } else {
+	        JFileChooser fileChooser = new JFileChooser();
+	        fileChooser.setDialogTitle("Select VotingPlugin Folder");
+	        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	        fileChooser.setAcceptAllFileFilterUsed(false);
 
-					if (selected == null) {
-						// User cancelled - exit the loop without saving
-						return;
-					} else if (selected.equals("<<Select current directory>>")) {
-						finished = true;
-					} else if (selected.equals("<<Go up>>")) {
-						// Move to the parent directory.
-						// Use simple logic: if remotePath is "/" then remain there.
-						File temp = new File(remotePath);
-						String parent = temp.getParent();
-						remotePath = (parent == null || parent.isEmpty()) ? "/" : parent;
-					} else {
-						// User selected a subdirectory; append it to remotePath.
-						if (remotePath.equals("/")) {
-							remotePath = remotePath + selected;
-						} else {
-							remotePath = remotePath + "/" + selected;
-						}
-					}
-				}
-
-				// Save the selected remote path
-				directoryPath = remotePath;
-				VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
-				JOptionPane.showMessageDialog(frame, "Remote directory saved: " + directoryPath);
-
-				sftpChannel.disconnect();
-				session.disconnect();
-			} catch (JSchException | SftpException e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(frame,
-						"Failed to connect to SFTP server or list directories:\n" + e.getMessage());
-			}
-		} else {
-			// Local directory selection remains unchanged
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setDialogTitle("Select VotingPlugin Folder");
-			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			fileChooser.setAcceptAllFileFilterUsed(false);
-
-			int result = fileChooser.showOpenDialog(frame);
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File selectedDirectory = fileChooser.getSelectedFile();
-				directoryPath = selectedDirectory.getAbsolutePath();
-				VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
-				JOptionPane.showMessageDialog(frame, "Directory saved: " + directoryPath);
-			}
-		}
+	        int result = fileChooser.showOpenDialog(frame);
+	        if (result == JFileChooser.APPROVE_OPTION) {
+	            File selectedDirectory = fileChooser.getSelectedFile();
+	            directoryPath = selectedDirectory.getAbsolutePath();
+	            VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
+	            JOptionPane.showMessageDialog(frame, "Directory saved: " + directoryPath);
+	        }
+	    }
 	}
 
-	// Modified backupFiles to work with both local and SFTP storage
 	private static void backupFiles(JFrame frame) {
-		if (directoryPath != null) {
-			if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
-				SFTPSettings settings = getSFTPSettingsFromFields();
-				try {
-					Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-							settings.getUser(), settings.getPassword());
-					ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-					sftpChannel.connect();
-					String backupDir = directoryPath + "_backup";
-					ServerEditorUtils.backupRemoteDirectory(sftpChannel, directoryPath, backupDir);
-					JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
-					sftpChannel.disconnect();
-					session.disconnect();
-				} catch (JSchException | SftpException e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(frame, "Remote backup failed:\n" + e.getMessage());
-				}
-			} else {
-				try {
-					ServerEditorUtils.backupLocalDirectory(directoryPath);
-				} catch (IOException e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(frame, "Backup failed:\n" + e.getMessage());
-				}
-			}
-		} else {
-			JOptionPane.showMessageDialog(frame, "Please select a directory.");
-		}
+	    if (directoryPath != null) {
+	        if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
+	            SFTPSettings settings = getSFTPSettingsFromFields();
+	            try (SSHClient sshClient = new SSHClient()) {
+	                sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+	                sshClient.connect(settings.getHost(), settings.getPort());
+	                sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+	                try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+	                    String backupDir = directoryPath + "_backup";
+	                    ServerEditorUtils.backupRemoteDirectory(sftpClient, directoryPath, backupDir);
+	                    JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
+	                }
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	                JOptionPane.showMessageDialog(frame, "Remote backup failed:\n" + e.getMessage());
+	            }
+	        } else {
+	            try {
+	                ServerEditorUtils.backupLocalDirectory(directoryPath);
+	                JOptionPane.showMessageDialog(frame, "Backup completed successfully.");
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	                JOptionPane.showMessageDialog(frame, "Backup failed:\n" + e.getMessage());
+	            }
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(frame, "Please select a directory.");
+	    }
 	}
 
-	// Modified restoreFiles to work with both local and SFTP storage
 	private static void restoreFiles(JFrame frame) {
-		if (directoryPath != null) {
-			if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
-				SFTPSettings settings = getSFTPSettingsFromFields();
-				try {
-					Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-							settings.getUser(), settings.getPassword());
-					ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-					sftpChannel.connect();
-					String backupDir = directoryPath + "_backup";
-					ServerEditorUtils.restoreRemoteDirectory(sftpChannel, backupDir, directoryPath);
-					JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
-					sftpChannel.disconnect();
-					session.disconnect();
-				} catch (JSchException | SftpException e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(frame, "Remote restore failed:\n" + e.getMessage());
-				}
-			} else {
-				try {
-					ServerEditorUtils.restoreLocalDirectory(directoryPath);
-				} catch (IOException e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(frame, "Restore failed:\n" + e.getMessage());
-				}
-			}
-		} else {
-			JOptionPane.showMessageDialog(frame, "Please select a directory.");
-		}
+	    if (directoryPath != null) {
+	        if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
+	            SFTPSettings settings = getSFTPSettingsFromFields();
+	            try (SSHClient sshClient = new SSHClient()) {
+	                sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+	                sshClient.connect(settings.getHost(), settings.getPort());
+	                sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+	                try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+	                    String backupDir = directoryPath + "_backup";
+	                    ServerEditorUtils.restoreRemoteDirectory(sftpClient, backupDir, directoryPath);
+	                    JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
+	                }
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	                JOptionPane.showMessageDialog(frame, "Remote restore failed:\n" + e.getMessage());
+	            }
+	        } else {
+	            try {
+	                ServerEditorUtils.restoreLocalDirectory(directoryPath);
+	                JOptionPane.showMessageDialog(frame, "Restore completed successfully.");
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	                JOptionPane.showMessageDialog(frame, "Restore failed:\n" + e.getMessage());
+	            }
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(frame, "Please select a directory.");
+	    }
 	}
 }

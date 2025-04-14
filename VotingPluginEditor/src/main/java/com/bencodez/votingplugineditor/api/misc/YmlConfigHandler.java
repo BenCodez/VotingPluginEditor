@@ -2,13 +2,12 @@ package com.bencodez.votingplugineditor.api.misc;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +15,15 @@ import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.OpenMode;
+import net.schmizz.sshj.sftp.RemoteFile;
+import net.schmizz.sshj.sftp.SFTPClient;
 
 public abstract class YmlConfigHandler {
 	protected String filePath;
@@ -52,69 +53,38 @@ public abstract class YmlConfigHandler {
 
 	public String loadConfigFromSFTP(String host, int port, String user, String password, String remotePath) {
 		StringBuilder content = new StringBuilder();
-		JSch jsch = new JSch();
-		Session session = null;
-		ChannelSftp channelSftp = null;
-		try {
-			session = jsch.getSession(user, host, port);
-			session.setPassword(password);
-			java.util.Properties config = new java.util.Properties();
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
-			session.connect();
-
-			channelSftp = (ChannelSftp) session.openChannel("sftp");
-			channelSftp.connect();
-
-			InputStream input = channelSftp.get(remotePath);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-			String line;
-			while ((line = reader.readLine()) != null) {
-				content.append(line).append("\n");
+		try (SSHClient sshClient = SFTPConnection.createSession(host, port, user, password)) {
+			try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+				try (RemoteFile remoteFile = sftpClient.open(remotePath)) {
+					byte[] buffer = new byte[8192];
+					long offset = 0;
+					int bytesRead;
+					while ((bytesRead = remoteFile.read(offset, buffer, 0, buffer.length)) > 0) {
+						content.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
+						offset += bytesRead;
+					}
+				}
 			}
-			reader.close();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			// Handle exceptions appropriately
-		} finally {
-			if (channelSftp != null && channelSftp.isConnected()) {
-				channelSftp.disconnect();
-			}
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
 		}
 		return content.toString();
 	}
 
 	public void saveConfigToSFTP(String host, int port, String user, String password, String remotePath,
 			String content) {
-		JSch jsch = new JSch();
-		Session session = null;
-		ChannelSftp channelSftp = null;
-		try {
-			session = jsch.getSession(user, host, port);
-			session.setPassword(password);
-			java.util.Properties config = new java.util.Properties();
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
-			session.connect();
-
-			channelSftp = (ChannelSftp) session.openChannel("sftp");
-			channelSftp.connect();
-
-			InputStream inputStream = new ByteArrayInputStream(content.getBytes());
-			channelSftp.put(inputStream, remotePath);
+		try (SSHClient sshClient = SFTPConnection.createSession(host, port, user, password)) {
+			try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+				try (RemoteFile remoteFile = sftpClient.open(remotePath,
+						EnumSet.of(OpenMode.WRITE, OpenMode.CREAT, OpenMode.TRUNC))) {
+					byte[] data = content.getBytes(StandardCharsets.UTF_8);
+					remoteFile.write(0, data, 0, data.length);
+				}
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			// Handle exceptions appropriately
-		} finally {
-			if (channelSftp != null && channelSftp.isConnected()) {
-				channelSftp.disconnect();
-			}
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
 		}
 	}
 
@@ -191,7 +161,7 @@ public abstract class YmlConfigHandler {
 
 	private void writeYaml(Appendable appendable, Yaml yaml, String key, Object value, int indentLevel)
 			throws IOException {
-		String indent = "  ".repeat(indentLevel);
+		String indent = new String(new char[indentLevel]).replace("\0", "  ");
 		String formattedKey = convertKeyToString(key);
 
 		if (value instanceof Map) {

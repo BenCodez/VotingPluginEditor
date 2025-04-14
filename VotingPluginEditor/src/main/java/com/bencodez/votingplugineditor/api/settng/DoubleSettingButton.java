@@ -58,11 +58,11 @@ public class DoubleSettingButton implements SettingButton {
 
 		return textField;
 	}
-	
+
 	public JTextField getComponent() {
 		return textField;
 	}
-	
+
 	public void setVisible(boolean visible) {
 		label.setVisible(visible);
 		textField.setVisible(visible);
@@ -75,7 +75,7 @@ public class DoubleSettingButton implements SettingButton {
 
 	@Override
 	public Object getValue() {
-		if (textField.getText().isBlank()) {
+		if (textField.getText().isEmpty()) {
 			return 0;
 		}
 		return Double.parseDouble(textField.getText());
@@ -90,7 +90,7 @@ public class DoubleSettingButton implements SettingButton {
 	public void updateValue() {
 		initialValue = (double) getValue();
 	}
-	
+
 	private boolean isWidthSet = false;
 
 	@Override

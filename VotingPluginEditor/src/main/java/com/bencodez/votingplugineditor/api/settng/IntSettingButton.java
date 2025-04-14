@@ -25,7 +25,7 @@ public class IntSettingButton implements SettingButton {
 	private JTextField textField;
 
 	private JLabel label;
-	
+
 	public IntSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText, int defaultValue,
 			String hoverText) {
 		this.key = key;
@@ -65,7 +65,7 @@ public class IntSettingButton implements SettingButton {
 
 	@Override
 	public Object getValue() {
-		if (textField.getText().isBlank()) {
+		if (textField.getText().isEmpty()) {
 			return 0;
 		}
 		return Integer.parseInt(textField.getText());
@@ -80,16 +80,16 @@ public class IntSettingButton implements SettingButton {
 	public void updateValue() {
 		initialValue = (int) getValue();
 	}
-	
+
 	public JTextField getComponent() {
 		return textField;
 	}
-	
+
 	public void setVisible(boolean visible) {
 		label.setVisible(visible);
 		textField.setVisible(visible);
 	}
-	
+
 	private boolean isWidthSet = false;
 
 	@Override

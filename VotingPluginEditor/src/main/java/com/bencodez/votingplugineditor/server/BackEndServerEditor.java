@@ -7,16 +7,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -39,7 +35,6 @@ import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
-import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.files.BungeeSettingsConfig;
 import com.bencodez.votingplugineditor.files.ConfigConfig;
@@ -48,11 +43,11 @@ import com.bencodez.votingplugineditor.files.RewardFilesConfig;
 import com.bencodez.votingplugineditor.files.ShopConfig;
 import com.bencodez.votingplugineditor.files.SpecialRewardsConfig;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
+
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.RemoteResourceInfo;
+import net.schmizz.sshj.sftp.SFTPClient;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
 public class BackEndServerEditor {
 
@@ -339,29 +334,28 @@ public class BackEndServerEditor {
 			@Override
 			public void onItemAdd(String name) {
 				if (isSFTP) {
-					// In SFTP mode, create an empty remote file.
 					String remoteRewardsDir = directoryPath + "/Rewards";
 					String remoteFile = remoteRewardsDir + "/" + name;
-					try {
-						// Ensure the remote directory exists.
-						Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-								settings.getUser(), settings.getPassword());
-						ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-						sftpChannel.connect();
-						try {
-							sftpChannel.mkdir(remoteRewardsDir);
-						} catch (SftpException ex) {
-							// Directory may already exist; ignore error.
+					try (SSHClient sshClient = new SSHClient()) {
+						sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+						sshClient.connect(settings.getHost(), settings.getPort());
+						sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+						try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+							// Ensure the remote directory exists
+							try {
+								sftpClient.mkdir(remoteRewardsDir);
+							} catch (IOException e) {
+								// Ignore if directory already exists
+							}
+							// Create an empty temporary file and upload it
+							File tempFile = File.createTempFile("empty", null);
+							tempFile.deleteOnExit();
+							sftpClient.put(tempFile.getAbsolutePath(), remoteFile);
+							rewardFiles.add(name);
+							JOptionPane.showMessageDialog(rewardFrame, "Reward file added: " + name);
 						}
-						// Create an empty temporary file and upload it.
-						File tempFile = File.createTempFile("empty", null);
-						tempFile.deleteOnExit();
-						sftpChannel.put(new FileInputStream(tempFile), remoteFile);
-						sftpChannel.disconnect();
-						session.disconnect();
-						rewardFiles.add(name);
-						JOptionPane.showMessageDialog(rewardFrame, "Reward file added: " + name);
-					} catch (Exception e) {
+					} catch (IOException e) {
 						e.printStackTrace();
 						JOptionPane.showMessageDialog(rewardFrame, "Failed to add remote reward file: " + name);
 					}
@@ -392,17 +386,17 @@ public class BackEndServerEditor {
 				if (confirmation == JOptionPane.YES_OPTION) {
 					if (isSFTP) {
 						String remoteFile = directoryPath + "/Rewards/" + name;
-						try {
-							Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-									settings.getUser(), settings.getPassword());
-							ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-							sftpChannel.connect();
-							sftpChannel.rm(remoteFile);
-							sftpChannel.disconnect();
-							session.disconnect();
-							rewardFiles.remove(name);
-							JOptionPane.showMessageDialog(rewardFrame, "Reward file removed: " + name);
-						} catch (Exception e) {
+						try (SSHClient sshClient = new SSHClient()) {
+							sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+							sshClient.connect(settings.getHost(), settings.getPort());
+							sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+							try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+								sftpClient.rm(remoteFile);
+								rewardFiles.remove(name);
+								JOptionPane.showMessageDialog(rewardFrame, "Reward file removed: " + name);
+							}
+						} catch (IOException e) {
 							e.printStackTrace();
 							JOptionPane.showMessageDialog(rewardFrame, "Failed to remove remote reward file: " + name);
 						}
@@ -535,76 +529,55 @@ public class BackEndServerEditor {
 			ServerEditorUtils.saveSFTPSettings("SFTP".equals(storageTypeDropdown.getSelectedItem()), "", server, host,
 					port, user, password, ServerEditorUtils.generateSecretKey());
 
-			try {
-				Session session = SFTPConnection.createSession(host, port, user, password);
-				Channel channel = session.openChannel("sftp");
-				channel.connect();
-				ChannelSftp sftpChannel = (ChannelSftp) channel;
+			try (SSHClient sshClient = new SSHClient()) {
+				sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+				sshClient.connect(host, port);
+				sshClient.authPassword(user, password);
 
-				// Start navigation at the current working directory on the SFTP server
-				String remotePath = sftpChannel.pwd();
-				boolean finished = false;
-				while (!finished) {
-					// List entries in the current remotePath and filter directories
-					@SuppressWarnings("unchecked")
-					java.util.Vector<ChannelSftp.LsEntry> list = sftpChannel.ls(remotePath);
-					ArrayList<String> options = new ArrayList<>();
-
-					// Option to select the current directory
-					options.add("<<Select current directory>>");
-					// Option to go up, if we're not at root
-					if (!remotePath.equals("/")) {
-						options.add("<<Go up>>");
-					}
-					// Add subdirectories
-					for (ChannelSftp.LsEntry entry : list) {
-						String filename = entry.getFilename();
-						if (entry.getAttrs().isDir() && !filename.equals(".") && !filename.equals("..")) {
-							options.add(filename);
+				try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+					String remotePath = sftpClient.canonicalize(".");
+					boolean finished = false;
+					while (!finished) {
+						List<String> options = new ArrayList<>();
+						options.add("<<Select current directory>>");
+						if (!remotePath.equals("/")) {
+							options.add("<<Go up>>");
 						}
-					}
+						for (RemoteResourceInfo entry : sftpClient.ls(remotePath)) {
+							if (entry.isDirectory() && !entry.getName().equals(".") && !entry.getName().equals("..")) {
+								options.add(entry.getName());
+							}
+						}
 
-					// Show a dialog with the current directory and options
-					String selected = (String) JOptionPane.showInputDialog(frame,
-							"Current Remote Directory:\n" + remotePath + "\n\nSelect an option:",
-							"Remote Directory Navigation", JOptionPane.QUESTION_MESSAGE, null,
-							options.toArray(new String[0]), options.get(0));
+						String selected = (String) JOptionPane.showInputDialog(frame,
+								"Current Remote Directory:\n" + remotePath + "\n\nSelect an option:",
+								"Remote Directory Navigation", JOptionPane.QUESTION_MESSAGE, null,
+								options.toArray(new String[0]), options.get(0));
 
-					if (selected == null) {
-						// User cancelled - exit the loop without saving
-						return;
-					} else if (selected.equals("<<Select current directory>>")) {
-						finished = true;
-					} else if (selected.equals("<<Go up>>")) {
-						// Move to the parent directory.
-						// Use simple logic: if remotePath is "/" then remain there.
-						File temp = new File(remotePath);
-						String parent = temp.getParent();
-						remotePath = (parent == null || parent.isEmpty()) ? "/" : parent;
-					} else {
-						// User selected a subdirectory; append it to remotePath.
-						if (remotePath.equals("/")) {
-							remotePath = remotePath + selected;
+						if (selected == null) {
+							return;
+						} else if (selected.equals("<<Select current directory>>")) {
+							finished = true;
+						} else if (selected.equals("<<Go up>>")) {
+							remotePath = remotePath.substring(0, remotePath.lastIndexOf('/'));
+							if (remotePath.isEmpty()) {
+								remotePath = "/";
+							}
 						} else {
-							remotePath = remotePath + "/" + selected;
+							remotePath = remotePath.equals("/") ? "/" + selected : remotePath + "/" + selected;
 						}
 					}
+
+					directoryPath = remotePath;
+					VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
+					JOptionPane.showMessageDialog(frame, "Remote directory saved: " + directoryPath);
 				}
-
-				// Save the selected remote path
-				directoryPath = remotePath;
-				VotingPluginEditor.getPrefs().put(server + PREF_DIRECTORY, directoryPath);
-				JOptionPane.showMessageDialog(frame, "Remote directory saved: " + directoryPath);
-
-				sftpChannel.disconnect();
-				session.disconnect();
-			} catch (JSchException | SftpException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(frame,
 						"Failed to connect to SFTP server or list directories:\n" + e.getMessage());
 			}
 		} else {
-			// Local directory selection remains unchanged
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setDialogTitle("Select VotingPlugin Folder");
 			fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -622,16 +595,17 @@ public class BackEndServerEditor {
 
 	// Helper method to download a remote file to a local file
 	private static void downloadRemoteFile(String remotePath, File localFile, SFTPSettings settings)
-			throws JSchException, SftpException, IOException {
-		Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(), settings.getUser(),
-				settings.getPassword());
-		ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-		sftpChannel.connect();
-		try (FileOutputStream fos = new FileOutputStream(localFile)) {
-			sftpChannel.get(remotePath, fos);
+			throws IOException {
+		try (SSHClient sshClient = new SSHClient()) {
+			sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+			sshClient.connect(settings.getHost(), settings.getPort());
+			sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+			try (SFTPClient sftpClient = sshClient.newSFTPClient();
+					FileOutputStream fos = new FileOutputStream(localFile)) {
+				sftpClient.get(remotePath, localFile.getAbsolutePath());
+			}
 		}
-		sftpChannel.disconnect();
-		session.disconnect();
 	}
 
 	// Modified backupFiles to work with both local and SFTP storage
@@ -639,17 +613,17 @@ public class BackEndServerEditor {
 		if (directoryPath != null) {
 			if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
 				SFTPSettings settings = getSFTPSettingsFromFields();
-				try {
-					Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-							settings.getUser(), settings.getPassword());
-					ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-					sftpChannel.connect();
-					String backupDir = directoryPath + "_backup";
-					ServerEditorUtils.backupRemoteDirectory(sftpChannel, directoryPath, backupDir);
-					JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
-					sftpChannel.disconnect();
-					session.disconnect();
-				} catch (JSchException | SftpException e) {
+				try (SSHClient sshClient = new SSHClient()) {
+					sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+					sshClient.connect(settings.getHost(), settings.getPort());
+					sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+					try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+						String backupDir = directoryPath + "_backup";
+						ServerEditorUtils.backupRemoteDirectory(sftpClient, directoryPath, backupDir);
+						JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
+					}
+				} catch (IOException e) {
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(frame, "Remote backup failed:\n" + e.getMessage());
 				}
@@ -671,17 +645,17 @@ public class BackEndServerEditor {
 		if (directoryPath != null) {
 			if ("SFTP".equals(storageTypeDropdown.getSelectedItem())) {
 				SFTPSettings settings = getSFTPSettingsFromFields();
-				try {
-					Session session = SFTPConnection.createSession(settings.getHost(), settings.getPort(),
-							settings.getUser(), settings.getPassword());
-					ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
-					sftpChannel.connect();
-					String backupDir = directoryPath + "_backup";
-					ServerEditorUtils.restoreRemoteDirectory(sftpChannel, backupDir, directoryPath);
-					JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
-					sftpChannel.disconnect();
-					session.disconnect();
-				} catch (JSchException | SftpException e) {
+				try (SSHClient sshClient = new SSHClient()) {
+					sshClient.addHostKeyVerifier(new PromiscuousVerifier());
+					sshClient.connect(settings.getHost(), settings.getPort());
+					sshClient.authPassword(settings.getUser(), settings.getPassword());
+
+					try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
+						String backupDir = directoryPath + "_backup";
+						ServerEditorUtils.restoreRemoteDirectory(sftpClient, backupDir, directoryPath);
+						JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
+					}
+				} catch (IOException e) {
 					e.printStackTrace();
 					JOptionPane.showMessageDialog(frame, "Remote restore failed:\n" + e.getMessage());
 				}
