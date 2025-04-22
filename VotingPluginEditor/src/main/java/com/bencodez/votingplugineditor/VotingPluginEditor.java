@@ -2,7 +2,6 @@ package com.bencodez.votingplugineditor;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,11 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.misc.PanelUtils;
@@ -68,10 +62,6 @@ public class VotingPluginEditor {
 		return new ArrayList<>(Arrays.asList(serializedServers.split(",")));
 	}
 
-	private static String getVersionFromPom() {
-		return "1.1";
-	}
-
 	public static void main(String[] args) {
 		materials = MaterialLoader.loadMaterials();
 		potionEffects = PotionLoader.loadPotions();
@@ -89,8 +79,7 @@ public class VotingPluginEditor {
 		frame.setSize(400, 500 + (backendServers.size() + proxyServers.size()) * 50);
 		frame.setLayout(new GridLayout(8 + backendServers.size() + proxyServers.size(), 1));
 
-		String version = getVersionFromPom();
-		JLabel versionLabel = new JLabel("VotingPluginEditor: " + version);
+		JLabel versionLabel = new JLabel("VotingPluginEditor");
 		versionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		frame.add(versionLabel);
 
