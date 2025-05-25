@@ -75,7 +75,7 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 
 		settingButtons.add(new BooleanSettingButton(panel, "UseBungeecord", getConfigData(), "Use Bungeecord"));
 		settingButtons.add(new StringSettingButton(panel, "BungeeMethod", getConfigData(), "Bungee Method",
-				"PLUGINMESSAGING", new String[] { "SOCKETS", "PLUGINMESSAGING", "MYSQL", "REDIS" }));
+				"PLUGINMESSAGING", new String[] { "SOCKETS", "PLUGINMESSAGING", "MYSQL", "REDIS","MQTT" }));
 
 		JPanel redisPanel = new JPanel();
 		redisPanel.setLayout(new BoxLayout(redisPanel, BoxLayout.Y_AXIS));

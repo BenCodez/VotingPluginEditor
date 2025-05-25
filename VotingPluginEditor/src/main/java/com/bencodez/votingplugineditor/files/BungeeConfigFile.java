@@ -86,7 +86,7 @@ public class BungeeConfigFile extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(panel, "Debug", getConfigData(), "Debug"));
 		settingButtons.add(new BooleanSettingButton(panel, "AllowUnJoined", getConfigData(), "Allow UnJoined"));
 		settingButtons.add(new StringSettingButton(panel, "BungeeMethod", getConfigData(), "Bungee Method",
-				"PLUGINMESSAGING", new String[] { "PLUGINMESSAGING", "REDIS", "SOCKETS", "MYSQL" }));
+				"PLUGINMESSAGING", new String[] { "PLUGINMESSAGING", "REDIS", "SOCKETS", "MYSQL","MQTT" }));
 		settingButtons.add(
 				new BooleanSettingButton(panel, "SendVotesToAllServers", getConfigData(), "Send Votes To All Servers"));
 
