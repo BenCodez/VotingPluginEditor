@@ -44,11 +44,9 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		int size = 180 + map.size() * 30;
 
 		VoteSitesConfig config = this;
-
 		editorFrame.setSize(300, size);
 
 		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(editorFrame.getWidth()) {
-
 			@Override
 			public void onItemRemove(String name) {
 				remove("VoteSites." + name);
@@ -59,22 +57,18 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 			@Override
 			public void onItemAdd(String name) {
-				if (map.containsKey(name)) {
-					JOptionPane.showMessageDialog(panel, "VoteSite already exists");
-
-				} else {
-					name = name.replaceAll(".", "_");
-					set("VoteSites." + name + ".Enabled", true);
-					set("VoteSites." + name + ".VoteDelay", 24);
-					set("VoteSites." + name + ".Name", name);
-					set("VoteSites." + name + ".DisplayItem.Material", "DIAMOND");
-					set("VoteSites." + name + ".DisplayItem.Amount", 1);
-					set("VoteSites." + name + ".VoteURL", "http://www.example.com");
-					set("VoteSites." + name + ".ServiceSite", "PLEASE SET");
-					set("VoteSites." + name + ".Rewards.Messages.Player", "You voted");
-
-					save();
+				String identifier = sanitizeVoteSiteIdentifier(name);
+				if (identifier.isEmpty()) {
+					JOptionPane.showMessageDialog(panel,
+							"VoteSite name must contain at least one letter, number, underscore, or hyphen.");
+					return;
 				}
+				if (map.containsKey(identifier)) {
+					JOptionPane.showMessageDialog(panel, "VoteSite already exists");
+					return;
+				}
+
+				addVoteSite(identifier, identifier, "http://www.example.com", "PLEASE SET");
 				editorFrame.dispose();
 				openEditorGUI();
 			}
@@ -115,22 +109,18 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 					SwingUtilities.invokeLater(() -> {
 						loadingDialog.dispose();
-						String selectedPreset = (String) JOptionPane.showInputDialog(panel, "Select a VoteSite to add:",
-								"Add VoteSite from Preset", JOptionPane.PLAIN_MESSAGE, null, presets,
-								presets.length > 0 ? presets[0] : null);
+						String selectedPreset = (String) JOptionPane.showInputDialog(panel,
+								"Select a VoteSite to add:", "Add VoteSite from Preset", JOptionPane.PLAIN_MESSAGE,
+								null, presets, presets.length > 0 ? presets[0] : null);
 						if (selectedPreset != null && !selectedPreset.isEmpty()) {
-							String name = selectedPreset.replaceAll("\\.", "_").replaceAll("\"", "");
-							set("VoteSites." + name + ".Enabled", true);
-							set("VoteSites." + name + ".VoteDelay", 24);
-							set("VoteSites." + name + ".Name", name);
-							set("VoteSites." + name + ".DisplayItem.Material", "DIAMOND");
-							set("VoteSites." + name + ".DisplayItem.Amount", 1);
-							set("VoteSites." + name + ".VoteURL", selectedPreset.replace("\"", ""));
-							set("VoteSites." + name + ".ServiceSite",
+							String cleanPreset = selectedPreset.replace("\"", "");
+							String identifier = sanitizeVoteSiteIdentifier(cleanPreset);
+							if (identifier.isEmpty() || map.containsKey(identifier)) {
+								JOptionPane.showMessageDialog(panel, "Unable to add preset: invalid or duplicate name");
+								return;
+							}
+							addVoteSite(identifier, identifier, cleanPreset,
 									serviceSiteHandler.getServiceSites().get(selectedPreset).replace("\"", ""));
-							set("VoteSites." + name + ".Rewards.Messages.Player", "You voted");
-
-							save();
 							editorFrame.dispose();
 							openEditorGUI();
 						}
@@ -151,10 +141,8 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		panel.add(addFromPresetButton);
 		panel.add(addRemoveEditor.getRemoveButton("Remove VoteSite", "Remove VoteSite",
 				PanelUtils.convertSetToArray(map.keySet())));
-
 		panel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-		// Add the new button for EverySiteReward
 		JButton everySiteRewardButton = new JButton("Edit EverySiteReward");
 		everySiteRewardButton.setHorizontalAlignment(SwingConstants.CENTER);
 		everySiteRewardButton
@@ -162,7 +150,6 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		everySiteRewardButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		everySiteRewardButton.addActionListener(event -> {
 			new RewardEditor(get("EverySiteReward"), "EverySiteReward") {
-
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
@@ -200,9 +187,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 			};
 		});
 		panel.add(everySiteRewardButton);
-
 		panel.add(Box.createRigidArea(new Dimension(0, 15)));
-
 		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
 
 		editorFrame.add(panel);
@@ -210,4 +195,23 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		editorFrame.setVisible(true);
 	}
 
+	private void addVoteSite(String identifier, String displayName, String voteUrl, String serviceSite) {
+		set("VoteSites." + identifier + ".Enabled", true);
+		set("VoteSites." + identifier + ".VoteDelay", "24h");
+		set("VoteSites." + identifier + ".Name", displayName);
+		set("VoteSites." + identifier + ".DisplayItem.Material", "DIAMOND");
+		set("VoteSites." + identifier + ".DisplayItem.Amount", 1);
+		set("VoteSites." + identifier + ".VoteURL", voteUrl);
+		set("VoteSites." + identifier + ".ServiceSite", serviceSite);
+		set("VoteSites." + identifier + ".Rewards.Messages.Player", "You voted");
+		save();
+	}
+
+	private static String sanitizeVoteSiteIdentifier(String name) {
+		if (name == null) {
+			return "";
+		}
+		return name.trim().replaceAll("[\\s.]+", "_").replaceAll("[^A-Za-z0-9_-]", "")
+				.replaceAll("_+", "_").replaceAll("^_+|_+$", "");
+	}
 }
