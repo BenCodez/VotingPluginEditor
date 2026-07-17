@@ -32,8 +32,8 @@ import com.bencodez.votingplugineditor.files.VoteSitesConfig;
 
 public class VoteSiteEditor {
 
-	private List<SettingButton> buttons;
-	private String siteName;
+	private final List<SettingButton> buttons;
+	private final String siteName;
 
 	public VoteSiteEditor(VoteSitesConfig voteSitesConfig, String siteName) {
 		Map<String, Object> siteData = (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName,
@@ -46,27 +46,20 @@ public class VoteSiteEditor {
 	private void createAndShowGUI(String siteName, Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
 		JFrame frame = new JFrame("VoteSite Editor - " + siteName);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(500, 400);
+		frame.setSize(550, 500);
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		JPanel mainPanel = createMainPanel(siteName, siteData, voteSitesConfig);
-		tabbedPane.addTab("Main", mainPanel);
-
-		JPanel advancedPanel = createAdvancedOptionsPanel(siteData, voteSitesConfig);
-		tabbedPane.addTab("Advanced Options", advancedPanel);
-
+		tabbedPane.addTab("Main", createMainPanel(siteName, siteData, voteSitesConfig));
+		tabbedPane.addTab("Advanced Options", createAdvancedOptionsPanel(siteData, voteSitesConfig));
 		frame.add(tabbedPane, BorderLayout.CENTER);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		saveButton.addActionListener(e -> saveChanges(siteName, voteSitesConfig));
-
 		frame.add(saveButton, BorderLayout.SOUTH);
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
-
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -77,18 +70,12 @@ public class VoteSiteEditor {
 		panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
 		buttons.add(new BooleanSettingButton(panel, "Enabled", siteData, "VoteSite Enabled:"));
-
 		panel.add(Box.createVerticalStrut(10));
-
 		buttons.add(new StringSettingButton(panel, "Name", siteData, "Display Name", voteSiteName));
-
 		buttons.add(new StringSettingButton(panel, "ServiceSite", siteData, "Service Site:", "NOT SET"));
-
 		buttons.add(new StringSettingButton(panel, "VoteURL", siteData, "Voting URL:", "NOT SET"));
+		buttons.add(new StringSettingButton(panel, "VoteDelay", siteData, "Vote Delay:", "24h"));
 
-		buttons.add(new IntSettingButton(panel, "VoteDelay", siteData, "VoteDelay:", 24));
-
-		JPanel panel1 = new JPanel();
 		JButton rewardsEdit = new JButton("Edit Rewards");
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
@@ -100,19 +87,8 @@ public class VoteSiteEditor {
 				public void saveChanges(Map<String, Object> changes) {
 					try {
 						for (Entry<String, Object> change : changes.entrySet()) {
-							boolean isInt = false;
-							try {
-								Integer.parseInt((String) change.getValue());
-								isInt = true;
-							} catch (Exception e) {
-							}
-							if (isInt) {
-								voteSitesConfig.set("VoteSites." + voteSiteName + ".Rewards." + change.getKey(),
-										Integer.parseInt((String) change.getValue()));
-							} else {
-								voteSitesConfig.set("VoteSites." + voteSiteName + ".Rewards." + change.getKey(),
-										change.getValue());
-							}
+							voteSitesConfig.set("VoteSites." + voteSiteName + ".Rewards." + change.getKey(),
+									change.getValue());
 						}
 						voteSitesConfig.save();
 						JOptionPane.showMessageDialog(null, "Changes have been saved.");
@@ -147,9 +123,7 @@ public class VoteSiteEditor {
 		});
 
 		panel.add(rewardsEdit);
-
 		panel.add(Box.createVerticalStrut(10));
-
 		return panel;
 	}
 
@@ -159,19 +133,22 @@ public class VoteSiteEditor {
 		advancedPanel.setBorder(BorderFactory.createTitledBorder("Advanced Options"));
 
 		buttons.add(new BooleanSettingButton(advancedPanel, "WaitUntilVoteDelay", siteData, "Wait Until Vote Delay:",
-				false, "Blocks votes with VoteDelay"));
-		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData, "VoteDelayDaily:", false,
-				"VoteDelay is daily instead of hourly"));
-		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData, "ForceOffline:", false,
-				"Forces runs rewards while player is offline"));
+				false, "Blocks votes until the configured VoteDelay has passed"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData, "Vote Delay Daily:", false,
+				"Reset the vote delay at a fixed time each day"));
+		buttons.add(new IntSettingButton(advancedPanel, "VoteDelayDailyHour", siteData, "Vote Delay Daily Hour:", 1,
+				"Server hour from 1-24 used when VoteDelayDaily is enabled"));
+		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData, "Force Offline:", false,
+				"Run this site's rewards while the player is offline; this changes offline vote handling"));
 		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData, "Hidden:", false,
-				"(Hide votesite in GUI's and from counters)"));
+				"Hide this VoteSite from supported GUIs and counters"));
+		buttons.add(new StringSettingButton(advancedPanel, "PermissionToView", siteData, "Permission To View:", ""));
 		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority:", 5,
-				"Used to orders sites in VoteURL GUI"));
+				"Higher-priority sites appear earlier in sorted VoteSite lists"));
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData, "Display Item Material",
-				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in certain GUI's"));
+				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in supported GUIs"));
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData, "Display Item Amount:", 1,
-				"Used in certain GUI's"));
+				"Used in supported GUIs"));
 
 		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
 		coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
@@ -185,19 +162,8 @@ public class VoteSiteEditor {
 				public void saveChanges(Map<String, Object> changes) {
 					try {
 						for (Entry<String, Object> change : changes.entrySet()) {
-							boolean isInt = false;
-							try {
-								Integer.parseInt((String) change.getValue());
-								isInt = true;
-							} catch (Exception e) {
-							}
-							if (isInt) {
-								voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
-										Integer.parseInt((String) change.getValue()));
-							} else {
-								voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
-										change.getValue());
-							}
+							voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
+									change.getValue());
 						}
 						voteSitesConfig.save();
 						JOptionPane.showMessageDialog(null, "Changes have been saved.");
@@ -231,7 +197,6 @@ public class VoteSiteEditor {
 			};
 		});
 		advancedPanel.add(coolDownEndRewardsEdit);
-
 		return advancedPanel;
 	}
 
@@ -242,15 +207,12 @@ public class VoteSiteEditor {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
 
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					voteSitesConfig.set("VoteSites." + voteSiteName + "." + change.getKey(), change.getValue());
-
 				}
 				voteSitesConfig.save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
