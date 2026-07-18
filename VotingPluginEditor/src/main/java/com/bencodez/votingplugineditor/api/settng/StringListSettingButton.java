@@ -68,7 +68,11 @@ public class StringListSettingButton implements SettingButton {
 
 	@Override
 	public Object getValue() {
-		return textArea.getText().split("\n");
+		String value = textArea.getText();
+		if (value.trim().isEmpty()) {
+			return new String[0];
+		}
+		return value.split("\\R");
 	}
 
 	@Override
