@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import lombok.Getter;
@@ -16,7 +16,7 @@ public class ServiceSiteHandler {
 			"https://raw.githubusercontent.com/wiki/BenCodez/VotingPlugin/Minecraft-Server-Lists.md";
 
 	@Getter
-	private HashMap<String, String> serviceSites = new HashMap<>();
+	private LinkedHashMap<String, String> serviceSites = new LinkedHashMap<>();
 
 	public ServiceSiteHandler() {
 		loadFromGithub();
