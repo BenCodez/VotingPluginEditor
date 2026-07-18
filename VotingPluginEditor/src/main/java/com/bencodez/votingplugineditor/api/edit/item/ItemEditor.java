@@ -12,12 +12,11 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import com.bencodez.votingplugineditor.VotingPluginEditor;
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
+import com.bencodez.votingplugineditor.api.misc.JavascriptRequirementHandler;
 import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
@@ -31,11 +30,17 @@ public abstract class ItemEditor {
 	private Map<String, Object> configData;
 	private List<SettingButton> buttons;
 	private Map<String, Object> changes;
+	private final JavascriptRequirementHandler javascriptRequirementHandler;
 
 	public ItemEditor(Map<String, Object> data) {
+		this(data, null);
+	}
+
+	public ItemEditor(Map<String, Object> data, JavascriptRequirementHandler javascriptRequirementHandler) {
 		configData = data == null ? new HashMap<String, Object>() : data;
 		buttons = new ArrayList<>();
 		changes = new HashMap<String, Object>();
+		this.javascriptRequirementHandler = javascriptRequirementHandler;
 		createAndShowGUI();
 	}
 
@@ -160,6 +165,12 @@ public abstract class ItemEditor {
 		changes.putAll(this.changes);
 		this.changes.clear();
 		if (!changes.isEmpty()) {
+			Object javascript = changes.get("ConditionalJavascript");
+			if (javascript != null && !String.valueOf(javascript).trim().isEmpty()
+					&& javascriptRequirementHandler != null
+					&& !javascriptRequirementHandler.ensureEnabled(frame, "Conditional JavaScript items")) {
+				return;
+			}
 			saveChanges(changes);
 		}
 	}
