@@ -58,7 +58,7 @@ public class ServiceSiteHandler {
 	}
 
 	public void readFromWeb(String webURL) throws IOException {
-		serviceSites.clear();
+		LinkedHashMap<String, String> loadedServiceSites = new LinkedHashMap<>();
 		URL url = new URL(webURL);
 		try (InputStream is = url.openStream();
 				BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
@@ -71,10 +71,13 @@ public class ServiceSiteHandler {
 
 				String[] split = trimmed.split("\\s+-\\s+", 2);
 				if (split.length == 2 && !split[0].isBlank() && !split[1].isBlank()) {
-					serviceSites.put(stripMarkdown(split[0]), stripMarkdown(split[1]));
+					loadedServiceSites.put(stripMarkdown(split[0]), stripMarkdown(split[1]));
 				}
 			}
 		}
+
+		serviceSites.clear();
+		serviceSites.putAll(loadedServiceSites);
 	}
 
 	private String stripMarkdown(String value) {
