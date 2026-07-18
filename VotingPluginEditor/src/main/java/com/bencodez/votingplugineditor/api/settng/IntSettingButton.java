@@ -47,7 +47,7 @@ public class IntSettingButton implements SettingButton {
 		label = new JLabel(labelText);
 		label.setPreferredSize(new Dimension(100, label.getPreferredSize().height));
 
-		textField = new JTextField("" + initialValue);
+		textField = new JTextField(String.valueOf(initialValue));
 		textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, textField.getPreferredSize().height));
 		textField.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
@@ -60,15 +60,17 @@ public class IntSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		return !textField.getText().equals("" + initialValue);
+		String value = textField.getText().trim();
+		return !value.isEmpty() && !value.equals(String.valueOf(initialValue));
 	}
 
 	@Override
 	public Object getValue() {
-		if (textField.getText().isEmpty()) {
-			return 0;
+		String value = textField.getText().trim();
+		if (value.isEmpty()) {
+			return initialValue;
 		}
-		return Integer.parseInt(textField.getText());
+		return Integer.parseInt(value);
 	}
 
 	@Override
@@ -106,5 +108,4 @@ public class IntSettingButton implements SettingButton {
 	public int getWidth() {
 		return label.getFontMetrics(label.getFont()).stringWidth(label.getText());
 	}
-
 }

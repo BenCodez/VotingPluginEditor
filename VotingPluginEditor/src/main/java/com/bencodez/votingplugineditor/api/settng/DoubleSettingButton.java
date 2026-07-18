@@ -70,15 +70,17 @@ public class DoubleSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		return !textField.getText().equals("" + initialValue);
+		String value = textField.getText().trim();
+		return !value.isEmpty() && !value.equals("" + initialValue);
 	}
 
 	@Override
 	public Object getValue() {
-		if (textField.getText().isEmpty()) {
-			return 0;
+		String value = textField.getText().trim();
+		if (value.isEmpty()) {
+			return initialValue;
 		}
-		return Double.parseDouble(textField.getText());
+		return Double.parseDouble(value);
 	}
 
 	@Override

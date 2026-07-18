@@ -26,6 +26,8 @@ public class StringListSettingButton implements SettingButton {
 
 	private JTextArea textArea;
 
+	private JScrollPane scrollPane;
+
 	private JLabel label;
 
 	public StringListSettingButton(JPanel panel, String key, Map<String, Object> data, String labelText) {
@@ -50,7 +52,7 @@ public class StringListSettingButton implements SettingButton {
 		textArea = new JTextArea(initialValue);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
-		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane = new JScrollPane(textArea);
 		scrollPane.setPreferredSize(new Dimension(150, 70));
 		scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
 
@@ -68,7 +70,11 @@ public class StringListSettingButton implements SettingButton {
 
 	@Override
 	public Object getValue() {
-		return textArea.getText().split("\n");
+		String value = textArea.getText();
+		if (value.trim().isEmpty()) {
+			return new String[0];
+		}
+		return value.split("\\R");
 	}
 
 	@Override
@@ -89,7 +95,7 @@ public class StringListSettingButton implements SettingButton {
 	
 	public void setVisible(boolean visible) {
         label.setVisible(visible);
-        textArea.setVisible(visible);
+        scrollPane.setVisible(visible);
 	}
 
 	@Override

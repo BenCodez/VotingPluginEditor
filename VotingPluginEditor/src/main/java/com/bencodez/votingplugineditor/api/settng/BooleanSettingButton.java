@@ -61,7 +61,7 @@ public class BooleanSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		return !checkBox.isSelected() == initialValue;
+		return checkBox.isSelected() != initialValue;
 	}
 
 	@Override
@@ -86,8 +86,9 @@ public class BooleanSettingButton implements SettingButton {
 		if (isWidthSet) {
 			return;
 		}
-		checkBox.setMaximumSize(new Dimension(width + 50, checkBox.getPreferredSize().height));
-		checkBox.setPreferredSize(new Dimension(width, checkBox.getPreferredSize().height));
+		int controlWidth = width + 50;
+		checkBox.setMaximumSize(new Dimension(controlWidth, checkBox.getPreferredSize().height));
+		checkBox.setPreferredSize(new Dimension(controlWidth, checkBox.getPreferredSize().height));
 		isWidthSet = true;
 	}
 
@@ -99,5 +100,4 @@ public class BooleanSettingButton implements SettingButton {
 	public boolean isSelected() {
 		return checkBox.isSelected();
 	}
-
 }
