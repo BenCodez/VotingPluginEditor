@@ -70,24 +70,52 @@ public class PanelUtils {
 		return defaultValue;
 	}
 
+	/**
+	 * Safely gets a value from a nested map structure as a String.
+	 * <p>
+	 * Supports dot-separated keys (e.g. "Database.Port"). If the stored value is
+	 * not a String (e.g. Integer, Double, Boolean), it will be converted using
+	 * {@code String.valueOf(value)}.
+	 * </p>
+	 *
+	 * @param data         The map to read from.
+	 * @param key          The key to lookup (supports dot notation).
+	 * @param defaultValue The default string value if missing or null.
+	 * @return The value as a string, or defaultValue if not found.
+	 */
+	@SuppressWarnings("unchecked")
 	public static String getStringValue(Map<String, Object> data, String key, String defaultValue) {
-		if (key.contains(".")) {
-			String[] p = key.split(Pattern.quote("."));
-			if (data.containsKey(p[0])) {
-				Object ob = data.getOrDefault(p[0], defaultValue);
-				if (ob instanceof Map) {
-					return getStringValue((Map<String, Object>) data.get(p[0]), key.replaceFirst(p[0] + ".", ""),
-							defaultValue);
-				}
-				return (String) ob;
-			}
-		} else {
-			if (data.get(key) instanceof Boolean) {
-				return "" + Boolean.TRUE.equals(data.getOrDefault(key, defaultValue));
-			}
-			return (String) data.getOrDefault(key, defaultValue);
+		if (data == null || key == null) {
+			return defaultValue;
 		}
-		return defaultValue;
+
+		if (key.contains(".")) {
+			String[] p = key.split(Pattern.quote("."), 2); // split once: "a.b.c" -> ["a","b.c"]
+			String head = p[0];
+			String tail = p.length > 1 ? p[1] : "";
+
+			Object ob = data.get(head);
+			if (ob instanceof Map) {
+				return getStringValue((Map<String, Object>) ob, tail, defaultValue);
+			}
+
+			// If the "head" exists but isn't a map, it's not navigable for nested keys.
+			return defaultValue;
+		}
+
+		Object value = data.get(key);
+		if (value == null) {
+			return defaultValue;
+		}
+
+		// Keep your previous boolean formatting behavior
+		if (value instanceof Boolean) {
+			return "" + Boolean.TRUE.equals(value);
+		}
+
+		// If already a String, return it; otherwise convert safely (handles Integer,
+		// etc.)
+		return (value instanceof String) ? (String) value : String.valueOf(value);
 	}
 
 	public static Object get(Map<String, Object> configData, String path, Object defaultValue) {
