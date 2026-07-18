@@ -1,5 +1,6 @@
 package com.bencodez.votingplugineditor.files;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,9 +33,18 @@ public class RewardFilesConfig extends YmlConfigHandler {
 		return votingPluginDirectory;
 	}
 
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getRewardData() {
+		Object data = getConfigData();
+		if (data instanceof Map<?, ?>) {
+			return (Map<String, Object>) data;
+		}
+		return new HashMap<String, Object>();
+	}
+
 	@Override
 	public void openEditorGUI() {
-		new RewardEditor((Map<String, Object>) getConfigData(), name) {
+		new RewardEditor(getRewardData(), name) {
 
 			@Override
 			public void saveChanges(Map<String, Object> changes) {
@@ -57,7 +67,7 @@ public class RewardFilesConfig extends YmlConfigHandler {
 			@Override
 			public Map<String, Object> updateData() {
 				load();
-				return getConfigData();
+				return getRewardData();
 			}
 
 			@Override
