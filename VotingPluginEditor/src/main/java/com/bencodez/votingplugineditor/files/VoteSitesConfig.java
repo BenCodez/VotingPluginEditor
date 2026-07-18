@@ -68,7 +68,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 					return;
 				}
 
-				addVoteSite(identifier, identifier, "http://www.example.com", "PLEASE SET");
+				addVoteSite(identifier, identifier, "link to vote URL here, used in /vote", "PLEASE SET");
 				editorFrame.dispose();
 				openEditorGUI();
 			}
@@ -196,7 +196,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 	}
 
 	private void addVoteSite(String identifier, String displayName, String voteUrl, String serviceSite) {
-		set("VoteSites." + identifier + ".Enabled", true);
+		set("VoteSites." + identifier + ".Enabled", false);
 		set("VoteSites." + identifier + ".VoteDelay", "24h");
 		set("VoteSites." + identifier + ".Name", displayName);
 		set("VoteSites." + identifier + ".DisplayItem.Material", "DIAMOND");
