@@ -70,9 +70,10 @@ public class ServiceSiteHandler {
 			String line;
 			while ((line = br.readLine()) != null) {
 				String trimmed = line.trim();
-				if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-					trimmed = trimmed.substring(2).trim();
+				if (!trimmed.startsWith("- ") && !trimmed.startsWith("* ")) {
+					continue;
 				}
+				trimmed = trimmed.substring(2).trim();
 
 				String[] split = trimmed.split("\\s+-\\s+", 2);
 				if (split.length == 2 && !split[0].isBlank() && !split[1].isBlank()) {
@@ -86,6 +87,7 @@ public class ServiceSiteHandler {
 	}
 
 	private String stripMarkdown(String value) {
-		return value.trim().replace("`", "").replace("**", "");
+		return value.trim().replaceAll("\\[([^\\]]+)]\\([^)]*\\)", "$1").replace("`", "")
+				.replace("**", "");
 	}
 }
