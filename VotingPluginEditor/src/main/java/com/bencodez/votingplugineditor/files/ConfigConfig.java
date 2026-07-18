@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
+import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
@@ -28,6 +29,13 @@ import com.bencodez.votingplugineditor.api.settng.SettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
+/**
+ * Editor UI handler for VotingPlugin's {@code Config.yml}.
+ * <p>
+ * This class builds the Swing panels used by VotingPluginEditor to edit core plugin settings.
+ * Updated for VotingPlugin 7.0+ layout (Database section, VoteReminders, VoteBroadcast).
+ * </p>
+ */
 public class ConfigConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
@@ -44,10 +52,18 @@ public class ConfigConfig extends YmlConfigHandler {
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main Settings", createMainEditorPanel());
-		tabbedPane.addTab("Vote Reminders", createVoteReminderOptionsPanel());
-		tabbedPane.addTab("Formatting Settings", createFormattingPanel());
-		tabbedPane.addTab("Top Voter Settings", createTopVoterSettingsPanel());
+
+		JPanel mainPanel = createMainEditorPanel();
+		tabbedPane.addTab("Main Settings", mainPanel);
+
+		JPanel voteRemindingPanel = createVoteRemindersPanel();
+		tabbedPane.addTab("Vote Reminders", voteRemindingPanel);
+
+		JPanel formattingPanel = createFormattingPanel();
+		tabbedPane.addTab("Formatting Settings", formattingPanel);
+
+		JPanel topVoterSettingsPanel = createTopVoterSettingsPanel();
+		tabbedPane.addTab("Top Voter Settings", topVoterSettingsPanel);
 
 		frame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -66,10 +82,26 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		settingButtons.add(new StringSettingButton(panel, "DebugLevel", getConfigData(), "Debug Level", "NONE",
 				new String[] { "NONE", "INFO", "EXTRA" }));
+
 		settingButtons.add(new StringSettingButton(panel, "DataStorage", getConfigData(), "Data Storage", "SQLITE",
 				new String[] { "SQLITE", "MYSQL" }));
 
 		panel.add(createDatabaseSettingsPanel());
+
+		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites"));
+		settingButtons.add(new StringSettingButton(panel, "BedrockPlayerPrefix", getConfigData(), "Bedrock Player Prefix", "."));
+		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode"));
+		settingButtons.add(new BooleanSettingButton(panel, "UseVoteGUIMainCommand", getConfigData(), "Use VoteGUI Main Command"));
+		settingButtons.add(new BooleanSettingButton(panel, "CreateBackups", getConfigData(), "Create Backups"));
+		settingButtons.add(new BooleanSettingButton(panel, "LoadCommandAliases", getConfigData(), "Load Command Aliases"));
+		settingButtons.add(new IntSettingButton(panel, "PointsOnVote", getConfigData(), "Points On Vote", 0));
+		settingButtons.add(new BooleanSettingButton(panel, "CaseInsensitiveYMLFiles", getConfigData(), "Case Insensitive YML Files"));
+		settingButtons.add(new BooleanSettingButton(panel, "LimitMonthlyVotes", getConfigData(), "Limit Monthly Votes"));
+		settingButtons.add(new BooleanSettingButton(panel, "TreatVanishAsOffline", getConfigData(), "Treat Vanish As Offline"));
+		settingButtons.add(new StringSettingButton(panel, "DelayLoginEvent", getConfigData(), "Delay Login Event (e.g. 0s)", "0s"));
+		settingButtons.add(new BooleanSettingButton(panel, "WaitUntilLoggedIn", getConfigData(), "Wait Until Logged In"));
+		settingButtons.add(new BooleanSettingButton(panel, "PerSiteCoolDownEvents", getConfigData(), "Per-Site Cooldown Events"));
+		settingButtons.add(new BooleanSettingButton(panel, "QueueVotesDuringTimeChange", getConfigData(), "Queue Votes During Time Change"));
 
 		settingButtons.add(new BooleanSettingButton(panel, "AdvancedServiceSiteHandling", getConfigData(),
 				"Advanced Service Site Handling"));
@@ -94,29 +126,37 @@ public class ConfigConfig extends YmlConfigHandler {
 		formattingPanel.setLayout(new BoxLayout(formattingPanel, BoxLayout.Y_AXIS));
 		formattingPanel.setBorder(BorderFactory.createTitledBorder("Formatting Settings"));
 
-		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-		settingButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line",
-				"&6%Command% - &6%HelpMessage%"));
-		settingButtons.add(new StringSettingButton(formattingPanel, "Format.BroadcastMsg", getConfigData(),
-				"Broadcast Message", "&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %SiteName%"));
+		ArrayList<SettingButton> localButtons = new ArrayList<SettingButton>();
 
-		BooleanSettingButton onlyOneOfflineBroadcastButton = new BooleanSettingButton(formattingPanel,
-				"Format.OnlyOneOfflineBroadcast", getConfigData(), "Only One Offline Broadcast");
-		settingButtons.add(onlyOneOfflineBroadcastButton);
+		localButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line", ""));
+		localButtons.add(new StringSettingButton(formattingPanel, "Format.TimeFormat", getConfigData(), "Time Format", ""));
+		localButtons.add(new StringSettingButton(formattingPanel, "Format.RewardTimeFormat", getConfigData(),
+				"Reward Time Format", ""));
 
-		StringSettingButton offlineBroadcastButton = new StringSettingButton(formattingPanel, "Format.OfflineBroadcast",
-				getConfigData(), "Offline Broadcast",
-				"&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %numberofvotes% times!");
-		settingButtons.add(offlineBroadcastButton);
-		settingButtons.add(new BooleanSettingButton(formattingPanel, "Format.BroadcastWhenOnline", getConfigData(),
-				"Broadcast When Online"));
+		formattingPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		this.settingButtons.addAll(settingButtons);
+		JPanel broadcastPanel = new JPanel();
+		broadcastPanel.setLayout(new BoxLayout(broadcastPanel, BoxLayout.Y_AXIS));
+		broadcastPanel.setBorder(BorderFactory.createTitledBorder("Vote Broadcast"));
 
-		offlineBroadcastButton.setVisible(Boolean.TRUE.equals(getConfigData("Format.OnlyOneOfflineBroadcast")));
-		onlyOneOfflineBroadcastButton
-				.addActionListener(event -> offlineBroadcastButton.setVisible(onlyOneOfflineBroadcastButton.isSelected()));
+		localButtons.add(new StringSettingButton(broadcastPanel, "VoteBroadcast.Type", getConfigData(),
+				"Type (EVERY_VOTE / LIST / etc.)", "EVERY_VOTE"));
+		localButtons.add(new StringSettingButton(broadcastPanel, "VoteBroadcast.Duration", getConfigData(),
+				"Duration (e.g. 2m)", "2m"));
+		localButtons.add(new IntSettingButton(broadcastPanel, "VoteBroadcast.MaxSitesListed", getConfigData(),
+				"Max Sites Listed (0 = all)", 0));
+
+		localButtons.add(new StringSettingButton(broadcastPanel, "VoteBroadcast.Format.BroadcastMsg", getConfigData(),
+				"Broadcast Message", ""));
+		localButtons.add(new StringSettingButton(broadcastPanel, "VoteBroadcast.Format.Header", getConfigData(),
+				"Header", ""));
+		localButtons.add(new StringSettingButton(broadcastPanel, "VoteBroadcast.Format.ListLine", getConfigData(),
+				"List Line", ""));
+
+		formattingPanel.add(broadcastPanel);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(localButtons);
+		this.settingButtons.addAll(localButtons);
 
 		return formattingPanel;
 	}
@@ -127,6 +167,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		topVoterSettingsPanel.setBorder(BorderFactory.createTitledBorder("Top Voter Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
+
 		settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterIgnorePermission", getConfigData(),
 				"Top Voter Ignore Permission"));
 		settingButtons.add(new StringSettingButton(topVoterSettingsPanel, "VoteTopDefault", getConfigData(),
@@ -152,35 +193,106 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
+
 		return topVoterSettingsPanel;
 	}
 
-	private JPanel createVoteReminderOptionsPanel() {
-		JPanel reminderPanel = new JPanel();
-		reminderPanel.setLayout(new BoxLayout(reminderPanel, BoxLayout.Y_AXIS));
-		reminderPanel.setBorder(BorderFactory.createTitledBorder("Vote Reminder Options"));
+	private JPanel createVoteRemindersPanel() {
+		JPanel voteRemindingPanel = new JPanel();
+		ArrayList<SettingButton> localButtons = new ArrayList<SettingButton>();
 
-		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-		settingButtons.add(new BooleanSettingButton(reminderPanel, "VoteReminderOptions.Enabled", getConfigData(),
+		voteRemindingPanel.setLayout(new BoxLayout(voteRemindingPanel, BoxLayout.Y_AXIS));
+		voteRemindingPanel.setBorder(BorderFactory.createTitledBorder("Vote Reminder Settings"));
+
+		localButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminderOptions.Enabled", getConfigData(),
 				"Vote Reminders Enabled"));
-		settingButtons.add(new BooleanSettingButton(reminderPanel, "VoteReminderOptions.StopAfterMatch", getConfigData(),
-				"Stop After First Matching Reminder"));
-		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.GlobalCooldown", getConfigData(),
-				"Global Reminder Cooldown", "10m"));
-		settingButtons.add(new IntSettingButton(reminderPanel, "VoteReminderOptions.DefaultPriority", getConfigData(),
-				"Default Reminder Priority", 0));
-		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.Defaults.Cooldown", getConfigData(),
-				"Default Reminder Cooldown", "0"));
-		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.Defaults.Delay", getConfigData(),
-				"Default Reminder Delay", "0"));
+		localButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminderOptions.StopAfterMatch", getConfigData(),
+				"Stop After First Match"));
+		localButtons.add(new StringSettingButton(voteRemindingPanel, "VoteReminderOptions.GlobalCooldown", getConfigData(),
+				"Global Cooldown (e.g. 10m)", "10m"));
+		localButtons.add(new IntSettingButton(voteRemindingPanel, "VoteReminderOptions.DefaultPriority", getConfigData(),
+				"Default Priority", 0));
 
-		reminderPanel.add(Box.createVerticalStrut(10));
-		reminderPanel.add(addRewardsButton("VoteReminderOptions.Defaults.Rewards", "Edit Default Reminder Rewards"));
-		reminderPanel.add(Box.createVerticalStrut(10));
+		voteRemindingPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		this.settingButtons.addAll(settingButtons);
-		return reminderPanel;
+		JPanel remindersPanel = new JPanel();
+		remindersPanel.setLayout(new BoxLayout(remindersPanel, BoxLayout.Y_AXIS));
+		remindersPanel.setBorder(BorderFactory.createTitledBorder("VoteReminders"));
+
+		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(remindersPanel.getWidth()) {
+			@Override
+			public void onItemRemove(String name) {
+				remove("VoteReminders." + name);
+				save();
+				openEditorGUI();
+			}
+
+			@Override
+			public void onItemAdd(String name) {
+				set("VoteReminders." + name + ".Type", "LOGIN");
+				set("VoteReminders." + name + ".Priority", 50);
+				set("VoteReminders." + name + ".Delay", "3s");
+				set("VoteReminders." + name + ".Cooldown", "3m");
+				set("VoteReminders." + name + ".Rewards.Messages.Player",
+						"&aYou can vote! Sites left: &e%sitesavailable%&a.");
+				save();
+				openEditorGUI();
+			}
+
+			@Override
+			public void onItemSelect(String name) {
+				JFrame reminderFrame = new JFrame("Editing VoteReminder - " + name);
+				reminderFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				reminderFrame.setSize(650, 650);
+				reminderFrame.setLayout(new BorderLayout());
+
+				JPanel settingsPanel = new JPanel();
+				settingsPanel.setLayout(new BoxLayout(settingsPanel, BoxLayout.Y_AXIS));
+				settingsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+				ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+
+				buttons.add(new StringSettingButton(settingsPanel, "VoteReminders." + name + ".Type", getConfigData(),
+						"Type (LOGIN / FIRSTJOIN / INTERVAL / ANYSITE_COOLDOWN / ALLSITES_COOLDOWN)", "LOGIN"));
+				buttons.add(new IntSettingButton(settingsPanel, "VoteReminders." + name + ".Priority", getConfigData(),
+						"Priority", 0));
+				buttons.add(new StringSettingButton(settingsPanel, "VoteReminders." + name + ".Delay", getConfigData(),
+						"Delay (optional, e.g. 3s)", ""));
+				buttons.add(new StringSettingButton(settingsPanel, "VoteReminders." + name + ".Interval", getConfigData(),
+						"Interval (for INTERVAL, e.g. 30m)", ""));
+				buttons.add(new StringSettingButton(settingsPanel, "VoteReminders." + name + ".Cooldown", getConfigData(),
+						"Cooldown (e.g. 2h)", "0s"));
+
+				settingsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+				settingsPanel.add(addRewardsButton("VoteReminders." + name + ".Rewards", "Edit Rewards"));
+
+				PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+				ConfigConfig.this.settingButtons.addAll(buttons);
+
+				JButton saveButton = new JButton("Save and Apply Changes");
+				saveButton.addActionListener(e -> saveChanges());
+
+				reminderFrame.add(settingsPanel, BorderLayout.CENTER);
+				reminderFrame.add(saveButton, BorderLayout.SOUTH);
+				reminderFrame.setLocationRelativeTo(null);
+				reminderFrame.setVisible(true);
+			}
+		};
+
+		String[] list = PanelUtils
+				.convertSetToArray(((Map<String, Object>) get("VoteReminders", new HashMap<String, Object>())).keySet());
+
+		remindersPanel.add(addRemoveEditor.getAddButton("Add VoteReminder", "Add VoteReminder"));
+		remindersPanel.add(addRemoveEditor.getRemoveButton("Remove VoteReminder", "Remove VoteReminder", list));
+		remindersPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+		addRemoveEditor.getOptionsButtons(remindersPanel, list);
+
+		voteRemindingPanel.add(remindersPanel);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(localButtons);
+		this.settingButtons.addAll(localButtons);
+
+		return voteRemindingPanel;
 	}
 
 	private JPanel createDatabaseSettingsPanel() {
@@ -189,23 +301,27 @@ public class ConfigConfig extends YmlConfigHandler {
 		databasePanel.setBorder(BorderFactory.createTitledBorder("Database Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
+
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Host", getConfigData(), "Database Host", ""));
 		settingButtons.add(new IntSettingButton(databasePanel, "Database.Port", getConfigData(), "Database Port", 3306));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.Database", getConfigData(), "Database Name", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Database", getConfigData(),
+				"Database Name", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Username", getConfigData(),
 				"Database Username", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Password", getConfigData(),
 				"Database Password", ""));
 		settingButtons.add(new IntSettingButton(databasePanel, "Database.MaxConnections", getConfigData(),
 				"Maximum Connections", 1));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.Prefix", getConfigData(), "Table Prefix", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Prefix", getConfigData(),
+				"Table Prefix", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Name", getConfigData(),
 				"Table Name Override", ""));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.DbType", getConfigData(), "Database Type",
-				"MYSQL", new String[] { "MYSQL", "MARIADB", "POSTGRESQL" }));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.DbType", getConfigData(),
+				"Database Type", "MYSQL", new String[] { "MYSQL", "MARIADB", "POSTGRESQL" }));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
+
 		databasePanel.setVisible(false);
 
 		JButton toggleButton = new JButton("Show/Hide Database Settings");
@@ -218,6 +334,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 		containerPanel.add(toggleButton);
 		containerPanel.add(databasePanel);
+
 		return containerPanel;
 	}
 
