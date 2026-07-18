@@ -1,8 +1,9 @@
-
 package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -70,11 +71,14 @@ public class StringListSettingButton implements SettingButton {
 
 	@Override
 	public Object getValue() {
-		String value = textArea.getText();
-		if (value.trim().isEmpty()) {
-			return new String[0];
+		List<String> values = new ArrayList<>();
+		for (String line : textArea.getText().split("\\R")) {
+			String trimmed = line.trim();
+			if (!trimmed.isEmpty()) {
+				values.add(trimmed);
+			}
 		}
-		return value.split("\\R");
+		return values;
 	}
 
 	@Override
@@ -86,16 +90,16 @@ public class StringListSettingButton implements SettingButton {
 	public void updateValue() {
 		initialValue = textArea.getText();
 	}
-	
+
 	private boolean isWidthSet = false;
-	
+
 	public JTextArea getComponent() {
-        return textArea;
+		return textArea;
 	}
-	
+
 	public void setVisible(boolean visible) {
-        label.setVisible(visible);
-        scrollPane.setVisible(visible);
+		label.setVisible(visible);
+		scrollPane.setVisible(visible);
 	}
 
 	@Override
