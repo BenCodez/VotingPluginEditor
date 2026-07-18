@@ -26,6 +26,7 @@ import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.settng.BooleanSettingButton;
 import com.bencodez.votingplugineditor.api.settng.IntSettingButton;
 import com.bencodez.votingplugineditor.api.settng.SettingButton;
+import com.bencodez.votingplugineditor.api.settng.StringListSettingButton;
 import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 import com.bencodez.votingplugineditor.files.VoteSitesConfig;
@@ -46,7 +47,7 @@ public class VoteSiteEditor {
 	private void createAndShowGUI(String siteName, Map<String, Object> siteData, VoteSitesConfig voteSitesConfig) {
 		JFrame frame = new JFrame("VoteSite Editor - " + siteName);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(550, 500);
+		frame.setSize(550, 600);
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -145,10 +146,14 @@ public class VoteSiteEditor {
 		buttons.add(new StringSettingButton(advancedPanel, "PermissionToView", siteData, "Permission To View:", ""));
 		buttons.add(new IntSettingButton(advancedPanel, "Priority", siteData, "Priority:", 5,
 				"Higher-priority sites appear earlier in sorted VoteSite lists"));
+
+		advancedPanel.add(PanelUtils.createSectionLabel("Display Item"));
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Material", siteData, "Display Item Material",
 				"DIAMOND", PanelUtils.convertListToArray(VotingPluginEditor.getMaterials()), "Used in supported GUIs"));
 		buttons.add(new IntSettingButton(advancedPanel, "DisplayItem.Amount", siteData, "Display Item Amount:", 1,
 				"Used in supported GUIs"));
+		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Name", siteData, "Display Item Name:", ""));
+		buttons.add(new StringListSettingButton(advancedPanel, "DisplayItem.Lore", siteData, "Display Item Lore", ""));
 
 		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
 		coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
