@@ -292,9 +292,9 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 				"Count Offline Votes"));
 		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.Broadcast", getConfigData(), "Broadcast",
 				"&cReached the vote party amount!"));
-		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.VoteReminderBroadcast", getConfigData(),
+		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.VoteReminder.Broadcast", getConfigData(),
 				"Vote Reminder Broadcast", "%votesrequired% left to go, go vote!"));
-		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.VoteReminderAtVotes", getConfigData(),
+		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.VoteReminder.Votes", getConfigData(),
 				"Vote Reminder At Votes", ""));
 		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.GlobalCommands", getConfigData(),
 				"Global Commands", ""));
