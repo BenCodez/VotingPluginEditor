@@ -1,4 +1,3 @@
-
 package com.bencodez.votingplugineditor.api.settng;
 
 import java.awt.Component;
@@ -28,7 +27,7 @@ public class StringSettingButton implements SettingButton {
 
 	private String[] options;
 
-	private JComboBox optionsBox;
+	private JComboBox<String> optionsBox;
 
 	private JLabel label;
 
@@ -86,20 +85,20 @@ public class StringSettingButton implements SettingButton {
 
 	@Override
 	public boolean hasChanged() {
-		if (textField != null) {
-			return !textField.getText().equals(initialValue);
-		} else {
-			return !optionsBox.getSelectedItem().toString().equals(initialValue);
-		}
+		return !getCurrentValue().equals(initialValue);
 	}
 
 	@Override
 	public Object getValue() {
+		return getCurrentValue();
+	}
+
+	private String getCurrentValue() {
 		if (textField != null) {
 			return textField.getText();
-		} else {
-			return (String) optionsBox.getSelectedItem();
 		}
+		Object selectedItem = optionsBox.getSelectedItem();
+		return selectedItem != null ? selectedItem.toString() : initialValue;
 	}
 
 	@Override
@@ -141,5 +140,4 @@ public class StringSettingButton implements SettingButton {
 	public int getWidth() {
 		return label.getFontMetrics(label.getFont()).stringWidth(label.getText());
 	}
-
 }
