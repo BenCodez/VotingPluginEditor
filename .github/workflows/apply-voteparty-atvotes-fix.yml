@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/fix-voteparty-atvotes-path
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
