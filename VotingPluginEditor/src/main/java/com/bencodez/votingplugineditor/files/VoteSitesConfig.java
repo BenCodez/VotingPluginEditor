@@ -40,7 +40,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		Map<String, Object> map = (Map<String, Object>) get("VoteSites", new HashMap<String, Object>());
+		Map<String, Object> map = asMap(get("VoteSites", new HashMap<String, Object>()));
 		int size = 180 + map.size() * 30;
 
 		VoteSitesConfig config = this;
@@ -97,9 +97,10 @@ public class VoteSitesConfig extends YmlConfigHandler {
 					HashSet<String> existingServiceSites = new HashSet<>();
 
 					for (Entry<String, Object> entry : map.entrySet()) {
-						Map<String, Object> voteSite = (Map<String, Object>) entry.getValue();
-						if (voteSite.containsKey("ServiceSite")) {
-							existingServiceSites.add(((String) voteSite.get("ServiceSite")).toLowerCase());
+						Map<String, Object> voteSite = asMap(entry.getValue());
+						Object serviceSite = voteSite.get("ServiceSite");
+						if (serviceSite != null && !String.valueOf(serviceSite).isBlank()) {
+							existingServiceSites.add(String.valueOf(serviceSite).toLowerCase());
 						}
 					}
 
@@ -109,9 +110,14 @@ public class VoteSitesConfig extends YmlConfigHandler {
 
 					SwingUtilities.invokeLater(() -> {
 						loadingDialog.dispose();
+						if (presets.length == 0) {
+							JOptionPane.showMessageDialog(panel, "No additional VoteSite presets are available.");
+							return;
+						}
+
 						String selectedPreset = (String) JOptionPane.showInputDialog(panel,
 								"Select a VoteSite to add:", "Add VoteSite from Preset", JOptionPane.PLAIN_MESSAGE,
-								null, presets, presets.length > 0 ? presets[0] : null);
+								null, presets, presets[0]);
 						if (selectedPreset != null && !selectedPreset.isEmpty()) {
 							String cleanPreset = selectedPreset.replace("\"", "");
 							String identifier = sanitizeVoteSiteIdentifier(cleanPreset);
@@ -205,6 +211,13 @@ public class VoteSitesConfig extends YmlConfigHandler {
 		set("VoteSites." + identifier + ".ServiceSite", serviceSite);
 		set("VoteSites." + identifier + ".Rewards.Messages.Player", "You voted");
 		save();
+	}
+
+	private static Map<String, Object> asMap(Object value) {
+		if (value instanceof Map<?, ?>) {
+			return (Map<String, Object>) value;
+		}
+		return new HashMap<String, Object>();
 	}
 
 	private static String sanitizeVoteSiteIdentifier(String name) {
