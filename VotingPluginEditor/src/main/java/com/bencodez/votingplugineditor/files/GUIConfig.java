@@ -61,41 +61,35 @@ public class GUIConfig extends YmlConfigHandler {
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		Map<String, Object> data = getConfigData();
+		String[] standardMethods = { "CHAT", "CHEST", "DIALOG" };
 
-		// GUIMethod Settings
 		panel.add(PanelUtils.createSectionLabel("GUIMethod"));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Today", data, "Today GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.TopVoter", data, "TopVoter GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Last", data, "Last GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Next", data, "Next GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Total", data, "Total GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.URL", data, "VoteURL GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST", "BOOK" }));
+				new String[] { "CHAT", "CHEST", "BOOK", "DIALOG" }));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Best", data, "Best GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Streak", data, "Streak GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.GUI", data, "Main GUI Method", "CHEST",
-				new String[] { "CHAT", "CHEST" }));
+				standardMethods));
 
-		// LastMonthGUI Setting
-		// panel.add(createSectionLabel("LastMonthGUI"));
 		settingButtons.add(new BooleanSettingButton(panel, "LastMonthGUI", data, "Enable LastMonthGUI:"));
 
 		JButton editVoteGUI = new JButton("Edit VoteGUI");
-		editVoteGUI.addActionListener(event -> {
-			openVoteGUIEditor();
-		});
+		editVoteGUI.addActionListener(event -> openVoteGUIEditor());
 		panel.add(editVoteGUI);
 
-		// (Add more settings as needed, organized into sections)
-
-		panel.add(Box.createVerticalStrut(10)); // Spacer
+		panel.add(Box.createVerticalStrut(10));
 		return panel;
 	}
 
@@ -225,12 +219,10 @@ public class GUIConfig extends YmlConfigHandler {
 
 		}
 
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					set(change.getKey(), change.getValue());
-
 				}
 				save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
