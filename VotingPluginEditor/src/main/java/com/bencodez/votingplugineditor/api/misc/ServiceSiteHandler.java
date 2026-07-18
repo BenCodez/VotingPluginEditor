@@ -4,14 +4,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import lombok.Getter;
 
 public class ServiceSiteHandler {
+	private static final String PRESET_SOURCE =
+			"https://raw.githubusercontent.com/wiki/BenCodez/VotingPlugin/Minecraft-Server-Lists.md";
+
 	@Getter
 	private HashMap<String, String> serviceSites = new HashMap<>();
 
@@ -30,7 +33,7 @@ public class ServiceSiteHandler {
 
 	public void loadFromGithub() {
 		try {
-			readFromWeb("https://github.com/BenCodez/VotingPlugin/wiki/Minecraft-Server-Lists");
+			readFromWeb(PRESET_SOURCE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -57,33 +60,24 @@ public class ServiceSiteHandler {
 	public void readFromWeb(String webURL) throws IOException {
 		serviceSites.clear();
 		URL url = new URL(webURL);
-		InputStream is = url.openStream();
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+		try (InputStream is = url.openStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 			String line;
-			boolean rawFound = false;
 			while ((line = br.readLine()) != null) {
-				if (line.contains("<ul>")) {
-					rawFound = true;
-				} else if (!line.contains(" - ")) {
-					rawFound = false;
-				} else if (rawFound) {
-					String data = line.replaceAll("<li>", "").replaceAll("</li>", "");
-					String[] split = data.split(" - ");
-					if (split.length > 0) {
-						serviceSites.put(split[0], split[1]);
-					}
+				String trimmed = line.trim();
+				if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+					trimmed = trimmed.substring(2).trim();
+				}
 
+				String[] split = trimmed.split("\\s+-\\s+", 2);
+				if (split.length == 2 && !split[0].isBlank() && !split[1].isBlank()) {
+					serviceSites.put(stripMarkdown(split[0]), stripMarkdown(split[1]));
 				}
 			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			// e.printStackTrace();
-			// throw new MalformedURLException("URL is malformed!!");
-		} catch (IOException e) {
-			e.printStackTrace();
-			// e.printStackTrace();
-			// throw new IOException();
 		}
+	}
 
+	private String stripMarkdown(String value) {
+		return value.trim().replace("`", "").replace("**", "");
 	}
 }
