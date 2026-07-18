@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,12 +56,8 @@ public class ShopConfig extends YmlConfigHandler {
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		JPanel mainPanel = createMainEditorPanel();
-		tabbedPane.addTab("Shops", mainPanel);
-
-		JPanel globalPanel = createGlobalSettingsPanel();
-		tabbedPane.addTab("Global Settings", globalPanel);
+		tabbedPane.addTab("Shops", createMainEditorPanel());
+		tabbedPane.addTab("Global Settings", createGlobalSettingsPanel());
 
 		frame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -80,84 +77,77 @@ public class ShopConfig extends YmlConfigHandler {
 		panel.add(PanelUtils.createSectionLabel("General VoteShop Settings"));
 
 		settingButtons.add(new BooleanSettingButton(panel, "VoteShop.Enabled", getConfigData(), "VoteShop Enabled"));
-		settingButtons
-				.add(new StringSettingButton(panel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name", "VoteShop"));
-		settingButtons
-				.add(new BooleanSettingButton(panel, "VoteShop.BackButton", getConfigData(), "Vote Shop BackButton"));
+		settingButtons.add(new StringSettingButton(panel, "VoteShop.Name", getConfigData(), "VoteShop GUI Name", "VoteShop"));
+		settingButtons.add(new BooleanSettingButton(panel, "VoteShop.BackButton", getConfigData(), "VoteShop Back Button"));
 		settingButtons.add(new BooleanSettingButton(panel, "VoteShop.HideLimitedReached", getConfigData(),
-				"Hide items in vote shop which user can not buy"));
+				"Hide items when their purchase limit is reached"));
 		settingButtons.add(new StringSettingButton(panel, "VoteShop.LimitReached", getConfigData(),
-				"VoteShop LimitReached", "&aYou reached your limit"));
+				"VoteShop Limit Reached Message", "&aYou reached your limit"));
 		settingButtons.add(new BooleanSettingButton(panel, "VoteShop.RequireConfirmation", getConfigData(),
-				"VoteShop RequireConfirmation (Global setting)"));
+				"Require confirmation by default"));
 		settingButtons.add(new StringSettingButton(panel, "VoteShop.Disabled", getConfigData(),
 				"VoteShop Disabled Message", "&cVote shop disabled"));
 		settingButtons.add(new BooleanSettingButton(panel, "VoteShop.ReopenGUIOnPurchase", getConfigData(),
-				"ReopenGUIOnPurchase"));
-		settingButtons
-				.add(new BooleanSettingButton(panel, "VoteShop.HideLimitReached", getConfigData(), "HideLimitReached"));
+				"Reopen GUI After Purchase"));
+		settingButtons.add(new BooleanSettingButton(panel, "ShopConfirmPurchase.UseDialog", getConfigData(),
+				"Use Dialog For Purchase Confirmation"));
 		settingButtons.add(new StringSettingButton(panel, "ShopConfirmPurchase.Title", getConfigData(),
-				"ShopConfirmPurchase Title", "Confirm Purchase?"));
+				"Confirmation Title", "Confirm Purchase?"));
+
+		JPanel backButtonPanel = new JPanel();
+		backButtonPanel.setLayout(new BoxLayout(backButtonPanel, BoxLayout.X_AXIS));
+		JButton backButton = new JButton("Edit Default Back Button Item");
+		backButton.addActionListener(e -> openItemEditor("VoteShop.BackButtonItem"));
+		backButtonPanel.add(backButton);
+		panel.add(backButtonPanel);
 
 		JPanel confirmPanel = new JPanel();
 		confirmPanel.setLayout(new BoxLayout(confirmPanel, BoxLayout.X_AXIS));
 
 		JButton yesButton = new JButton("Confirmation Yes Item");
-		yesButton.addActionListener(e -> {
-			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.YesItem")) {
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					for (Entry<String, Object> change : changes.entrySet()) {
-						getChanges().put("ShopConfirmPurchase.YesItem." + change.getKey(), change.getValue());
-					}
-					if (!changes.isEmpty()) {
-						saveChange();
-					}
-				}
-
-				@Override
-				public void removeItemPath(String path) {
-					remove("ShopConfirmPurchase.YesItem." + path);
-					save();
-				}
-			};
-		});
+		yesButton.addActionListener(e -> openItemEditor("ShopConfirmPurchase.YesItem"));
 		confirmPanel.add(yesButton);
 
 		JButton noButton = new JButton("Confirmation No Item");
-		noButton.addActionListener(e -> {
-			new ItemEditor((Map<String, Object>) get("ShopConfirmPurchase.NoItem")) {
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					for (Entry<String, Object> change : changes.entrySet()) {
-						getChanges().put("ShopConfirmPurchase.NoItem." + change.getKey(), change.getValue());
-					}
-					if (!changes.isEmpty()) {
-						saveChange();
-					}
-				}
-
-				@Override
-				public void removeItemPath(String path) {
-					remove("ShopConfirmPurchase.NoItem." + path);
-					save();
-				}
-			};
-		});
+		noButton.addActionListener(e -> openItemEditor("ShopConfirmPurchase.NoItem"));
 		confirmPanel.add(noButton);
 
 		panel.add(confirmPanel);
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-
 		return panel;
 	}
 
+	private void openItemEditor(String path) {
+		Object current = get(path, new LinkedHashMap<String, Object>());
+		Map<String, Object> itemData = current instanceof Map
+				? (Map<String, Object>) current
+				: new LinkedHashMap<String, Object>();
+
+		new ItemEditor(itemData) {
+			@Override
+			public void saveChanges(Map<String, Object> itemChanges) {
+				for (Entry<String, Object> change : itemChanges.entrySet()) {
+					getChanges().put(path + "." + change.getKey(), change.getValue());
+				}
+				if (!itemChanges.isEmpty()) {
+					saveChange();
+				}
+			}
+
+			@Override
+			public void removeItemPath(String subPath) {
+				remove(path + "." + subPath);
+				save();
+			}
+		};
+	}
+
 	private void openShopEditor(String shop) {
-		JFrame frame = new JFrame("Shop: " + shop);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(800, 600);
-		frame.setLayout(new BorderLayout());
+		JFrame shopFrame = new JFrame("Shop: " + shop);
+		shopFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		shopFrame.setSize(800, 600);
+		shopFrame.setLayout(new BorderLayout());
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -166,50 +156,31 @@ public class ShopConfig extends YmlConfigHandler {
 		settingButtons.add(new StringSettingButton(panel, "Shop." + shop + ".Identifier_Name", getConfigData(),
 				"Shop identifier display name", shop));
 		settingButtons.add(new IntSettingButton(panel, "Shop." + shop + ".Cost", getConfigData(), "Cost", 0));
-
 		settingButtons.add(new StringSettingButton(panel, "Shop." + shop + ".Permission", getConfigData(),
-				"Shop permission to view", ""));
-
+				"Permission to view", ""));
+		settingButtons.add(new BooleanSettingButton(panel, "Shop." + shop + ".HideOnNoPermission", getConfigData(),
+				"Hide when player lacks permission"));
+		settingButtons.add(new StringSettingButton(panel, "Shop." + shop + ".Category", getConfigData(),
+				"Category to open instead of purchasing", ""));
 		settingButtons.add(new BooleanSettingButton(panel, "Shop." + shop + ".RequireConfirmation", getConfigData(),
 				"Require confirmation before purchase"));
-
-		settingButtons.add(
-				new BooleanSettingButton(panel, "Shop." + shop + ".CloseGUI", getConfigData(), "CloseGUI on purchase"));
+		settingButtons.add(new BooleanSettingButton(panel, "Shop." + shop + ".CloseGUI", getConfigData(),
+				"Close GUI on purchase"));
 
 		JButton itemsButton = new JButton("Edit Display Item");
-		itemsButton.addActionListener(event -> {
-			new ItemEditor((Map<String, Object>) get("Shop." + shop)) {
-
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					for (Entry<String, Object> change : changes.entrySet()) {
-						getChanges().put("Shop." + shop + "." + change.getKey(), change.getValue());
-					}
-					if (!changes.isEmpty()) {
-						saveChange();
-					}
-				}
-
-				@Override
-				public void removeItemPath(String path) {
-					remove("Shop." + shop + "." + path);
-					save();
-				}
-			};
-		});
+		itemsButton.addActionListener(event -> openItemEditor("Shop." + shop + ".DisplayItem"));
 		panel.add(itemsButton);
 
-		panel.add(addRewardsButton("Shop." + shop, "Shop Rewards: " + shop));
+		panel.add(addRewardsButton("Shop." + shop + ".Rewards", "Shop Rewards: " + shop));
 
-		frame.add(panel);
+		shopFrame.add(panel);
 
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
-		frame.add(saveButton, BorderLayout.SOUTH);
+		shopFrame.add(saveButton, BorderLayout.SOUTH);
 
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-
+		shopFrame.setLocationRelativeTo(null);
+		shopFrame.setVisible(true);
 	}
 
 	private JPanel createMainEditorPanel() {
@@ -217,11 +188,12 @@ public class ShopConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		Map<String, Object> data = getConfigData();
-		Map<String, Object> shopData = (Map<String, Object>) data.get("Shop");
+		Object rawShopData = getConfigData().get("Shop");
+		Map<String, Object> shopData = rawShopData instanceof Map
+				? (Map<String, Object>) rawShopData
+				: new LinkedHashMap<String, Object>();
 
 		AddRemoveEditor editor = new AddRemoveEditor(frame.getWidth()) {
-
 			@Override
 			public void onItemSelect(String name) {
 				openShopEditor(name);
@@ -240,10 +212,15 @@ public class ShopConfig extends YmlConfigHandler {
 				if (shopData.containsKey(name)) {
 					JOptionPane.showMessageDialog(panel, "Shop already exists");
 				} else {
+					set("Shop." + name + ".Identifier_Name", name);
+					set("Shop." + name + ".DisplayItem.Material", "STONE");
+					set("Shop." + name + ".DisplayItem.Amount", 1);
+					set("Shop." + name + ".DisplayItem.Name", "Example");
 					set("Shop." + name + ".Cost", 3);
-					set("Shop." + name + ".Material", "STONE");
-					set("Shop." + name + ".Amount", 1);
-					set("Shop." + name + ".Name", "Example");
+					set("Shop." + name + ".Permission", "");
+					set("Shop." + name + ".HideOnNoPermission", true);
+					set("Shop." + name + ".CloseGUI", true);
+					set("Shop." + name + ".RequireConfirmation", false);
 					set("Shop." + name + ".Rewards.Commands", new String[] { "example command" });
 					save();
 				}
@@ -254,11 +231,8 @@ public class ShopConfig extends YmlConfigHandler {
 
 		panel.add(editor.getAddButton("Add A Shop", "Add VoteShop"));
 		panel.add(editor.getRemoveButton("Remove a Shop", "Remove a Shop", shopData.keySet()));
-
 		panel.add(Box.createRigidArea(new Dimension(0, 15)));
-
 		panel.add(new JLabel("Click to edit shop:"));
-
 		editor.getOptionsButtons(panel, PanelUtils.convertSetToArray(shopData.keySet()));
 
 		return panel;
@@ -271,11 +245,10 @@ public class ShopConfig extends YmlConfigHandler {
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
 			new RewardEditor(get(path), path) {
-
 				@Override
-				public void saveChanges(Map<String, Object> changes) {
+				public void saveChanges(Map<String, Object> rewardChanges) {
 					try {
-						for (Entry<String, Object> change : changes.entrySet()) {
+						for (Entry<String, Object> change : rewardChanges.entrySet()) {
 							set(path + "." + change.getKey(), change.getValue());
 						}
 						save();
@@ -325,12 +298,10 @@ public class ShopConfig extends YmlConfigHandler {
 		changes.putAll(this.changes);
 		this.changes.clear();
 
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					set(change.getKey(), change.getValue());
-
 				}
 				save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
