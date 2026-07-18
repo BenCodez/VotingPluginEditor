@@ -182,14 +182,14 @@ public abstract class YmlConfigHandler {
     }
 
     public void save() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            DumperOptions opts = new DumperOptions();
-            opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-            opts.setPrettyFlow(true);
-            opts.setIndent(2);
-            Yaml yaml = new Yaml(opts);
+        DumperOptions opts = new DumperOptions();
+        opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        opts.setPrettyFlow(true);
+        opts.setIndent(2);
+        Yaml yaml = new Yaml(opts);
 
-            StringBuilder out = new StringBuilder();
+        StringBuilder out = new StringBuilder();
+        try {
             for (Map.Entry<String,Object> e : configData.entrySet()) {
                 writeYaml(out, yaml, e.getKey(), e.getValue(), 0, "");
             }
@@ -203,7 +203,9 @@ public abstract class YmlConfigHandler {
                     computeRemotePath(),
                     out.toString());
             } else {
-                writer.write(out.toString());
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                    writer.write(out.toString());
+                }
             }
         } catch (IOException ex) {
             throw new RuntimeException("Failed to save config: " + filePath, ex);
@@ -303,18 +305,18 @@ public abstract class YmlConfigHandler {
     }
     
     public Object get(Map<String, Object> configData, String path, Object defaultValue) {
-		String[] keys = path.split("\\.");
-		Map<String, Object> current = configData;
-		for (int i = 0; i < keys.length - 1; i++) {
-			Object nested = current.get(keys[i]);
-			if (nested instanceof Map) {
-				current = (Map<String, Object>) nested;
-			} else {
-				return defaultValue;
-			}
-		}
-		return current.getOrDefault(keys[keys.length - 1], defaultValue);
-	}
+        String[] keys = path.split("\\.");
+        Map<String, Object> current = configData;
+        for (int i = 0; i < keys.length - 1; i++) {
+            Object nested = current.get(keys[i]);
+            if (nested instanceof Map) {
+                current = (Map<String, Object>) nested;
+            } else {
+                return defaultValue;
+            }
+        }
+        return current.getOrDefault(keys[keys.length - 1], defaultValue);
+    }
 
     @SuppressWarnings("unchecked")
     public void set(String path, Object value) {
