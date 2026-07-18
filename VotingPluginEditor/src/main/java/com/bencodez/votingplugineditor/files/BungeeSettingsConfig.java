@@ -51,11 +51,9 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		tabbedPane.addTab("Advanced", createPluginMessagePanel());
 
 		frame.add(tabbedPane, BorderLayout.CENTER);
-
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
 		frame.add(saveButton, BorderLayout.SOUTH);
-
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -68,63 +66,51 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(panel, "UseBungeecord", getConfigData(), "Use Proxy Features"));
 		settingButtons.add(new StringSettingButton(panel, "BungeeMethod", getConfigData(), "Bungee Method",
 				"PLUGINMESSAGING", new String[] { "PLUGINMESSAGING", "REDIS", "MQTT", "MYSQL", "SOCKETS" }));
-
 		panel.add(createRedisPanel());
 		panel.add(createMqttPanel());
-
 		settingButtons.add(new BooleanSettingButton(panel, "BungeeDebug", getConfigData(), "Bungee Debug"));
 		settingButtons.add(new BooleanSettingButton(panel, "PerServerRewards", getConfigData(), "Per Server Rewards"));
 		settingButtons.add(new BooleanSettingButton(panel, "PerServerPoints", getConfigData(), "Per Server Points"));
-		settingButtons.add(new BooleanSettingButton(panel, "TriggerVotifierEvent", getConfigData(),
-				"Trigger Votifier Event"));
+		settingButtons.add(new BooleanSettingButton(panel, "TriggerVotifierEvent", getConfigData(), "Trigger Votifier Event"));
 		settingButtons.add(new BooleanSettingButton(panel, "GiveExtraAllSitesRewards", getConfigData(),
 				"Give Extra All Sites Rewards"));
-		settingButtons.add(new StringSettingButton(panel, "Server", getConfigData(), "Unique Backend Server Name",
-				"PleaseSet"));
-
+		settingButtons.add(new StringSettingButton(panel, "Server", getConfigData(), "Unique Backend Server Name", "PleaseSet"));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		panel.add(Box.createVerticalStrut(10));
 		return panel;
 	}
 
 	private JPanel createRedisPanel() {
-		JPanel redisPanel = new JPanel();
-		redisPanel.setLayout(new BoxLayout(redisPanel, BoxLayout.Y_AXIS));
-		redisPanel.setBorder(BorderFactory.createTitledBorder("Redis Settings"));
-
-		settingButtons.add(new StringSettingButton(redisPanel, "Redis.Host", getConfigData(), "Redis Host", "localhost"));
-		settingButtons.add(new IntSettingButton(redisPanel, "Redis.Port", getConfigData(), "Redis Port", 6379));
-		settingButtons.add(new StringSettingButton(redisPanel, "Redis.Username", getConfigData(), "Redis Username",
-				"default"));
-		settingButtons.add(new StringSettingButton(redisPanel, "Redis.Password", getConfigData(), "Redis Password", ""));
-		settingButtons.add(new StringSettingButton(redisPanel, "Redis.Prefix", getConfigData(), "Redis Prefix", ""));
-
-		return createTogglePanel("Show/Hide Redis Settings", redisPanel);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createTitledBorder("Redis Settings"));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Host", getConfigData(), "Redis Host", "localhost"));
+		settingButtons.add(new IntSettingButton(panel, "Redis.Port", getConfigData(), "Redis Port", 6379));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Username", getConfigData(), "Redis Username", "default"));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Password", getConfigData(), "Redis Password", ""));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Prefix", getConfigData(), "Redis Prefix", ""));
+		return createTogglePanel("Show/Hide Redis Settings", panel);
 	}
 
 	private JPanel createMqttPanel() {
-		JPanel mqttPanel = new JPanel();
-		mqttPanel.setLayout(new BoxLayout(mqttPanel, BoxLayout.Y_AXIS));
-		mqttPanel.setBorder(BorderFactory.createTitledBorder("MQTT Settings"));
-
-		settingButtons.add(new StringSettingButton(mqttPanel, "MQTT.BrokerURL", getConfigData(), "Broker URL",
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createTitledBorder("MQTT Settings"));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.BrokerURL", getConfigData(), "Broker URL",
 				"tcp://localhost:1883"));
-		settingButtons.add(new StringSettingButton(mqttPanel, "MQTT.Username", getConfigData(), "MQTT Username", ""));
-		settingButtons.add(new StringSettingButton(mqttPanel, "MQTT.Password", getConfigData(), "MQTT Password", ""));
-		settingButtons.add(new StringSettingButton(mqttPanel, "MQTT.Prefix", getConfigData(), "MQTT Prefix", ""));
-
-		return createTogglePanel("Show/Hide MQTT Settings", mqttPanel);
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Username", getConfigData(), "MQTT Username", ""));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Password", getConfigData(), "MQTT Password", ""));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Prefix", getConfigData(), "MQTT Prefix", ""));
+		return createTogglePanel("Show/Hide MQTT Settings", panel);
 	}
 
 	private JPanel createTogglePanel(String buttonText, JPanel settingsPanel) {
 		settingsPanel.setVisible(false);
-
 		JButton toggleButton = new JButton(buttonText);
 		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
 		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
 		toggleButton.addActionListener(event -> settingsPanel.setVisible(!settingsPanel.isVisible()));
-
 		JPanel container = new JPanel();
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 		container.add(toggleButton);
@@ -136,12 +122,10 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		settingButtons.add(new StringSettingButton(panel, "PluginMessageChannel", getConfigData(),
 				"Plugin Message Channel", "vp:vp"));
 		settingButtons.add(new BooleanSettingButton(panel, "PluginMessageEncryption", getConfigData(),
 				"Plugin Message Encryption"));
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
 	}
@@ -150,11 +134,9 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		panel.add(addRewardsButton("BungeeVotePartyRewards", "Edit Bungee Vote Party Rewards"));
 		settingButtons.add(new StringListSettingButton(panel, "BungeeVotePartyGlobalCommands", getConfigData(),
 				"Bungee Vote Party Global Commands"));
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
 	}
@@ -163,7 +145,6 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		settingButtons.add(new BooleanSettingButton(panel, "GlobalData.Enabled", getConfigData(), "Enabled"));
 		settingButtons.add(new BooleanSettingButton(panel, "GlobalData.UseMainMySQL", getConfigData(),
 				"Use Main Database Connection"));
@@ -179,7 +160,6 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		settingButtons.add(new IntSettingButton(databasePanel, "GlobalData.MaxConnections", getConfigData(),
 				"Max Connections", 1));
 		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Prefix", getConfigData(), "Prefix", ""));
-
 		panel.add(createTogglePanel("Show/Hide Global Data Database Settings", databasePanel));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
@@ -235,7 +215,6 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 				button.updateValue();
 			}
 		}
-
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
@@ -250,9 +229,5 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		} else {
 			JOptionPane.showMessageDialog(null, "No changes detected.");
 		}
-	}
-
-	private Map<String, Object> getConfigData() {
-		return super.getConfigData();
 	}
 }
