@@ -44,18 +44,10 @@ public class ConfigConfig extends YmlConfigHandler {
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		JPanel mainPanel = createMainEditorPanel();
-		tabbedPane.addTab("Main Settings", mainPanel);
-
-		JPanel voteRemindingPanel = createVoteRemindingPanel();
-		tabbedPane.addTab("Vote Reminding", voteRemindingPanel);
-
-		JPanel formattingPanel = createFormattingPanel();
-		tabbedPane.addTab("Formatting Settings", formattingPanel);
-
-		JPanel topVoterSettingsPanel = createTopVoterSettingsPanel();
-		tabbedPane.addTab("Top Voter Settings", topVoterSettingsPanel);
+		tabbedPane.addTab("Main Settings", createMainEditorPanel());
+		tabbedPane.addTab("Vote Reminders", createVoteReminderOptionsPanel());
+		tabbedPane.addTab("Formatting Settings", createFormattingPanel());
+		tabbedPane.addTab("Top Voter Settings", createTopVoterSettingsPanel());
 
 		frame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -74,7 +66,6 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		settingButtons.add(new StringSettingButton(panel, "DebugLevel", getConfigData(), "Debug Level", "NONE",
 				new String[] { "NONE", "INFO", "EXTRA" }));
-
 		settingButtons.add(new StringSettingButton(panel, "DataStorage", getConfigData(), "Data Storage", "SQLITE",
 				new String[] { "SQLITE", "MYSQL" }));
 
@@ -104,7 +95,6 @@ public class ConfigConfig extends YmlConfigHandler {
 		formattingPanel.setBorder(BorderFactory.createTitledBorder("Formatting Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-
 		settingButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line",
 				"&6%Command% - &6%HelpMessage%"));
 		settingButtons.add(new StringSettingButton(formattingPanel, "Format.BroadcastMsg", getConfigData(),
@@ -118,7 +108,6 @@ public class ConfigConfig extends YmlConfigHandler {
 				getConfigData(), "Offline Broadcast",
 				"&6[&4Broadcast&6] &2Thanks &c%player% &2for voting on %numberofvotes% times!");
 		settingButtons.add(offlineBroadcastButton);
-
 		settingButtons.add(new BooleanSettingButton(formattingPanel, "Format.BroadcastWhenOnline", getConfigData(),
 				"Broadcast When Online"));
 
@@ -126,10 +115,8 @@ public class ConfigConfig extends YmlConfigHandler {
 		this.settingButtons.addAll(settingButtons);
 
 		offlineBroadcastButton.setVisible(Boolean.TRUE.equals(getConfigData("Format.OnlyOneOfflineBroadcast")));
-
-		onlyOneOfflineBroadcastButton.addActionListener(event -> {
-			offlineBroadcastButton.setVisible(onlyOneOfflineBroadcastButton.isSelected());
-		});
+		onlyOneOfflineBroadcastButton
+				.addActionListener(event -> offlineBroadcastButton.setVisible(onlyOneOfflineBroadcastButton.isSelected()));
 
 		return formattingPanel;
 	}
@@ -140,7 +127,6 @@ public class ConfigConfig extends YmlConfigHandler {
 		topVoterSettingsPanel.setBorder(BorderFactory.createTitledBorder("Top Voter Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-
 		settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterIgnorePermission", getConfigData(),
 				"Top Voter Ignore Permission"));
 		settingButtons.add(new StringSettingButton(topVoterSettingsPanel, "VoteTopDefault", getConfigData(),
@@ -166,35 +152,35 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
-
 		return topVoterSettingsPanel;
 	}
 
-	private JPanel createVoteRemindingPanel() {
-		JPanel voteRemindingPanel = new JPanel();
+	private JPanel createVoteReminderOptionsPanel() {
+		JPanel reminderPanel = new JPanel();
+		reminderPanel.setLayout(new BoxLayout(reminderPanel, BoxLayout.Y_AXIS));
+		reminderPanel.setBorder(BorderFactory.createTitledBorder("Vote Reminder Options"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
+		settingButtons.add(new BooleanSettingButton(reminderPanel, "VoteReminderOptions.Enabled", getConfigData(),
+				"Vote Reminders Enabled"));
+		settingButtons.add(new BooleanSettingButton(reminderPanel, "VoteReminderOptions.StopAfterMatch", getConfigData(),
+				"Stop After First Matching Reminder"));
+		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.GlobalCooldown", getConfigData(),
+				"Global Reminder Cooldown", "10m"));
+		settingButtons.add(new IntSettingButton(reminderPanel, "VoteReminderOptions.DefaultPriority", getConfigData(),
+				"Default Reminder Priority", 0));
+		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.Defaults.Cooldown", getConfigData(),
+				"Default Reminder Cooldown", "0"));
+		settingButtons.add(new StringSettingButton(reminderPanel, "VoteReminderOptions.Defaults.Delay", getConfigData(),
+				"Default Reminder Delay", "0"));
 
-		voteRemindingPanel.setLayout(new BoxLayout(voteRemindingPanel, BoxLayout.Y_AXIS));
-		voteRemindingPanel.setBorder(BorderFactory.createTitledBorder("Vote Reminding Settings"));
-
-		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.Enabled", getConfigData(),
-				"Vote Reminding Enabled"));
-		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.RemindOnLogin", getConfigData(),
-				"Vote Reminding On Login"));
-		settingButtons.add(new BooleanSettingButton(voteRemindingPanel, "VoteReminding.RemindOnlyOnce", getConfigData(),
-				"Vote Reminding Only Once"));
-		settingButtons.add(new IntSettingButton(voteRemindingPanel, "VoteReminding.RemindDelay", getConfigData(),
-				"Vote Reminding Delay", 30));
-
-		voteRemindingPanel.add(Box.createVerticalStrut(10));
-		voteRemindingPanel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
-		voteRemindingPanel.add(Box.createVerticalStrut(10));
+		reminderPanel.add(Box.createVerticalStrut(10));
+		reminderPanel.add(addRewardsButton("VoteReminderOptions.Defaults.Rewards", "Edit Default Reminder Rewards"));
+		reminderPanel.add(Box.createVerticalStrut(10));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
-
-		return voteRemindingPanel;
+		return reminderPanel;
 	}
 
 	private JPanel createDatabaseSettingsPanel() {
@@ -203,27 +189,23 @@ public class ConfigConfig extends YmlConfigHandler {
 		databasePanel.setBorder(BorderFactory.createTitledBorder("Database Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
-
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Host", getConfigData(), "Database Host", ""));
 		settingButtons.add(new IntSettingButton(databasePanel, "Database.Port", getConfigData(), "Database Port", 3306));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.Database", getConfigData(),
-				"Database Name", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Database", getConfigData(), "Database Name", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Username", getConfigData(),
 				"Database Username", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Password", getConfigData(),
 				"Database Password", ""));
 		settingButtons.add(new IntSettingButton(databasePanel, "Database.MaxConnections", getConfigData(),
 				"Maximum Connections", 1));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.Prefix", getConfigData(),
-				"Table Prefix", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Prefix", getConfigData(), "Table Prefix", ""));
 		settingButtons.add(new StringSettingButton(databasePanel, "Database.Name", getConfigData(),
 				"Table Name Override", ""));
-		settingButtons.add(new StringSettingButton(databasePanel, "Database.DbType", getConfigData(),
-				"Database Type", "MYSQL", new String[] { "MYSQL", "MARIADB", "POSTGRESQL" }));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.DbType", getConfigData(), "Database Type",
+				"MYSQL", new String[] { "MYSQL", "MARIADB", "POSTGRESQL" }));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
-
 		databasePanel.setVisible(false);
 
 		JButton toggleButton = new JButton("Show/Hide Database Settings");
@@ -236,7 +218,6 @@ public class ConfigConfig extends YmlConfigHandler {
 		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 		containerPanel.add(toggleButton);
 		containerPanel.add(databasePanel);
-
 		return containerPanel;
 	}
 
@@ -248,7 +229,6 @@ public class ConfigConfig extends YmlConfigHandler {
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
 			new RewardEditor(getConfigData(path), path) {
-
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
