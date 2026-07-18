@@ -1,4 +1,3 @@
-
 package com.bencodez.votingplugineditor.files;
 
 import java.awt.BorderLayout;
@@ -79,7 +78,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		settingButtons.add(new StringSettingButton(panel, "DataStorage", getConfigData(), "Data Storage", "SQLITE",
 				new String[] { "SQLITE", "MYSQL" }));
 
-		panel.add(createMySQLSettingsPanel());
+		panel.add(createDatabaseSettingsPanel());
 
 		settingButtons.add(new BooleanSettingButton(panel, "AdvancedServiceSiteHandling", getConfigData(),
 				"Advanced Service Site Handling"));
@@ -106,7 +105,6 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
-		// Add your formatting settings here
 		settingButtons.add(new StringSettingButton(formattingPanel, "Format.HelpLine", getConfigData(), "Help Line",
 				"&6%Command% - &6%HelpMessage%"));
 		settingButtons.add(new StringSettingButton(formattingPanel, "Format.BroadcastMsg", getConfigData(),
@@ -124,16 +122,11 @@ public class ConfigConfig extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(formattingPanel, "Format.BroadcastWhenOnline", getConfigData(),
 				"Broadcast When Online"));
 
-		// Add more settings as needed
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
 
-		// Initially set the visibility of OfflineBroadcast based on
-		// OnlyOneOfflineBroadcast
-		offlineBroadcastButton.setVisible((Boolean) getConfigData("Format.OnlyOneOfflineBroadcast"));
+		offlineBroadcastButton.setVisible(Boolean.TRUE.equals(getConfigData("Format.OnlyOneOfflineBroadcast")));
 
-		// Add action listener to toggle visibility of OfflineBroadcast
 		onlyOneOfflineBroadcastButton.addActionListener(event -> {
 			offlineBroadcastButton.setVisible(onlyOneOfflineBroadcastButton.isSelected());
 		});
@@ -148,7 +141,6 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
-		// Add your top voter settings here
 		settingButtons.add(new BooleanSettingButton(topVoterSettingsPanel, "TopVoterIgnorePermission", getConfigData(),
 				"Top Voter Ignore Permission"));
 		settingButtons.add(new StringSettingButton(topVoterSettingsPanel, "VoteTopDefault", getConfigData(),
@@ -195,9 +187,9 @@ public class ConfigConfig extends YmlConfigHandler {
 		settingButtons.add(new IntSettingButton(voteRemindingPanel, "VoteReminding.RemindDelay", getConfigData(),
 				"Vote Reminding Delay", 30));
 
-		voteRemindingPanel.add(Box.createVerticalStrut(10)); // Spacer
+		voteRemindingPanel.add(Box.createVerticalStrut(10));
 		voteRemindingPanel.add(addRewardsButton("VoteReminding.Rewards", "Edit Vote Reminding Rewards"));
-		voteRemindingPanel.add(Box.createVerticalStrut(10)); // Spacer
+		voteRemindingPanel.add(Box.createVerticalStrut(10));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		this.settingButtons.addAll(settingButtons);
@@ -205,42 +197,45 @@ public class ConfigConfig extends YmlConfigHandler {
 		return voteRemindingPanel;
 	}
 
-	private JPanel createMySQLSettingsPanel() {
-		JPanel mysqlPanel = new JPanel();
-		mysqlPanel.setLayout(new BoxLayout(mysqlPanel, BoxLayout.Y_AXIS));
-		mysqlPanel.setBorder(BorderFactory.createTitledBorder("MySQL Settings"));
+	private JPanel createDatabaseSettingsPanel() {
+		JPanel databasePanel = new JPanel();
+		databasePanel.setLayout(new BoxLayout(databasePanel, BoxLayout.Y_AXIS));
+		databasePanel.setBorder(BorderFactory.createTitledBorder("Database Settings"));
 
 		ArrayList<SettingButton> settingButtons = new ArrayList<SettingButton>();
 
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "MySQL.Host", getConfigData(), "MySQL Host", "192.168.0.156"));
-		settingButtons.add(new IntSettingButton(mysqlPanel, "MySQL.Port", getConfigData(), "MySQL Port", 3306));
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "MySQL.Database", getConfigData(), "MySQL Database", "db"));
-		settingButtons.add(
-				new StringSettingButton(mysqlPanel, "MySQL.Password", getConfigData(), "MySQL Password", "mD9!Zui9GH"));
-		settingButtons.add(
-				new IntSettingButton(mysqlPanel, "MySQL.MaxConnections", getConfigData(), "MySQL Max Connections", 1));
-		settingButtons.add(new StringSettingButton(mysqlPanel, "MySQL.Prefix", getConfigData(), "MySQL Prefix", ""));
-		settingButtons.add(
-				new StringSettingButton(mysqlPanel, "MySQL.Name", getConfigData(), "MySQL Name", "VotingPlugin_Users"));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Host", getConfigData(), "Database Host", ""));
+		settingButtons.add(new IntSettingButton(databasePanel, "Database.Port", getConfigData(), "Database Port", 3306));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Database", getConfigData(),
+				"Database Name", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Username", getConfigData(),
+				"Database Username", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Password", getConfigData(),
+				"Database Password", ""));
+		settingButtons.add(new IntSettingButton(databasePanel, "Database.MaxConnections", getConfigData(),
+				"Maximum Connections", 1));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Prefix", getConfigData(),
+				"Table Prefix", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.Name", getConfigData(),
+				"Table Name Override", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "Database.DbType", getConfigData(),
+				"Database Type", "MYSQL", new String[] { "MYSQL", "MARIADB", "POSTGRESQL" }));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-
 		this.settingButtons.addAll(settingButtons);
 
-		mysqlPanel.setVisible(false); // Initially hide the panel
+		databasePanel.setVisible(false);
 
-		JButton toggleButton = new JButton("Show/Hide MySQL Settings");
+		JButton toggleButton = new JButton("Show/Hide Database Settings");
 		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
 		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
-		toggleButton.addActionListener(event -> mysqlPanel.setVisible(!mysqlPanel.isVisible()));
+		toggleButton.addActionListener(event -> databasePanel.setVisible(!databasePanel.isVisible()));
 
 		JPanel containerPanel = new JPanel();
 		containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
 		containerPanel.add(toggleButton);
-		containerPanel.add(mysqlPanel);
+		containerPanel.add(databasePanel);
 
 		return containerPanel;
 	}
@@ -298,15 +293,12 @@ public class ConfigConfig extends YmlConfigHandler {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
 
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					set(change.getKey(), change.getValue());
-
 				}
 				save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
