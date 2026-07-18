@@ -88,12 +88,76 @@ public class GUIConfig extends YmlConfigHandler {
 		editVoteGUI.addActionListener(event -> openVoteGUIEditor());
 		panel.add(editVoteGUI);
 
+		JButton editVoteURL = new JButton("Edit VoteURL GUI");
+		editVoteURL.addActionListener(event -> openVoteURLEditor());
+		panel.add(editVoteURL);
+
 		JButton editBackButton = new JButton("Edit Shared Back Button");
 		editBackButton.addActionListener(event -> openBackButtonEditor());
 		panel.add(editBackButton);
 
 		panel.add(Box.createVerticalStrut(10));
 		return panel;
+	}
+
+	private void openVoteURLEditor() {
+		JFrame frame = new JFrame("VoteURL GUI Editor");
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(700, 650);
+		frame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.Name", getConfigData(), "GUI Name", "&cVoteURL"));
+		buttons.add(new BooleanSettingButton(panel, "CHEST.VoteURL.BackButton", getConfigData(), "Enable Back Button"));
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.SiteName", getConfigData(), "Voted Site Name", "&c%Name%"));
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.SiteNameCanVote", getConfigData(), "Available Site Name", "&a%Name%"));
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.SeeURL", getConfigData(), "See URL Text", "&cClick to see URL"));
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.NextVote", getConfigData(), "Next Vote Text", "&cCan Vote In: %Info%"));
+		buttons.add(new BooleanSettingButton(panel, "CHEST.VoteURL.ViewAllUrlsButtonEnabled", getConfigData(),
+				"Enable View All URLs Button"));
+		buttons.add(new BooleanSettingButton(panel, "CHEST.VoteURL.AllUrlsButton.RequireAllSitesVoted", getConfigData(),
+				"Require All Sites Voted"));
+		buttons.add(new StringSettingButton(panel, "CHEST.VoteURL.URLText", getConfigData(), "URL Click Text", "%VoteUrl%"));
+		settingButtons.addAll(buttons);
+
+		panel.add(createItemEditorButton("CHEST.VoteURL.AlreadyVotedItem", "Edit Already Voted Item"));
+		panel.add(createItemEditorButton("CHEST.VoteURL.CanVoteItem", "Edit Can Vote Item"));
+		panel.add(createItemEditorButton("CHEST.VoteURL.AllUrlsButton.AlreadyVotedItem",
+				"Edit All URLs Already Voted Item"));
+		panel.add(createItemEditorButton("CHEST.VoteURL.AllUrlsButton.CanVoteItem",
+				"Edit All URLs Can Vote Item"));
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+		frame.add(panel, BorderLayout.CENTER);
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.addActionListener(e -> saveChanges());
+		frame.add(saveButton, BorderLayout.SOUTH);
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+	}
+
+	private JButton createItemEditorButton(String path, String label) {
+		JButton button = new JButton(label);
+		button.addActionListener(event -> new ItemEditor((Map<String, Object>) get(path, new HashMap<String, Object>())) {
+			@Override
+			public void saveChanges(Map<String, Object> changes) {
+				for (Entry<String, Object> change : changes.entrySet()) {
+					set(path + "." + change.getKey(), change.getValue());
+				}
+				save();
+			}
+
+			@Override
+			public void removeItemPath(String subPath) {
+				remove(path + "." + subPath);
+				save();
+			}
+		});
+		return button;
 	}
 
 	private void openBackButtonEditor() {
