@@ -155,7 +155,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 				.setMaximumSize(new Dimension(Integer.MAX_VALUE, everySiteRewardButton.getPreferredSize().height));
 		everySiteRewardButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 		everySiteRewardButton.addActionListener(event -> {
-			new RewardEditor(get("EverySiteReward"), "EverySiteReward") {
+			new RewardEditor(asMap(get("EverySiteReward")), "EverySiteReward") {
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
@@ -178,7 +178,7 @@ public class VoteSitesConfig extends YmlConfigHandler {
 				@Override
 				public Map<String, Object> updateData() {
 					load();
-					return (Map<String, Object>) get("EverySiteReward");
+					return asMap(get("EverySiteReward"));
 				}
 
 				@Override
