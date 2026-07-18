@@ -62,7 +62,6 @@ public class GUIConfig extends YmlConfigHandler {
 
 		Map<String, Object> data = getConfigData();
 
-		// GUIMethod Settings
 		panel.add(PanelUtils.createSectionLabel("GUIMethod"));
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.Today", data, "Today GUI Method", "CHEST",
 				new String[] { "CHAT", "CHEST" }));
@@ -83,20 +82,66 @@ public class GUIConfig extends YmlConfigHandler {
 		settingButtons.add(new StringSettingButton(panel, "GUIMethod.GUI", data, "Main GUI Method", "CHEST",
 				new String[] { "CHAT", "CHEST" }));
 
-		// LastMonthGUI Setting
-		// panel.add(createSectionLabel("LastMonthGUI"));
 		settingButtons.add(new BooleanSettingButton(panel, "LastMonthGUI", data, "Enable LastMonthGUI:"));
 
 		JButton editVoteGUI = new JButton("Edit VoteGUI");
-		editVoteGUI.addActionListener(event -> {
-			openVoteGUIEditor();
-		});
+		editVoteGUI.addActionListener(event -> openVoteGUIEditor());
 		panel.add(editVoteGUI);
 
-		// (Add more settings as needed, organized into sections)
+		JButton editBackButton = new JButton("Edit Shared Back Button");
+		editBackButton.addActionListener(event -> openBackButtonEditor());
+		panel.add(editBackButton);
 
-		panel.add(Box.createVerticalStrut(10)); // Spacer
+		panel.add(Box.createVerticalStrut(10));
 		return panel;
+	}
+
+	private void openBackButtonEditor() {
+		JFrame frame = new JFrame("GUI Back Button Editor");
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(600, 500);
+		frame.setLayout(new BorderLayout());
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		Map<String, Object> backButtonData = (Map<String, Object>) get("CHEST.BackButton", new HashMap<String, Object>());
+		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
+		buttons.add(new BooleanSettingButton(panel, "CHEST.BackButton.OpenVoteURL", getConfigData(),
+				"Open VoteURL when clicked"));
+		buttons.add(new BooleanSettingButton(panel, "CHEST.BackButton.EndOfGUI", getConfigData(),
+				"Place at end of GUI"));
+		buttons.add(new BooleanSettingButton(panel, "CHEST.BackButton.Exit", getConfigData(),
+				"Use as exit button"));
+		settingButtons.addAll(buttons);
+
+		JButton editItem = new JButton("Edit Back Button Item");
+		editItem.addActionListener(event -> new ItemEditor(backButtonData) {
+			@Override
+			public void saveChanges(Map<String, Object> changes) {
+				for (Entry<String, Object> change : changes.entrySet()) {
+					set("CHEST.BackButton." + change.getKey(), change.getValue());
+				}
+				save();
+			}
+
+			@Override
+			public void removeItemPath(String path) {
+				remove("CHEST.BackButton." + path);
+				save();
+			}
+		});
+		panel.add(editItem);
+
+		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
+		frame.add(panel, BorderLayout.CENTER);
+
+		JButton saveButton = new JButton("Save and Apply Changes");
+		saveButton.addActionListener(e -> saveChanges());
+		frame.add(saveButton, BorderLayout.SOUTH);
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 	}
 
 	public void openVoteGUIEditor() {
@@ -111,7 +156,6 @@ public class GUIConfig extends YmlConfigHandler {
 		Map<String, Object> map = (Map<String, Object>) get("CHEST.VoteGUI", new HashMap<String, Object>());
 
 		AddRemoveEditor addRemoveEditor = new AddRemoveEditor(frame.getWidth()) {
-
 			@Override
 			public void onItemRemove(String name) {
 				remove("CHEST.VoteGUI." + name);
@@ -132,7 +176,6 @@ public class GUIConfig extends YmlConfigHandler {
 			@Override
 			public void onItemSelect(String name) {
 				new ItemEditor((Map<String, Object>) get(map, name + ".Item", new HashMap<String, Object>())) {
-
 					@Override
 					public void saveChanges(Map<String, Object> changes) {
 						try {
@@ -157,15 +200,12 @@ public class GUIConfig extends YmlConfigHandler {
 		panel.add(addRemoveEditor.getAddButton("Add Item/Slot", "Add Item/Slot"));
 		panel.add(addRemoveEditor.getRemoveButton("Remove Item/Slot", "Remove Item/Slot",
 				PanelUtils.convertSetToArray(map.keySet())));
-
 		addRemoveEditor.getOptionsButtons(panel, PanelUtils.convertSetToArray(map.keySet()));
 
 		frame.add(panel);
-
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
 		frame.add(saveButton, BorderLayout.SOUTH);
-
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -177,7 +217,6 @@ public class GUIConfig extends YmlConfigHandler {
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
 		rewardsEdit.addActionListener(event -> {
 			new RewardEditor(get(path), path) {
-
 				@Override
 				public void saveChanges(Map<String, Object> changes) {
 					try {
@@ -222,15 +261,12 @@ public class GUIConfig extends YmlConfigHandler {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
 
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					set(change.getKey(), change.getValue());
-
 				}
 				save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
