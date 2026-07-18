@@ -114,6 +114,8 @@ public abstract class ItemEditor {
 		buttons.add(new IntSettingButton(panel, "Damage", configData, "Item Damage:", 0));
 		buttons.add(new StringSettingButton(panel, "ItemsAdder", configData, "ItemsAdder Item ID", ""));
 		buttons.add(new StringSettingButton(panel, "Nexo", configData, "Nexo Item ID", ""));
+		buttons.add(new StringSettingButton(panel, "ConditionalJavascript", configData,
+				"Conditional JavaScript", ""));
 
 		if (currentMaterial.equalsIgnoreCase("player_head")) {
 			buttons.add(new StringSettingButton(panel, "Skull", configData, "Player skull by name", ""));
