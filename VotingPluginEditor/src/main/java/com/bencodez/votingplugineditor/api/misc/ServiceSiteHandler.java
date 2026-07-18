@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -14,6 +15,8 @@ import lombok.Getter;
 public class ServiceSiteHandler {
 	private static final String PRESET_SOURCE =
 			"https://raw.githubusercontent.com/wiki/BenCodez/VotingPlugin/Minecraft-Server-Lists.md";
+	private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
+	private static final int READ_TIMEOUT_MILLIS = 10_000;
 
 	@Getter
 	private LinkedHashMap<String, String> serviceSites = new LinkedHashMap<>();
@@ -59,8 +62,10 @@ public class ServiceSiteHandler {
 
 	public void readFromWeb(String webURL) throws IOException {
 		LinkedHashMap<String, String> loadedServiceSites = new LinkedHashMap<>();
-		URL url = new URL(webURL);
-		try (InputStream is = url.openStream();
+		URLConnection connection = new URL(webURL).openConnection();
+		connection.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
+		connection.setReadTimeout(READ_TIMEOUT_MILLIS);
+		try (InputStream is = connection.getInputStream();
 				BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 			String line;
 			while ((line = br.readLine()) != null) {
