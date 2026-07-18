@@ -8,23 +8,28 @@ import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 public class RewardFilesConfig extends YmlConfigHandler {
-	// private final List<SettingButton> settingButtons;
 	private final String name;
 
 	public RewardFilesConfig(String filePath, String name, String votingPluginDirectory, SFTPSettings sftp) {
-		super(filePath, votingPluginDirectory, sftp);
+		super(filePath, getRewardDirectory(votingPluginDirectory, sftp), sftp);
 		this.name = name;
-		// settingButtons = new ArrayList<SettingButton>();
 		openEditorGUI();
 	}
 
 	public RewardFilesConfig(String filePath, String name, boolean open, String votingPluginDirectory,
 			SFTPSettings sftp) {
-		super(filePath, votingPluginDirectory, sftp);
+		super(filePath, getRewardDirectory(votingPluginDirectory, sftp), sftp);
 		this.name = name;
 		if (open) {
 			openEditorGUI();
 		}
+	}
+
+	private static String getRewardDirectory(String votingPluginDirectory, SFTPSettings sftp) {
+		if (sftp != null && sftp.isEnabled()) {
+			return votingPluginDirectory + "/Rewards";
+		}
+		return votingPluginDirectory;
 	}
 
 	@Override
