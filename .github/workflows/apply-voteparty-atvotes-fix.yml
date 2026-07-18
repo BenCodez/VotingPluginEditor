@@ -1,0 +1,48 @@
+name: Apply VoteParty AtVotes fix
+
+on:
+  push:
+    branches:
+      - agent/fix-voteparty-atvotes-path
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/fix-voteparty-atvotes-path
+          fetch-depth: 0
+      - name: Apply compatibility fixes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('VotingPluginEditor/src/main/java/com/bencodez/votingplugineditor/files/SpecialRewardsConfig.java')
+          text = path.read_text()
+          text = text.replace('VoteParty.VoteReminder.Votes', 'VoteParty.VoteReminder.AtVotes')
+
+          marker = '''\t\tsettingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.VoteReminder.AtVotes", getConfigData(),
+\t\t\t\t"Vote Reminder At Votes", ""));
+'''
+          addition = marker + '''\t\tsettingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.VoteReminder.Commands", getConfigData(),
+\t\t\t\t"Vote Reminder Commands", ""));
+'''
+          if 'VoteParty.VoteReminder.Commands' not in text:
+              if marker not in text:
+                  raise SystemExit('Expected VoteParty reminder marker not found')
+              text = text.replace(marker, addition)
+
+          path.write_text(text)
+          PY
+
+          rm .github/workflows/apply-voteparty-atvotes-fix.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add VotingPluginEditor/src/main/java/com/bencodez/votingplugineditor/files/SpecialRewardsConfig.java .github/workflows/apply-voteparty-atvotes-fix.yml
+          git commit -m "Fix VoteParty reminder threshold path"
+          git push origin HEAD:agent/fix-voteparty-atvotes-path
