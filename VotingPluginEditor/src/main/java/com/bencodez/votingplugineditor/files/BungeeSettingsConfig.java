@@ -33,7 +33,7 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 	private final List<SettingButton> settingButtons;
 
 	public BungeeSettingsConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
-		super(filePath, votingPluginDirectory,	sftp);
+		super(filePath, votingPluginDirectory, sftp);
 		settingButtons = new ArrayList<SettingButton>();
 	}
 
@@ -45,25 +45,15 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		JPanel mainPanel = createMainEditorPanel();
-		tabbedPane.addTab("Main Settings", mainPanel);
-
-		JPanel globalDataPanel = createGlobalDataPanel();
-		tabbedPane.addTab("Global Data", globalDataPanel);
-
-		JPanel bungeeVotePartyPanel = createBungeeVotePartyPanel();
-		tabbedPane.addTab("Bungee Vote Party", bungeeVotePartyPanel);
-
-		JPanel pluginMessagePanel = createPluginMessagePanel();
-		tabbedPane.addTab("Advanced", pluginMessagePanel);
+		tabbedPane.addTab("Main Settings", createMainEditorPanel());
+		tabbedPane.addTab("Global Data", createGlobalDataPanel());
+		tabbedPane.addTab("Bungee Vote Party", createBungeeVotePartyPanel());
+		tabbedPane.addTab("Advanced", createPluginMessagePanel());
 
 		frame.add(tabbedPane, BorderLayout.CENTER);
-
 		JButton saveButton = new JButton("Save and Apply Changes");
 		saveButton.addActionListener(e -> saveChanges());
 		frame.add(saveButton, BorderLayout.SOUTH);
-
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -73,66 +63,70 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		settingButtons.add(new BooleanSettingButton(panel, "UseBungeecord", getConfigData(), "Use Bungeecord"));
+		settingButtons.add(new BooleanSettingButton(panel, "UseBungeecord", getConfigData(), "Use Proxy Features"));
 		settingButtons.add(new StringSettingButton(panel, "BungeeMethod", getConfigData(), "Bungee Method",
-				"PLUGINMESSAGING", new String[] { "SOCKETS", "PLUGINMESSAGING", "MYSQL", "REDIS","MQTT" }));
-
-		JPanel redisPanel = new JPanel();
-		redisPanel.setLayout(new BoxLayout(redisPanel, BoxLayout.Y_AXIS));
-		redisPanel.setBorder(BorderFactory.createTitledBorder("Redis Settings"));
-		settingButtons
-				.add(new StringSettingButton(redisPanel, "Redis.Host", getConfigData(), "Redis Host", "localhost"));
-		settingButtons.add(new IntSettingButton(redisPanel, "Redis.Port", getConfigData(), "Redis Port", 6379));
-		settingButtons.add(
-				new StringSettingButton(redisPanel, "Redis.Username", getConfigData(), "Redis Username", "default"));
-		settingButtons
-				.add(new StringSettingButton(redisPanel, "Redis.Password", getConfigData(), "Redis Password", ""));
-		settingButtons.add(new StringSettingButton(redisPanel, "Redis.Prefix", getConfigData(), "Redis Prefix", ""));
-		redisPanel.setVisible(false); // Initially hide the panel
-
-		JButton toggleRedisButton = new JButton("Show/Hide Redis Settings");
-		toggleRedisButton.setHorizontalAlignment(SwingConstants.CENTER);
-		toggleRedisButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		toggleRedisButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleRedisButton.getPreferredSize().height));
-		toggleRedisButton.addActionListener(event -> redisPanel.setVisible(!redisPanel.isVisible()));
-
-		panel.add(toggleRedisButton);
-		panel.add(redisPanel);
-
+				"PLUGINMESSAGING", new String[] { "PLUGINMESSAGING", "REDIS", "MQTT", "MYSQL", "SOCKETS" }));
+		panel.add(createRedisPanel());
+		panel.add(createMqttPanel());
 		settingButtons.add(new BooleanSettingButton(panel, "BungeeDebug", getConfigData(), "Bungee Debug"));
-		settingButtons.add(new BooleanSettingButton(panel, "BungeeBroadcast", getConfigData(), "Bungee Broadcast"));
-		settingButtons.add(
-				new BooleanSettingButton(panel, "BungeeBroadcastAlways", getConfigData(), "Bungee Broadcast Always"));
-		settingButtons.add(new BooleanSettingButton(panel, "DisableBroadcast", getConfigData(), "Disable Broadcast"));
 		settingButtons.add(new BooleanSettingButton(panel, "PerServerRewards", getConfigData(), "Per Server Rewards"));
-		settingButtons
-				.add(new BooleanSettingButton(panel, "PerServerMilestones", getConfigData(), "Per Server Milestones"));
 		settingButtons.add(new BooleanSettingButton(panel, "PerServerPoints", getConfigData(), "Per Server Points"));
-		settingButtons.add(
-				new BooleanSettingButton(panel, "TriggerVotifierEvent", getConfigData(), "Trigger Votifier Event"));
+		settingButtons.add(new BooleanSettingButton(panel, "TriggerVotifierEvent", getConfigData(), "Trigger Votifier Event"));
 		settingButtons.add(new BooleanSettingButton(panel, "GiveExtraAllSitesRewards", getConfigData(),
 				"Give Extra All Sites Rewards"));
-		settingButtons.add(new StringSettingButton(panel, "Server", getConfigData(), "Server", "PleaseSet"));
-
+		settingButtons.add(new StringSettingButton(panel, "Server", getConfigData(), "Unique Backend Server Name", "PleaseSet"));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		panel.add(Box.createVerticalStrut(10)); // Spacer
-
+		panel.add(Box.createVerticalStrut(10));
 		return panel;
+	}
+
+	private JPanel createRedisPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createTitledBorder("Redis Settings"));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Host", getConfigData(), "Redis Host", "localhost"));
+		settingButtons.add(new IntSettingButton(panel, "Redis.Port", getConfigData(), "Redis Port", 6379));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Username", getConfigData(), "Redis Username", "default"));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Password", getConfigData(), "Redis Password", ""));
+		settingButtons.add(new StringSettingButton(panel, "Redis.Prefix", getConfigData(), "Redis Prefix", ""));
+		return createTogglePanel("Show/Hide Redis Settings", panel);
+	}
+
+	private JPanel createMqttPanel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createTitledBorder("MQTT Settings"));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.BrokerURL", getConfigData(), "Broker URL",
+				"tcp://localhost:1883"));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Username", getConfigData(), "MQTT Username", ""));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Password", getConfigData(), "MQTT Password", ""));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.Prefix", getConfigData(), "MQTT Prefix", ""));
+		return createTogglePanel("Show/Hide MQTT Settings", panel);
+	}
+
+	private JPanel createTogglePanel(String buttonText, JPanel settingsPanel) {
+		settingsPanel.setVisible(false);
+		JButton toggleButton = new JButton(buttonText);
+		toggleButton.setHorizontalAlignment(SwingConstants.CENTER);
+		toggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		toggleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleButton.getPreferredSize().height));
+		toggleButton.addActionListener(event -> settingsPanel.setVisible(!settingsPanel.isVisible()));
+		JPanel container = new JPanel();
+		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+		container.add(toggleButton);
+		container.add(settingsPanel);
+		return container;
 	}
 
 	private JPanel createPluginMessagePanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		settingButtons.add(new StringSettingButton(panel, "PluginMessageChannel", getConfigData(),
 				"Plugin Message Channel", "vp:vp"));
 		settingButtons.add(new BooleanSettingButton(panel, "PluginMessageEncryption", getConfigData(),
 				"Plugin Message Encryption"));
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		panel.add(Box.createVerticalStrut(10)); // Spacer
-
 		return panel;
 	}
 
@@ -140,17 +134,10 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		JButton bungeeVotePartyRewardsButton = addRewardsButton("BungeeVotePartyRewards",
-				"Edit Bungee Vote Party Rewards");
-		panel.add(bungeeVotePartyRewardsButton);
-
+		panel.add(addRewardsButton("BungeeVotePartyRewards", "Edit Bungee Vote Party Rewards"));
 		settingButtons.add(new StringListSettingButton(panel, "BungeeVotePartyGlobalCommands", getConfigData(),
 				"Bungee Vote Party Global Commands"));
-
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		panel.add(Box.createVerticalStrut(10)); // Spacer
-
 		return panel;
 	}
 
@@ -158,40 +145,23 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 		settingButtons.add(new BooleanSettingButton(panel, "GlobalData.Enabled", getConfigData(), "Enabled"));
-		settingButtons
-				.add(new BooleanSettingButton(panel, "GlobalData.UseMainMySQL", getConfigData(), "Use Main MySQL"));
+		settingButtons.add(new BooleanSettingButton(panel, "GlobalData.UseMainMySQL", getConfigData(),
+				"Use Main Database Connection"));
 
-		JPanel mysqlPanel = new JPanel();
-		mysqlPanel.setLayout(new BoxLayout(mysqlPanel, BoxLayout.Y_AXIS));
-		mysqlPanel.setBorder(BorderFactory.createTitledBorder("MySQL Settings"));
-		settingButtons.add(new StringSettingButton(mysqlPanel, "GlobalData.Host", getConfigData(), "MySQL Host", ""));
-		settingButtons.add(new IntSettingButton(mysqlPanel, "GlobalData.Port", getConfigData(), "MySQL Port", 3306));
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "GlobalData.Database", getConfigData(), "MySQL Database", ""));
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "GlobalData.Username", getConfigData(), "MySQL Username", ""));
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "GlobalData.Password", getConfigData(), "MySQL Password", ""));
-		settingButtons.add(
-				new IntSettingButton(mysqlPanel, "GlobalData.MaxConnections", getConfigData(), "Max Connections", 1));
-		settingButtons
-				.add(new StringSettingButton(mysqlPanel, "GlobalData.Prefix", getConfigData(), "MySQL Prefix", ""));
-		mysqlPanel.setVisible(false); // Initially hide the panel
-
-		JButton toggleMySQLButton = new JButton("Show/Hide MySQL Settings");
-		toggleMySQLButton.setHorizontalAlignment(SwingConstants.CENTER);
-		toggleMySQLButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		toggleMySQLButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, toggleMySQLButton.getPreferredSize().height));
-		toggleMySQLButton.addActionListener(event -> mysqlPanel.setVisible(!mysqlPanel.isVisible()));
-
-		panel.add(toggleMySQLButton);
-		panel.add(mysqlPanel);
-
+		JPanel databasePanel = new JPanel();
+		databasePanel.setLayout(new BoxLayout(databasePanel, BoxLayout.Y_AXIS));
+		databasePanel.setBorder(BorderFactory.createTitledBorder("Global Data Database Settings"));
+		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Host", getConfigData(), "Host", ""));
+		settingButtons.add(new IntSettingButton(databasePanel, "GlobalData.Port", getConfigData(), "Port", 3306));
+		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Database", getConfigData(), "Database", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Username", getConfigData(), "Username", ""));
+		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Password", getConfigData(), "Password", ""));
+		settingButtons.add(new IntSettingButton(databasePanel, "GlobalData.MaxConnections", getConfigData(),
+				"Max Connections", 1));
+		settingButtons.add(new StringSettingButton(databasePanel, "GlobalData.Prefix", getConfigData(), "Prefix", ""));
+		panel.add(createTogglePanel("Show/Hide Global Data Database Settings", databasePanel));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
-		panel.add(Box.createVerticalStrut(10)); // Spacer
-
 		return panel;
 	}
 
@@ -200,42 +170,39 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
 		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
 		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
-		rewardsEdit.addActionListener(event -> {
-			new RewardEditor(get(path), path) {
-
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					try {
-						for (Entry<String, Object> change : changes.entrySet()) {
-							set(path + "." + change.getKey(), change.getValue());
-						}
-						save();
-					} catch (Exception e) {
-						e.printStackTrace();
+		rewardsEdit.addActionListener(event -> new RewardEditor(get(path), path) {
+			@Override
+			public void saveChanges(Map<String, Object> changes) {
+				try {
+					for (Entry<String, Object> change : changes.entrySet()) {
+						set(path + "." + change.getKey(), change.getValue());
 					}
-				}
-
-				@Override
-				public void removePath(String subPath) {
-					remove(path + "." + subPath);
 					save();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
+			}
 
-				@Override
-				public Map<String, Object> updateData() {
-					return (Map<String, Object>) get(path);
-				}
+			@Override
+			public void removePath(String subPath) {
+				remove(path + "." + subPath);
+				save();
+			}
 
-				@Override
-				public String getVotingPluginDirectory() {
-					return getPluginDirectory();
-				}
+			@Override
+			public Map<String, Object> updateData() {
+				return (Map<String, Object>) get(path);
+			}
 
-				@Override
-				public SFTPSettings getSFTPSetting() {
-					return getSFTPSettings();
-				}
-			};
+			@Override
+			public String getVotingPluginDirectory() {
+				return getPluginDirectory();
+			}
+
+			@Override
+			public SFTPSettings getSFTPSetting() {
+				return getSFTPSettings();
+			}
 		});
 		return rewardsEdit;
 	}
@@ -247,15 +214,11 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 				changes.put(button.getKey(), button.getValue());
 				button.updateValue();
 			}
-
 		}
-
-		// Notify & save changes
 		if (!changes.isEmpty()) {
 			try {
 				for (Entry<String, Object> change : changes.entrySet()) {
 					set(change.getKey(), change.getValue());
-
 				}
 				save();
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
