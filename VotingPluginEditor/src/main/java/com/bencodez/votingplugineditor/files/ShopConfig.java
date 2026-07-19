@@ -3,6 +3,7 @@ package com.bencodez.votingplugineditor.files;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -22,7 +23,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import com.bencodez.votingplugineditor.api.edit.add.AddRemoveEditor;
-import com.bencodez.votingplugineditor.api.edit.item.ItemEditor;
+import com.bencodez.votingplugineditor.api.edit.item.JavascriptAwareItemEditor;
 import com.bencodez.votingplugineditor.api.edit.rewards.RewardEditor;
 import com.bencodez.votingplugineditor.api.misc.PanelUtils;
 import com.bencodez.votingplugineditor.api.misc.YmlConfigHandler;
@@ -124,7 +125,7 @@ public class ShopConfig extends YmlConfigHandler {
 				? (Map<String, Object>) current
 				: new LinkedHashMap<String, Object>();
 
-		new ItemEditor(itemData) {
+		new JavascriptAwareItemEditor(itemData, getConfigFilePath(), getPluginDirectory(), getSFTPSettings()) {
 			@Override
 			public void saveChanges(Map<String, Object> itemChanges) {
 				for (Entry<String, Object> change : itemChanges.entrySet()) {
@@ -141,6 +142,11 @@ public class ShopConfig extends YmlConfigHandler {
 				save();
 			}
 		};
+	}
+
+	private String getConfigFilePath() {
+		File parent = new File(filePath).getParentFile();
+		return new File(parent == null ? new File(".") : parent, "Config.yml").getPath();
 	}
 
 	private void openShopEditor(String shop) {
