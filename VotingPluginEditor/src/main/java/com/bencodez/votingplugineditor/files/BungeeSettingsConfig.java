@@ -89,6 +89,7 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		settingButtons.add(new StringSettingButton(panel, "Redis.Username", getConfigData(), "Redis Username", "default"));
 		settingButtons.add(new StringSettingButton(panel, "Redis.Password", getConfigData(), "Redis Password", ""));
 		settingButtons.add(new StringSettingButton(panel, "Redis.Prefix", getConfigData(), "Redis Prefix", ""));
+		settingButtons.add(new IntSettingButton(panel, "Redis.Db-Index", getConfigData(), "Redis Database Index", 0));
 		return createTogglePanel("Show/Hide Redis Settings", panel);
 	}
 
@@ -96,6 +97,7 @@ public class BungeeSettingsConfig extends YmlConfigHandler {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createTitledBorder("MQTT Settings"));
+		settingButtons.add(new StringSettingButton(panel, "MQTT.ClientID", getConfigData(), "MQTT Client ID", ""));
 		settingButtons.add(new StringSettingButton(panel, "MQTT.BrokerURL", getConfigData(), "Broker URL",
 				"tcp://localhost:1883"));
 		settingButtons.add(new StringSettingButton(panel, "MQTT.Username", getConfigData(), "MQTT Username", ""));
