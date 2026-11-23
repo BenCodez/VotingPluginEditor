@@ -370,12 +370,13 @@ public class ProxyEditor {
 	                try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
 	                    String backupDir = directoryPath + "_backup";
 	                    ServerEditorUtils.backupRemoteDirectory(sftpClient, directoryPath, backupDir);
-	                    JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
 	                }
 	            } catch (IOException e) {
 	                e.printStackTrace();
-	                JOptionPane.showMessageDialog(frame, "Remote backup failed:\n" + e.getMessage());
+	                JOptionPane.showMessageDialog(frame, "Remote backup failed. Earlier changes may remain.\n" + e.getMessage());
+	                return;
 	            }
+	            JOptionPane.showMessageDialog(frame, "Remote backup completed successfully.");
 	        } else {
 	            try {
 	                ServerEditorUtils.backupLocalDirectory(directoryPath);
@@ -402,12 +403,13 @@ public class ProxyEditor {
 	                try (SFTPClient sftpClient = sshClient.newSFTPClient()) {
 	                    String backupDir = directoryPath + "_backup";
 	                    ServerEditorUtils.restoreRemoteDirectory(sftpClient, backupDir, directoryPath);
-	                    JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
 	                }
 	            } catch (IOException e) {
 	                e.printStackTrace();
-	                JOptionPane.showMessageDialog(frame, "Remote restore failed:\n" + e.getMessage());
+	                JOptionPane.showMessageDialog(frame, "Remote restore failed. Earlier changes may remain.\n" + e.getMessage());
+	                return;
 	            }
+	            JOptionPane.showMessageDialog(frame, "Remote restore completed successfully.");
 	        } else {
 	            try {
 	                ServerEditorUtils.restoreLocalDirectory(directoryPath);
