@@ -13,8 +13,10 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -24,7 +26,14 @@ import javax.crypto.spec.SecretKeySpec;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.sftp.FileAttributes;
+import net.schmizz.sshj.sftp.FileMode;
+import net.schmizz.sshj.sftp.OpenMode;
+import net.schmizz.sshj.sftp.RemoteFile;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
+import net.schmizz.sshj.sftp.RenameFlags;
+import net.schmizz.sshj.sftp.Response;
+import net.schmizz.sshj.sftp.SFTPException;
 import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 
@@ -124,44 +133,126 @@ public class ServerEditorUtils {
 		}
 	}
 
-	// Recursively backs up the remote directory from sourceDir to backupDir.
 	public static void backupRemoteDirectory(SFTPClient sftpClient, String sourceDir, String backupDir)
 			throws IOException {
-		try {
-			sftpClient.mkdir(backupDir);
-		} catch (IOException e) {
-			// Ignore if directory already exists.
-		}
-		List<RemoteResourceInfo> list = sftpClient.ls(sourceDir);
-		for (RemoteResourceInfo entry : list) {
-			String sourcePath = sourceDir + "/" + entry.getName();
-			String backupPath = backupDir + "/" + entry.getName();
-			if (entry.isDirectory()) {
-				backupRemoteDirectory(sftpClient, sourcePath, backupPath);
-			} else {
-				sftpClient.get(sourcePath, backupPath);
-			}
+		requireSeparateRemoteTrees(sftpClient, sourceDir, backupDir);
+		copyRemoteDirectory(sftpClient, sourceDir, backupDir);
+	}
+
+	public static void restoreRemoteDirectory(SFTPClient sftpClient, String backupDir, String destinationDir)
+			throws IOException {
+		requireSeparateRemoteTrees(sftpClient, backupDir, destinationDir);
+		if (!copyRemoteDirectory(sftpClient, backupDir, destinationDir)) {
+			throw new IOException("The remote backup contains no files to restore.");
 		}
 	}
 
-	// Recursively restores files from backupDir to destinationDir on the remote
-	// server.
-	public static void restoreRemoteDirectory(SFTPClient sftpClient, String backupDir, String destinationDir)
+	private static void requireSeparateRemoteTrees(SFTPClient client, String source, String destination)
 			throws IOException {
+		String remoteSource = client.canonicalize(source);
+		String remoteDestination;
 		try {
-			sftpClient.mkdir(destinationDir);
-		} catch (IOException e) {
-			// Ignore if directory already exists.
-		}
-		List<RemoteResourceInfo> list = sftpClient.ls(backupDir);
-		for (RemoteResourceInfo entry : list) {
-			String backupPath = backupDir + "/" + entry.getName();
-			String destPath = destinationDir + "/" + entry.getName();
-			if (entry.isDirectory()) {
-				restoreRemoteDirectory(sftpClient, backupPath, destPath);
-			} else {
-				sftpClient.put(backupPath, destPath);
+			remoteDestination = client.canonicalize(destination);
+		} catch (SFTPException error) {
+			if (error.getStatusCode() != Response.StatusCode.NO_SUCH_FILE) {
+				throw error;
 			}
+			int separator = destination.lastIndexOf('/');
+			String parent = separator < 0 ? "." : destination.substring(0, Math.max(separator, 1));
+			String remoteParent = client.canonicalize(parent);
+			remoteDestination = ("/".equals(remoteParent) ? "/" : remoteParent + "/")
+					+ destination.substring(separator + 1);
+		}
+		if (remoteSource.equals(remoteDestination) || "/".equals(remoteSource) || "/".equals(remoteDestination)
+				|| remoteSource.startsWith(remoteDestination + "/") || remoteDestination.startsWith(remoteSource + "/")) {
+			throw new IOException("The remote directory and its backup must be separate. Select a remote subdirectory.");
+		}
+	}
+
+	private static boolean copyRemoteDirectory(SFTPClient client, String sourceDir, String destinationDir)
+			throws IOException {
+		List<RemoteResourceInfo> entries = client.ls(sourceDir);
+		try {
+			client.mkdir(destinationDir);
+		} catch (IOException error) {
+			if (client.lstat(destinationDir).getType() != FileMode.Type.DIRECTORY) {
+				throw error;
+			}
+		}
+
+		boolean copiedFile = false;
+		for (RemoteResourceInfo entry : entries) {
+			String source = sourceDir + "/" + entry.getName();
+			String destination = destinationDir + "/" + entry.getName();
+			if (entry.isDirectory()) {
+				copiedFile |= copyRemoteDirectory(client, source, destination);
+			} else {
+				copyRemoteFile(client, source, destination);
+				copiedFile = true;
+			}
+		}
+		return copiedFile;
+	}
+
+	private static void copyRemoteFile(SFTPClient client, String source, String destination) throws IOException {
+		FileAttributes sourceAttributes = client.stat(source);
+		if (sourceAttributes.getType() != FileMode.Type.REGULAR) {
+			throw new IOException("Remote source is not a regular file: " + source);
+		}
+		FileAttributes target;
+		try {
+			target = client.lstat(destination);
+			if (target.getType() != FileMode.Type.REGULAR) {
+				throw new IOException("Remote destination is not a regular file: " + destination);
+			}
+		} catch (SFTPException error) {
+			if (error.getStatusCode() != Response.StatusCode.NO_SUCH_FILE) {
+				throw error;
+			}
+			target = null;
+		}
+
+		String temporary = destination.substring(0, destination.lastIndexOf('/') + 1) + ".vpe-" + UUID.randomUUID();
+		boolean created = false;
+		try {
+			try (RemoteFile input = client.open(source, EnumSet.of(OpenMode.READ))) {
+				FileAttributes privateMode = new FileAttributes.Builder().withPermissions(0600).build();
+				try (RemoteFile output = client.open(temporary, EnumSet.of(OpenMode.WRITE, OpenMode.CREAT, OpenMode.EXCL),
+						privateMode)) {
+					created = true;
+					int packetSize = client.getSFTPEngine().getSubsystem().getRemoteMaxPacketSize()
+							- output.getOutgoingPacketOverhead();
+					if (packetSize <= 0) {
+						throw new IOException("SFTP packet size is too small to copy files.");
+					}
+					byte[] buffer = new byte[Math.min(8192, packetSize)];
+					long offset = 0;
+					int length;
+					while ((length = input.read(offset, buffer, 0, buffer.length)) > 0) {
+						output.write(offset, buffer, 0, length);
+						offset += length;
+					}
+					if (length == 0 || (sourceAttributes.has(FileAttributes.Flag.SIZE) && offset != sourceAttributes.getSize())) {
+						throw new IOException("Remote source size changed during copy: " + source);
+					}
+				}
+			}
+			FileAttributes modeSource = target == null ? sourceAttributes : target;
+			client.chmod(temporary, modeSource.getMode().getPermissionsMask());
+			if (target != null) {
+				client.rename(temporary, destination, EnumSet.of(RenameFlags.ATOMIC, RenameFlags.OVERWRITE));
+			} else {
+				client.rename(temporary, destination);
+			}
+		} catch (IOException error) {
+			if (created) {
+				try {
+					client.rm(temporary);
+				} catch (IOException cleanupError) {
+					error.addSuppressed(cleanupError);
+				}
+			}
+			throw error;
 		}
 	}
 
