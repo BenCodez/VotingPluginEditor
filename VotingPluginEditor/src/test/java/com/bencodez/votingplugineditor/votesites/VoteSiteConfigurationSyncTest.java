@@ -19,6 +19,7 @@ class VoteSiteConfigurationSyncTest {
 	@Test
 	void rejectedVoteRewardRoundTripsAlongsideLegacyDelayAndUnknownValues() throws Exception {
 		Path file = directory.resolve("VoteSites.yml");
+		String longKey = "x".repeat(140);
 		Files.writeString(file, String.join("\n",
 				"VoteSites:",
 				"  Example:",
@@ -28,6 +29,7 @@ class VoteSiteConfigurationSyncTest {
 				"      Messages:",
 				"        Player: Thanks",
 				"    FutureOption:",
+				"      " + longKey + ": {Nested: true}",
 				"      Multiline: \"one\\n# in the value\\ntwo\\n\"",
 				"      # Comment belonging to Entries",
 				"      Entries:",
@@ -47,6 +49,7 @@ class VoteSiteConfigurationSyncTest {
 
 		assertEquals(List.of(message), config.get(reward + ".Messages.Player"));
 		assertEquals(List.of(), config.get(reward + ".FutureRewardOption"));
+		assertEquals(Map.of("Nested", true), config.get(site + ".FutureOption." + longKey));
 		assertEquals(12.5, config.get(site + ".VoteDelay"));
 		assertEquals(15, config.get(site + ".VoteDelayMin"));
 		assertEquals("Thanks", config.get(site + ".Rewards.Messages.Player"));

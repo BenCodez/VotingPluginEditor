@@ -224,7 +224,6 @@ public abstract class YmlConfigHandler {
                            Object value,
                            int indentLevel,
                            String parentPath) throws IOException {
-        String indent = new String(new char[indentLevel]).replace("\0", "  ");
         String thisPath = parentPath.isEmpty() ? String.valueOf(key) : parentPath + "." + key;
 
         if (commentMap.containsKey(thisPath)) {
@@ -234,7 +233,7 @@ public abstract class YmlConfigHandler {
         if (value instanceof Map<?, ?> && !((Map<?, ?>) value).isEmpty()) {
             // Let the emitter quote the key while keeping nested entries available for comments.
             String header = yaml.dump(Collections.singletonMap(key, Collections.emptyMap()));
-            out.append(indent).append(header, 0, header.length() - " {}\n".length()).append("\n");
+            out.append(header.substring(0, header.length() - " {}\n".length()).indent(indentLevel * 2));
             for (Map.Entry<?, ?> sub : ((Map<?, ?>) value).entrySet()) {
                 writeYaml(out, yaml, sub.getKey(), sub.getValue(), indentLevel + 1, thisPath);
             }
