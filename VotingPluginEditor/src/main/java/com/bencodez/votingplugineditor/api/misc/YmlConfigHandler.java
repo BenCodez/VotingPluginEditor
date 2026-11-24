@@ -9,7 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -18,7 +17,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.comments.CommentLine;
+import org.yaml.snakeyaml.comments.CommentType;
+import org.yaml.snakeyaml.nodes.MappingNode;
+import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 
 import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
@@ -117,45 +123,40 @@ public abstract class YmlConfigHandler {
         return parseComments(raw.toString());
     }
 
-    /**
-     * Parses out comment blocks and stores them under full YAML paths.
-     * Returns the YAML text without standalone comment lines.
-     */
     private String parseComments(String rawText) {
-        StringBuilder yamlBody = new StringBuilder();
-        StringBuilder lastComment = new StringBuilder();
-        List<String> pathStack = new ArrayList<>();
+        LoaderOptions options = new LoaderOptions();
+        options.setProcessComments(true);
+        Node root = new Yaml(options).compose(new StringReader(rawText));
+        commentMap.clear();
+        collectComments(root, "", 0);
+        return rawText;
+    }
 
-        try (BufferedReader reader = new BufferedReader(new StringReader(rawText))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmed = line.trim();
-                if (trimmed.startsWith("#")) {
-                    lastComment.append(line).append(System.lineSeparator());
-                } else if (trimmed.contains(":")) {
-                    int indentSpaces = line.indexOf(trimmed);
-                    int level = indentSpaces / 2;
-                    String key = trimmed.split(":", 2)[0];
-
-                    while (pathStack.size() > level) {
-                        pathStack.remove(pathStack.size() - 1);
+    private void collectComments(Node node, String parentPath, int depth) {
+        if (!(node instanceof MappingNode) || node.isTwoStepsConstruction()) {
+            return;
+        }
+        for (NodeTuple entry : ((MappingNode) node).getValue()) {
+            Node key = entry.getKeyNode();
+            if (!(key instanceof ScalarNode)) {
+                continue;
+            }
+            String name = ((ScalarNode) key).getValue();
+            String path = parentPath.isEmpty() ? name : parentPath + "." + name;
+            List<CommentLine> comments = key.getBlockComments();
+            if (comments != null) {
+                StringBuilder block = new StringBuilder();
+                for (CommentLine comment : comments) {
+                    if (comment.getCommentType() == CommentType.BLOCK) {
+                        block.append("  ".repeat(depth)).append('#').append(comment.getValue()).append('\n');
                     }
-                    pathStack.add(key);
-                    String fullPath = String.join(".", pathStack);
-
-                    if (lastComment.length() > 0) {
-                        commentMap.put(fullPath, lastComment.toString());
-                        lastComment.setLength(0);
-                    }
-                    yamlBody.append(line).append(System.lineSeparator());
-                } else {
-                    yamlBody.append(line).append(System.lineSeparator());
+                }
+                if (block.length() > 0) {
+                    commentMap.put(path, block.toString());
                 }
             }
-        } catch (IOException e) {
-            // not expected with StringReader
+            collectComments(entry.getValueNode(), path, depth + 1);
         }
-        return yamlBody.toString();
     }
 
     @SuppressWarnings("unchecked")

@@ -63,6 +63,8 @@ class ConfigurationSyncTest {
 				"  VoteReminderAtVotes: [5, 2]",
 				"  VoteReminderCommands: ['say legacy']",
 				"  VoteReminder:",
+				"    AtVotes: []",
+				"    Commands: []",
 				"    Votes: ['12']",
 				"    FutureOption: {}",
 				"");
@@ -80,7 +82,7 @@ class ConfigurationSyncTest {
 		thresholds.setText("a");
 		assertThrows(NumberFormatException.class, config::applyChanges);
 		assertEquals(legacy, Files.readString(file));
-		assertNull(config.get("VoteParty.VoteReminder.Commands"));
+		assertEquals(List.of(), config.get("VoteParty.VoteReminder.Commands"));
 
 		thresholds.setText("4\n 1 ");
 		assertTrue(config.applyChanges());
@@ -93,9 +95,13 @@ class ConfigurationSyncTest {
 		assertEquals(Map.of(), config.get("VoteParty.VoteReminder.FutureOption"));
 
 		thresholds.setText("");
+		commands.setText("");
 		assertTrue(config.applyChanges());
 		config.load();
 		assertEquals(List.of(), config.get("VoteParty.VoteReminder.AtVotes"));
+		assertEquals(List.of(), config.get("VoteParty.VoteReminder.Commands"));
+		assertNull(config.get("VoteParty.VoteReminderAtVotes"));
+		assertNull(config.get("VoteParty.VoteReminderCommands"));
 	}
 
 	private static <T extends Component> Stream<T> components(Container container, Class<T> type) {

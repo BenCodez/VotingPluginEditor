@@ -34,6 +34,8 @@ import com.bencodez.votingplugineditor.api.settng.StringSettingButton;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
 
 public class SpecialRewardsConfig extends YmlConfigHandler {
+	private static final String VOTE_REMINDER_PATH = "VoteParty.VoteReminder.";
+	private static final String LEGACY_VOTE_REMINDER_PATH = "VoteParty.VoteReminder";
 	private final ArrayList<SettingButton> settingButtons;
 
 	public SpecialRewardsConfig(String filePath, String votingPluginDirectory, SFTPSettings sftp) {
@@ -295,10 +297,13 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 				"Count Offline Votes", true));
 		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.Broadcast", getConfigData(), "Broadcast",
 				"&cReached the vote party amount!"));
-		String reminder = "VoteParty.VoteReminder.";
+		String reminder = VOTE_REMINDER_PATH;
 		Map<String, Object> reminderData = new HashMap<>();
 		for (String field : List.of("Broadcast", "AtVotes", "Commands")) {
-			Object value = get(reminder + field, get("VoteParty.VoteReminder" + field));
+			Object value = get(reminder + field);
+			if (value == null || (value instanceof List<?> && ((List<?>) value).isEmpty())) {
+				value = get(LEGACY_VOTE_REMINDER_PATH + field);
+			}
 			reminderData.put(field, value);
 		}
 		Map<String, Object> displayData = Map.of("VoteParty", Map.of("VoteReminder", reminderData));
@@ -946,6 +951,12 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 			return false;
 		}
 		changes.forEach(this::set);
+		for (String field : List.of("AtVotes", "Commands")) {
+			if (List.of().equals(changes.get(VOTE_REMINDER_PATH + field))) {
+				// The runtime falls back to the flat key when the nested list is empty.
+				remove(LEGACY_VOTE_REMINDER_PATH + field);
+			}
+		}
 		save();
 		for (SettingButton button : settingButtons) {
 			if (changes.containsKey(button.getKey())) {

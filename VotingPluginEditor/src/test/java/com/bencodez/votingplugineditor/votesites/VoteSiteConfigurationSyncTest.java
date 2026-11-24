@@ -28,6 +28,8 @@ class VoteSiteConfigurationSyncTest {
 				"      Messages:",
 				"        Player: Thanks",
 				"    FutureOption:",
+				"      Multiline: \"one\\n# in the value\\ntwo\\n\"",
+				"      # Comment belonging to Entries",
 				"      Entries:",
 				"        - {Name: 'yes', Value: true}",
 				"    WaitUntilVoteDelayRewards:",
@@ -49,6 +51,8 @@ class VoteSiteConfigurationSyncTest {
 		assertEquals(15, config.get(site + ".VoteDelayMin"));
 		assertEquals("Thanks", config.get(site + ".Rewards.Messages.Player"));
 		assertEquals(List.of(Map.of("Name", "yes", "Value", true)), config.get(site + ".FutureOption.Entries"));
+		assertEquals("one\n# in the value\ntwo\n", config.get(site + ".FutureOption.Multiline"));
+		assertTrue(Files.readString(file).contains("# Comment belonging to Entries"));
 		assertNull(config.get(site + ".VoteDelayDailyHour"));
 		assertNull(config.get("VoteSites.Other.WaitUntilVoteDelayRewards"));
 		assertEquals(Map.of(), config.get("EverySiteReward"));
