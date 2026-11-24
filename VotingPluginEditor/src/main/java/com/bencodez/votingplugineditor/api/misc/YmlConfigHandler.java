@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -138,11 +140,7 @@ public abstract class YmlConfigHandler {
                     while (pathStack.size() > level) {
                         pathStack.remove(pathStack.size() - 1);
                     }
-                    if (pathStack.size() == level) {
-                        pathStack.add(key);
-                    } else {
-                        pathStack.set(level, key);
-                    }
+                    pathStack.add(key);
                     String fullPath = String.join(".", pathStack);
 
                     if (lastComment.length() > 0) {
@@ -184,13 +182,12 @@ public abstract class YmlConfigHandler {
     public void save() {
         DumperOptions opts = new DumperOptions();
         opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        opts.setPrettyFlow(true);
         opts.setIndent(2);
         Yaml yaml = new Yaml(opts);
 
         StringBuilder out = new StringBuilder();
         try {
-            for (Map.Entry<String,Object> e : configData.entrySet()) {
+            for (Map.Entry<?, ?> e : configData.entrySet()) {
                 writeYaml(out, yaml, e.getKey(), e.getValue(), 0, "");
             }
 
@@ -222,58 +219,28 @@ public abstract class YmlConfigHandler {
     @SuppressWarnings("unchecked")
     private void writeYaml(Appendable out,
                            Yaml yaml,
-                           String key,
+                           Object key,
                            Object value,
                            int indentLevel,
                            String parentPath) throws IOException {
         String indent = new String(new char[indentLevel]).replace("\0", "  ");
-        String thisPath = parentPath.isEmpty() ? key : parentPath + "." + key;
+        String thisPath = parentPath.isEmpty() ? String.valueOf(key) : parentPath + "." + key;
 
         if (commentMap.containsKey(thisPath)) {
             out.append(commentMap.get(thisPath));
         }
 
-        String formattedKey = quoteIfNeeded(key);
-
-        if (value instanceof Map) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (Map.Entry<String,Object> sub : ((Map<String,Object>)value).entrySet()) {
-                writeYaml(out, yaml, sub.getKey(), sub.getValue(), indentLevel+1, thisPath);
-            }
-        } else if (value instanceof List) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (Object item : (List<Object>)value) {
-                out.append(indent)
-                   .append("  - ")
-                   .append(convertValueToString(item))
-                   .append("\n");
-            }
-        } else if (value instanceof String[]) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (String item : (String[])value) {
-                out.append(indent)
-                   .append("  - ")
-                   .append(quoteIfNeeded(item))
-                   .append("\n");
+        if (value instanceof Map<?, ?> && !((Map<?, ?>) value).isEmpty()) {
+            // Let the emitter quote the key while keeping nested entries available for comments.
+            String header = yaml.dump(Collections.singletonMap(key, Collections.emptyMap()));
+            out.append(indent).append(header, 0, header.length() - " {}\n".length()).append("\n");
+            for (Map.Entry<?, ?> sub : ((Map<?, ?>) value).entrySet()) {
+                writeYaml(out, yaml, sub.getKey(), sub.getValue(), indentLevel + 1, thisPath);
             }
         } else {
-            out.append(indent)
-               .append(formattedKey)
-               .append(": ")
-               .append(convertValueToString(value))
-               .append("\n");
+            Object yamlValue = value instanceof String[] ? Arrays.asList((String[]) value) : value;
+            out.append(yaml.dump(Collections.singletonMap(key, yamlValue)).indent(indentLevel * 2));
         }
-    }
-
-    private String convertValueToString(Object value) {
-        if (value == null) return "null";
-        if (value instanceof String) return quoteIfNeeded((String)value);
-        return value.toString();
-    }
-
-    private String quoteIfNeeded(String v) {
-        if (v.matches("^[a-zA-Z0-9_-]+$")) return v;
-        return "'" + v.replace("'", "''") + "'";
     }
 
     public Object get(String path) {

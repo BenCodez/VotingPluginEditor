@@ -6,8 +6,10 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -16,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
@@ -61,7 +64,7 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		rewardsPanel.add(addRewardsButton("VoteCoolDownEndedReward", "Vote Cool Down Ended Reward"));
 
 		tabbedPane.addTab("Rewards", rewardsPanel);
-		tabbedPane.addTab("VoteParty", createVotePartyPanel());
+		tabbedPane.addTab("VoteParty", new JScrollPane(createVotePartyPanel()));
 		tabbedPane.addTab("Cumulative Rewards", createCumulativeRewardsPanel());
 		tabbedPane.addTab("Milestones", createMilestonesPanel());
 		tabbedPane.addTab("Vote Streak", createVoteStreakPanel());
@@ -285,17 +288,33 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		settingButtons.add(new BooleanSettingButton(votePartyPanel, "VoteParty.ResetExtraVotesMonthly", getConfigData(),
 				"Reset Extra Votes Monthly"));
 		settingButtons.add(new BooleanSettingButton(votePartyPanel, "VoteParty.CountFakeVotes", getConfigData(),
-				"Count Fake Votes"));
+				"Count Fake Votes", true));
 		settingButtons.add(new IntSettingButton(votePartyPanel, "VoteParty.UserVotesRequired", getConfigData(),
 				"User Votes Required", 0));
 		settingButtons.add(new BooleanSettingButton(votePartyPanel, "VoteParty.CountOfflineVotes", getConfigData(),
-				"Count Offline Votes"));
+				"Count Offline Votes", true));
 		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.Broadcast", getConfigData(), "Broadcast",
 				"&cReached the vote party amount!"));
-		settingButtons.add(new StringSettingButton(votePartyPanel, "VoteParty.VoteReminder.Broadcast", getConfigData(),
+		String reminder = "VoteParty.VoteReminder.";
+		Map<String, Object> reminderData = new HashMap<>();
+		for (String field : List.of("Broadcast", "AtVotes", "Commands")) {
+			Object value = get(reminder + field, get("VoteParty.VoteReminder" + field));
+			reminderData.put(field, value);
+		}
+		Map<String, Object> displayData = Map.of("VoteParty", Map.of("VoteReminder", reminderData));
+
+		settingButtons.add(new StringSettingButton(votePartyPanel, reminder + "Broadcast", displayData,
 				"Vote Reminder Broadcast", "%votesrequired% left to go, go vote!"));
-		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.VoteReminder.Votes", getConfigData(),
-				"Vote Reminder At Votes", ""));
+		settingButtons.add(new StringListSettingButton(votePartyPanel, reminder + "AtVotes", displayData,
+				"Vote Reminder Thresholds", "Whole numbers, one per line. Each is a number of votes remaining.") {
+			@Override
+			@SuppressWarnings("unchecked")
+			public Object getValue() {
+				return ((List<String>) super.getValue()).stream().map(Integer::valueOf).collect(Collectors.toList());
+			}
+		});
+		settingButtons.add(new StringListSettingButton(votePartyPanel, reminder + "Commands", displayData,
+				"Vote Reminder Commands", "Console commands to run when a reminder fires, one per line."));
 		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.GlobalCommands", getConfigData(),
 				"Global Commands", ""));
 		settingButtons.add(new StringListSettingButton(votePartyPanel, "VoteParty.GlobalRandomCommand", getConfigData(),
@@ -916,31 +935,35 @@ public class SpecialRewardsConfig extends YmlConfigHandler {
 		return voteStreakMonthPanel;
 	}
 
-	private void saveChanges() {
+	boolean applyChanges() {
 		Map<String, Object> changes = new HashMap<>();
 		for (SettingButton button : settingButtons) {
 			if (button.hasChanged()) {
 				changes.put(button.getKey(), button.getValue());
+			}
+		}
+		if (changes.isEmpty()) {
+			return false;
+		}
+		changes.forEach(this::set);
+		save();
+		for (SettingButton button : settingButtons) {
+			if (changes.containsKey(button.getKey())) {
 				button.updateValue();
 			}
-
 		}
+		return true;
+	}
 
-		// Notify & save changes
-		if (!changes.isEmpty()) {
-			try {
-				for (Entry<String, Object> change : changes.entrySet()) {
-					set(change.getKey(), change.getValue());
-
-				}
-				save();
-				JOptionPane.showMessageDialog(null, "Changes have been saved.");
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null, "Failed to save changes.");
-			}
-		} else {
-			JOptionPane.showMessageDialog(null, "No changes detected.");
+	private void saveChanges() {
+		try {
+			String message = applyChanges() ? "Changes have been saved." : "No changes detected.";
+			JOptionPane.showMessageDialog(null, message);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Enter whole numbers for numeric settings and vote reminder thresholds.");
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Failed to save changes.");
 		}
 	}
 }
