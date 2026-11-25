@@ -125,7 +125,7 @@ public class VoteSiteEditor {
 
 		advancedPanel.add(createRewardButton(voteSitesConfig, "CoolDownEndRewards", "Edit Cooldown End Rewards",
 				"Runs when the site's cooldown ends if PerSiteCoolDownEvents is enabled"));
-		advancedPanel.add(createRewardButton(voteSitesConfig, "WaitUntilVoteDelayRewards", "Edit Rejected Vote Rewards",
+		advancedPanel.add(createRewardButton(voteSitesConfig, "WaitUntilVoteDelayRewards", "Edit Rejected Vote Rewards (7.2+)",
 				"Runs when WaitUntilVoteDelay rejects a vote. Placeholders: %ServiceSite%, %SiteName%, %VoteDelay%, %VoteURL%"));
 		return advancedPanel;
 	}

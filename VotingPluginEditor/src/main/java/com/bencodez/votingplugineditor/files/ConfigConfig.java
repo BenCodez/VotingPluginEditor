@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
@@ -55,7 +56,8 @@ public class ConfigConfig extends YmlConfigHandler {
 		JTabbedPane tabbedPane = new JTabbedPane();
 
 		JPanel mainPanel = createMainEditorPanel();
-		tabbedPane.addTab("Main Settings", mainPanel);
+		tabbedPane.addTab("Main Settings", new JScrollPane(mainPanel));
+		tabbedPane.addTab("VotingPlugin 7.2+", createVersion72Panel());
 
 		JPanel voteRemindingPanel = createVoteRemindersPanel();
 		tabbedPane.addTab("Vote Reminders", voteRemindingPanel);
@@ -89,26 +91,11 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		panel.add(createDatabaseSettingsPanel());
 
-		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites"));
+		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites", true));
 		settingButtons.add(new StringSettingButton(panel, "BedrockPlayerPrefix", getConfigData(), "Bedrock Player Prefix", "."));
 		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode"));
 		settingButtons.add(new BooleanSettingButton(panel, "UseVoteGUIMainCommand", getConfigData(), "Use VoteGUI Main Command"));
 		settingButtons.add(new BooleanSettingButton(panel, "CreateBackups", getConfigData(), "Create Backups"));
-		settingButtons.add(new BooleanSettingButton(panel, "VoteCommandEnabled", getConfigData(),
-				"Enable Player Vote Command", true, "Registers the player vote command after a server restart"));
-		settingButtons.add(new StringSettingButton(panel, "VoteCommandName", getConfigData(),
-				"Player Vote Command Name", "vote",
-				"Restart required. Start with a letter or digit. Use up to 64 letters, digits, underscores or hyphens. "
-						+ "Reserved names fall back to vote.") {
-			@Override
-			public Object getValue() {
-				String name = (String) super.getValue();
-				if (!name.trim().toLowerCase(Locale.ROOT).matches("[a-z0-9][a-z0-9_-]{0,63}")) {
-					throw new IllegalArgumentException("Enter a valid player vote command name without a slash.");
-				}
-				return name;
-			}
-		});
 		settingButtons.add(new BooleanSettingButton(panel, "LoadCommandAliases", getConfigData(),
 				"Load Command Aliases", true, "Requires a server restart"));
 		settingButtons.add(new IntSettingButton(panel, "PointsOnVote", getConfigData(), "Points On Vote", 1));
@@ -128,8 +115,40 @@ public class ConfigConfig extends YmlConfigHandler {
 				"Use Month Date Totals As Primary Total"));
 		settingButtons.add(new BooleanSettingButton(panel, "AllowUnjoined", getConfigData(), "AllowUnjoined"));
 		settingButtons.add(
-				new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission"));
+				new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission", true));
 
+		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+		return panel;
+	}
+
+	JPanel createVersion72Panel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		panel.add(PanelUtils.createSectionLabel("Settings introduced in VotingPlugin 7.2"));
+		settingButtons.add(new BooleanSettingButton(panel, "VoteCommandEnabled", getConfigData(),
+				"Enable Player Vote Command", true, "Registers the player vote command after a server restart"));
+		settingButtons.add(new StringSettingButton(panel, "VoteCommandName", getConfigData(),
+				"Player Vote Command Name", "vote",
+				"Restart required. Start with a letter or digit. Use up to 64 letters, digits, underscores or hyphens. "
+						+ "Reserved names fall back to vote.") {
+			@Override
+			public Object getValue() {
+				String name = (String) super.getValue();
+				if (!name.trim().toLowerCase(Locale.ROOT).matches("[a-z0-9][a-z0-9_-]{0,63}")) {
+					throw new IllegalArgumentException("Enter a valid player vote command name without a slash.");
+				}
+				return name;
+			}
+		});
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Day", getConfigData(),
+				"Run Daily Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Week", getConfigData(),
+				"Run Weekly Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Month", getConfigData(),
+				"Run Monthly Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "HideTopVoterIfNotPlayedBefore", getConfigData(),
+				"Hide Top Voters Who Have Never Joined", false));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
 	}

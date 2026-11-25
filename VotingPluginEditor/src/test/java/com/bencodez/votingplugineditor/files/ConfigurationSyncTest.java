@@ -29,7 +29,13 @@ class ConfigurationSyncTest {
 		Files.writeString(file, legacy);
 		ConfigConfig config = new ConfigConfig(file.toString(), directory.toString(), null);
 
-		JPanel panel = config.createMainEditorPanel();
+		JPanel shared = config.createMainEditorPanel();
+		JPanel panel = config.createVersion72Panel();
+		assertFalse(components(shared, JCheckBox.class)
+				.anyMatch(box -> box.getText().equals("Enable Player Vote Command")));
+		assertTrue(components(shared, JCheckBox.class)
+				.filter(box -> box.getText().equals("Auto Create VoteSites")
+						|| box.getText().equals("Give Default Permission")).allMatch(JCheckBox::isSelected));
 		JCheckBox enabled = components(panel, JCheckBox.class)
 				.filter(box -> box.getText().equals("Enable Player Vote Command")).findFirst().orElseThrow();
 		JTextField label = components(panel, JTextField.class)
@@ -44,6 +50,10 @@ class ConfigurationSyncTest {
 		assertEquals(legacy, Files.readString(file));
 		assertNull(config.get("VoteCommandEnabled"));
 
+		JCheckBox daily = components(panel, JCheckBox.class)
+				.filter(box -> box.getText().equals("Run Daily Rollover Automatically")).findFirst().orElseThrow();
+		assertTrue(daily.isSelected());
+		daily.setSelected(false);
 		label.setText("123");
 		assertTrue(config.applyChanges());
 		config.load();
@@ -53,6 +63,10 @@ class ConfigurationSyncTest {
 		assertEquals(Map.of("Mode", "off", "Entries", List.of()), config.get("FutureOption"));
 		assertNull(config.get("LoadCommandAliases"));
 		assertNull(config.get("PointsOnVote"));
+		assertEquals(false, config.get("AutomaticTimeChanges.Day"));
+		assertNull(config.get("AutomaticTimeChanges.Week"));
+		assertNull(config.get("AutomaticTimeChanges.Month"));
+		assertNull(config.get("HideTopVoterIfNotPlayedBefore"));
 	}
 
 	@Test
