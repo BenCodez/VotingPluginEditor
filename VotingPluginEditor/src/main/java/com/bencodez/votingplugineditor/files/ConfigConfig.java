@@ -93,7 +93,7 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites", true));
 		settingButtons.add(new StringSettingButton(panel, "BedrockPlayerPrefix", getConfigData(), "Bedrock Player Prefix", "."));
-		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode"));
+		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode", true));
 		settingButtons.add(new BooleanSettingButton(panel, "UseVoteGUIMainCommand", getConfigData(), "Use VoteGUI Main Command"));
 		settingButtons.add(new BooleanSettingButton(panel, "CreateBackups", getConfigData(), "Create Backups"));
 		settingButtons.add(new BooleanSettingButton(panel, "LoadCommandAliases", getConfigData(),
