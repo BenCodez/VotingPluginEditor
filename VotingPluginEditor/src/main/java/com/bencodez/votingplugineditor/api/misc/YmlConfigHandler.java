@@ -9,14 +9,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.comments.CommentLine;
+import org.yaml.snakeyaml.comments.CommentType;
+import org.yaml.snakeyaml.nodes.MappingNode;
+import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.NodeTuple;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 
 import com.bencodez.votingplugineditor.api.sftp.SFTPConnection;
 import com.bencodez.votingplugineditor.api.sftp.SFTPSettings;
@@ -115,49 +123,40 @@ public abstract class YmlConfigHandler {
         return parseComments(raw.toString());
     }
 
-    /**
-     * Parses out comment blocks and stores them under full YAML paths.
-     * Returns the YAML text without standalone comment lines.
-     */
     private String parseComments(String rawText) {
-        StringBuilder yamlBody = new StringBuilder();
-        StringBuilder lastComment = new StringBuilder();
-        List<String> pathStack = new ArrayList<>();
+        LoaderOptions options = new LoaderOptions();
+        options.setProcessComments(true);
+        Node root = new Yaml(options).compose(new StringReader(rawText));
+        commentMap.clear();
+        collectComments(root, "", 0);
+        return rawText;
+    }
 
-        try (BufferedReader reader = new BufferedReader(new StringReader(rawText))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmed = line.trim();
-                if (trimmed.startsWith("#")) {
-                    lastComment.append(line).append(System.lineSeparator());
-                } else if (trimmed.contains(":")) {
-                    int indentSpaces = line.indexOf(trimmed);
-                    int level = indentSpaces / 2;
-                    String key = trimmed.split(":", 2)[0];
-
-                    while (pathStack.size() > level) {
-                        pathStack.remove(pathStack.size() - 1);
+    private void collectComments(Node node, String parentPath, int depth) {
+        if (!(node instanceof MappingNode) || node.isTwoStepsConstruction()) {
+            return;
+        }
+        for (NodeTuple entry : ((MappingNode) node).getValue()) {
+            Node key = entry.getKeyNode();
+            if (!(key instanceof ScalarNode)) {
+                continue;
+            }
+            String name = ((ScalarNode) key).getValue();
+            String path = parentPath.isEmpty() ? name : parentPath + "." + name;
+            List<CommentLine> comments = key.getBlockComments();
+            if (comments != null) {
+                StringBuilder block = new StringBuilder();
+                for (CommentLine comment : comments) {
+                    if (comment.getCommentType() == CommentType.BLOCK) {
+                        block.append("  ".repeat(depth)).append('#').append(comment.getValue()).append('\n');
                     }
-                    if (pathStack.size() == level) {
-                        pathStack.add(key);
-                    } else {
-                        pathStack.set(level, key);
-                    }
-                    String fullPath = String.join(".", pathStack);
-
-                    if (lastComment.length() > 0) {
-                        commentMap.put(fullPath, lastComment.toString());
-                        lastComment.setLength(0);
-                    }
-                    yamlBody.append(line).append(System.lineSeparator());
-                } else {
-                    yamlBody.append(line).append(System.lineSeparator());
+                }
+                if (block.length() > 0) {
+                    commentMap.put(path, block.toString());
                 }
             }
-        } catch (IOException e) {
-            // not expected with StringReader
+            collectComments(entry.getValueNode(), path, depth + 1);
         }
-        return yamlBody.toString();
     }
 
     @SuppressWarnings("unchecked")
@@ -184,13 +183,12 @@ public abstract class YmlConfigHandler {
     public void save() {
         DumperOptions opts = new DumperOptions();
         opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        opts.setPrettyFlow(true);
         opts.setIndent(2);
         Yaml yaml = new Yaml(opts);
 
         StringBuilder out = new StringBuilder();
         try {
-            for (Map.Entry<String,Object> e : configData.entrySet()) {
+            for (Map.Entry<?, ?> e : configData.entrySet()) {
                 writeYaml(out, yaml, e.getKey(), e.getValue(), 0, "");
             }
 
@@ -222,58 +220,27 @@ public abstract class YmlConfigHandler {
     @SuppressWarnings("unchecked")
     private void writeYaml(Appendable out,
                            Yaml yaml,
-                           String key,
+                           Object key,
                            Object value,
                            int indentLevel,
                            String parentPath) throws IOException {
-        String indent = new String(new char[indentLevel]).replace("\0", "  ");
-        String thisPath = parentPath.isEmpty() ? key : parentPath + "." + key;
+        String thisPath = parentPath.isEmpty() ? String.valueOf(key) : parentPath + "." + key;
 
         if (commentMap.containsKey(thisPath)) {
             out.append(commentMap.get(thisPath));
         }
 
-        String formattedKey = quoteIfNeeded(key);
-
-        if (value instanceof Map) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (Map.Entry<String,Object> sub : ((Map<String,Object>)value).entrySet()) {
-                writeYaml(out, yaml, sub.getKey(), sub.getValue(), indentLevel+1, thisPath);
-            }
-        } else if (value instanceof List) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (Object item : (List<Object>)value) {
-                out.append(indent)
-                   .append("  - ")
-                   .append(convertValueToString(item))
-                   .append("\n");
-            }
-        } else if (value instanceof String[]) {
-            out.append(indent).append(formattedKey).append(":\n");
-            for (String item : (String[])value) {
-                out.append(indent)
-                   .append("  - ")
-                   .append(quoteIfNeeded(item))
-                   .append("\n");
+        if (value instanceof Map<?, ?> && !((Map<?, ?>) value).isEmpty()) {
+            // Let the emitter quote the key while keeping nested entries available for comments.
+            String header = yaml.dump(Collections.singletonMap(key, Collections.emptyMap()));
+            out.append(header.substring(0, header.length() - " {}\n".length()).indent(indentLevel * 2));
+            for (Map.Entry<?, ?> sub : ((Map<?, ?>) value).entrySet()) {
+                writeYaml(out, yaml, sub.getKey(), sub.getValue(), indentLevel + 1, thisPath);
             }
         } else {
-            out.append(indent)
-               .append(formattedKey)
-               .append(": ")
-               .append(convertValueToString(value))
-               .append("\n");
+            Object yamlValue = value instanceof String[] ? Arrays.asList((String[]) value) : value;
+            out.append(yaml.dump(Collections.singletonMap(key, yamlValue)).indent(indentLevel * 2));
         }
-    }
-
-    private String convertValueToString(Object value) {
-        if (value == null) return "null";
-        if (value instanceof String) return quoteIfNeeded((String)value);
-        return value.toString();
-    }
-
-    private String quoteIfNeeded(String v) {
-        if (v.matches("^[a-zA-Z0-9_-]+$")) return v;
-        return "'" + v.replace("'", "''") + "'";
     }
 
     public Object get(String path) {

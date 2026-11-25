@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
@@ -54,7 +56,8 @@ public class ConfigConfig extends YmlConfigHandler {
 		JTabbedPane tabbedPane = new JTabbedPane();
 
 		JPanel mainPanel = createMainEditorPanel();
-		tabbedPane.addTab("Main Settings", mainPanel);
+		tabbedPane.addTab("Main Settings", new JScrollPane(mainPanel));
+		tabbedPane.addTab("VotingPlugin 7.2+", createVersion72Panel());
 
 		JPanel voteRemindingPanel = createVoteRemindersPanel();
 		tabbedPane.addTab("Vote Reminders", voteRemindingPanel);
@@ -75,7 +78,7 @@ public class ConfigConfig extends YmlConfigHandler {
 		frame.setVisible(true);
 	}
 
-	private JPanel createMainEditorPanel() {
+	JPanel createMainEditorPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -88,13 +91,14 @@ public class ConfigConfig extends YmlConfigHandler {
 
 		panel.add(createDatabaseSettingsPanel());
 
-		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites"));
+		settingButtons.add(new BooleanSettingButton(panel, "AutoCreateVoteSites", getConfigData(), "Auto Create VoteSites", true));
 		settingButtons.add(new StringSettingButton(panel, "BedrockPlayerPrefix", getConfigData(), "Bedrock Player Prefix", "."));
-		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode"));
+		settingButtons.add(new BooleanSettingButton(panel, "OnlineMode", getConfigData(), "Online Mode", true));
 		settingButtons.add(new BooleanSettingButton(panel, "UseVoteGUIMainCommand", getConfigData(), "Use VoteGUI Main Command"));
 		settingButtons.add(new BooleanSettingButton(panel, "CreateBackups", getConfigData(), "Create Backups"));
-		settingButtons.add(new BooleanSettingButton(panel, "LoadCommandAliases", getConfigData(), "Load Command Aliases"));
-		settingButtons.add(new IntSettingButton(panel, "PointsOnVote", getConfigData(), "Points On Vote", 0));
+		settingButtons.add(new BooleanSettingButton(panel, "LoadCommandAliases", getConfigData(),
+				"Load Command Aliases", true, "Requires a server restart"));
+		settingButtons.add(new IntSettingButton(panel, "PointsOnVote", getConfigData(), "Points On Vote", 1));
 		settingButtons.add(new BooleanSettingButton(panel, "CaseInsensitiveYMLFiles", getConfigData(), "Case Insensitive YML Files"));
 		settingButtons.add(new BooleanSettingButton(panel, "LimitMonthlyVotes", getConfigData(), "Limit Monthly Votes"));
 		settingButtons.add(new BooleanSettingButton(panel, "TreatVanishAsOffline", getConfigData(), "Treat Vanish As Offline"));
@@ -111,8 +115,40 @@ public class ConfigConfig extends YmlConfigHandler {
 				"Use Month Date Totals As Primary Total"));
 		settingButtons.add(new BooleanSettingButton(panel, "AllowUnjoined", getConfigData(), "AllowUnjoined"));
 		settingButtons.add(
-				new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission"));
+				new BooleanSettingButton(panel, "GiveDefaultPermission", getConfigData(), "Give Default Permission", true));
 
+		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
+		return panel;
+	}
+
+	JPanel createVersion72Panel() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		panel.add(PanelUtils.createSectionLabel("Settings introduced in VotingPlugin 7.2"));
+		settingButtons.add(new BooleanSettingButton(panel, "VoteCommandEnabled", getConfigData(),
+				"Enable Player Vote Command", true, "Registers the player vote command after a server restart"));
+		settingButtons.add(new StringSettingButton(panel, "VoteCommandName", getConfigData(),
+				"Player Vote Command Name", "vote",
+				"Restart required. Start with a letter or digit. Use up to 64 letters, digits, underscores or hyphens. "
+						+ "Reserved names fall back to vote.") {
+			@Override
+			public Object getValue() {
+				String name = (String) super.getValue();
+				if (!name.trim().toLowerCase(Locale.ROOT).matches("[a-z0-9][a-z0-9_-]{0,63}")) {
+					throw new IllegalArgumentException("Enter a valid player vote command name without a slash.");
+				}
+				return name;
+			}
+		});
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Day", getConfigData(),
+				"Run Daily Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Week", getConfigData(),
+				"Run Weekly Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "AutomaticTimeChanges.Month", getConfigData(),
+				"Run Monthly Rollover Automatically", true));
+		settingButtons.add(new BooleanSettingButton(panel, "HideTopVoterIfNotPlayedBefore", getConfigData(),
+				"Hide Top Voters Who Have Never Joined", false));
 		PanelUtils.adjustSettingButtonsMaxWidth(settingButtons);
 		return panel;
 	}
@@ -383,28 +419,38 @@ public class ConfigConfig extends YmlConfigHandler {
 		return rewardsEdit;
 	}
 
-	private void saveChanges() {
+	boolean applyChanges() {
 		Map<String, Object> changes = new HashMap<>();
 		for (SettingButton button : settingButtons) {
 			if (button.hasChanged()) {
 				changes.put(button.getKey(), button.getValue());
+			}
+		}
+		if (changes.isEmpty()) {
+			return false;
+		}
+		changes.forEach(this::set);
+		save();
+		for (SettingButton button : settingButtons) {
+			if (changes.containsKey(button.getKey())) {
 				button.updateValue();
 			}
 		}
+		return true;
+	}
 
-		if (!changes.isEmpty()) {
-			try {
-				for (Entry<String, Object> change : changes.entrySet()) {
-					set(change.getKey(), change.getValue());
-				}
-				save();
-				JOptionPane.showMessageDialog(null, "Changes have been saved.");
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(null, "Failed to save changes.");
-			}
-		} else {
-			JOptionPane.showMessageDialog(null, "No changes detected.");
+	private void saveChanges() {
+		try {
+			String message = applyChanges() ? "Changes have been saved." : "No changes detected.";
+			JOptionPane.showMessageDialog(null, message);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Enter a whole number for each numeric setting.");
+			return;
+		} catch (IllegalArgumentException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage());
+		} catch (RuntimeException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Failed to save changes.");
 		}
 	}
 }

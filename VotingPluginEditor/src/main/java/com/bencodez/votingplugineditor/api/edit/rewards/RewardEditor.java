@@ -1275,8 +1275,9 @@ public abstract class RewardEditor {
 
 		ArrayList<SettingButton> buttons = new ArrayList<SettingButton>();
 
-		buttons.add(new StringSettingButton(panel, "ActionBar.Message", configData, "Message", "&cRemember to vote"));
-		buttons.add(new IntSettingButton(panel, "ActionBar.Delay", configData, "Delay", 30));
+		buttons.add(new StringSettingButton(panel, "ActionBar.Message", configData, "Message", "",
+				"Leave empty to disable the action bar"));
+		buttons.add(new IntSettingButton(panel, "ActionBar.Delay", configData, "Duration (ticks)", 30));
 
 		PanelUtils.adjustSettingButtonsMaxWidth(buttons);
 

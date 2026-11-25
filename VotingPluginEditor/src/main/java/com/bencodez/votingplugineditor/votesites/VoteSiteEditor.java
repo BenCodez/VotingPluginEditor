@@ -36,11 +36,15 @@ public class VoteSiteEditor {
 	private final List<SettingButton> buttons;
 	private final String siteName;
 
+	private VoteSiteEditor(String siteName) {
+		this.siteName = siteName;
+		buttons = new ArrayList<>();
+	}
+
 	public VoteSiteEditor(VoteSitesConfig voteSitesConfig, String siteName) {
+		this(siteName);
 		Map<String, Object> siteData = (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName,
 				new HashMap<>());
-		buttons = new ArrayList<SettingButton>();
-		this.siteName = siteName;
 		SwingUtilities.invokeLater(() -> createAndShowGUI(siteName, siteData, voteSitesConfig));
 	}
 
@@ -75,55 +79,10 @@ public class VoteSiteEditor {
 		buttons.add(new StringSettingButton(panel, "Name", siteData, "Display Name", voteSiteName));
 		buttons.add(new StringSettingButton(panel, "ServiceSite", siteData, "Service Site:", "NOT SET"));
 		buttons.add(new StringSettingButton(panel, "VoteURL", siteData, "Voting URL:", "NOT SET"));
-		buttons.add(new StringSettingButton(panel, "VoteDelay", siteData, "Vote Delay:", "24h"));
+		buttons.add(new StringSettingButton(panel, "VoteDelay", siteData, "Vote Delay:", "24h",
+				"Use a duration such as 24h. Legacy numbers are hours."));
 
-		JButton rewardsEdit = new JButton("Edit Rewards");
-		rewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
-		rewardsEdit.setMaximumSize(new Dimension(Integer.MAX_VALUE, rewardsEdit.getPreferredSize().height));
-		rewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
-		rewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
-		rewardsEdit.addActionListener(event -> {
-			new RewardEditor(siteData.get("Rewards"), voteSiteName + ".Rewards") {
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					try {
-						for (Entry<String, Object> change : changes.entrySet()) {
-							voteSitesConfig.set("VoteSites." + voteSiteName + ".Rewards." + change.getKey(),
-									change.getValue());
-						}
-						voteSitesConfig.save();
-						JOptionPane.showMessageDialog(null, "Changes have been saved.");
-					} catch (Exception e) {
-						e.printStackTrace();
-						JOptionPane.showMessageDialog(null, "Failed to save changes.");
-					}
-				}
-
-				@Override
-				public void removePath(String path) {
-					voteSitesConfig.remove("VoteSites." + voteSiteName + ".Rewards." + path);
-					voteSitesConfig.save();
-				}
-
-				@Override
-				public Map<String, Object> updateData() {
-					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".Rewards",
-							new HashMap<>());
-				}
-
-				@Override
-				public String getVotingPluginDirectory() {
-					return voteSitesConfig.getPluginDirectory();
-				}
-
-				@Override
-				public SFTPSettings getSFTPSetting() {
-					return voteSitesConfig.getSFTPSettings();
-				}
-			};
-		});
-
-		panel.add(rewardsEdit);
+		panel.add(createRewardButton(voteSitesConfig, "Rewards", "Edit Rewards", null));
 		panel.add(Box.createVerticalStrut(10));
 		return panel;
 	}
@@ -137,8 +96,17 @@ public class VoteSiteEditor {
 				false, "Blocks votes until the configured VoteDelay has passed"));
 		buttons.add(new BooleanSettingButton(advancedPanel, "VoteDelayDaily", siteData, "Vote Delay Daily:", false,
 				"Reset the vote delay at a fixed time each day"));
-		buttons.add(new IntSettingButton(advancedPanel, "VoteDelayDailyHour", siteData, "Vote Delay Daily Hour:", 1,
-				"Server hour from 1-24 used when VoteDelayDaily is enabled"));
+		buttons.add(new IntSettingButton(advancedPanel, "VoteDelayDailyHour", siteData, "Daily Reset Hour", 0,
+				"Server hour from 0 (midnight) to 23 when daily reset is enabled") {
+			@Override
+			public Object getValue() {
+				int hour = (int) super.getValue();
+				if (hour < 0 || hour > 23) {
+					throw new IllegalArgumentException("Enter a daily reset hour from 0 to 23.");
+				}
+				return hour;
+			}
+		});
 		buttons.add(new BooleanSettingButton(advancedPanel, "ForceOffline", siteData, "Force Offline:", false,
 				"Run this site's rewards while the player is offline; this changes offline vote handling"));
 		buttons.add(new BooleanSettingButton(advancedPanel, "Hidden", siteData, "Hidden:", false,
@@ -155,63 +123,80 @@ public class VoteSiteEditor {
 		buttons.add(new StringSettingButton(advancedPanel, "DisplayItem.Name", siteData, "Display Item Name:", ""));
 		buttons.add(new StringListSettingButton(advancedPanel, "DisplayItem.Lore", siteData, "Display Item Lore", ""));
 
-		JButton coolDownEndRewardsEdit = new JButton("Edit CoolDownEndRewards");
-		coolDownEndRewardsEdit.setHorizontalAlignment(SwingConstants.CENTER);
-		coolDownEndRewardsEdit
-				.setMaximumSize(new Dimension(Integer.MAX_VALUE, coolDownEndRewardsEdit.getPreferredSize().height));
-		coolDownEndRewardsEdit.setAlignmentY(Component.CENTER_ALIGNMENT);
-		coolDownEndRewardsEdit.setAlignmentX(Component.CENTER_ALIGNMENT);
-		coolDownEndRewardsEdit.addActionListener(event -> {
-			new RewardEditor(siteData.get("CoolDownEndRewards"), siteName + ".CoolDownEndRewards") {
-				@Override
-				public void saveChanges(Map<String, Object> changes) {
-					try {
-						for (Entry<String, Object> change : changes.entrySet()) {
-							voteSitesConfig.set("VoteSites." + siteName + ".CoolDownEndRewards." + change.getKey(),
-									change.getValue());
-						}
-						voteSitesConfig.save();
-						JOptionPane.showMessageDialog(null, "Changes have been saved.");
-					} catch (Exception e) {
-						e.printStackTrace();
-						JOptionPane.showMessageDialog(null, "Failed to save changes.");
-					}
-				}
-
-				@Override
-				public void removePath(String path) {
-					voteSitesConfig.remove("VoteSites." + siteName + ".CoolDownEndRewards." + path);
-					voteSitesConfig.save();
-				}
-
-				@Override
-				public Map<String, Object> updateData() {
-					return (Map<String, Object>) voteSitesConfig.get("VoteSites." + siteName + ".CoolDownEndRewards",
-							new HashMap<>());
-				}
-
-				@Override
-				public String getVotingPluginDirectory() {
-					return voteSitesConfig.getPluginDirectory();
-				}
-
-				@Override
-				public SFTPSettings getSFTPSetting() {
-					return voteSitesConfig.getSFTPSettings();
-				}
-			};
-		});
-		advancedPanel.add(coolDownEndRewardsEdit);
+		advancedPanel.add(createRewardButton(voteSitesConfig, "CoolDownEndRewards", "Edit Cooldown End Rewards",
+				"Runs when the site's cooldown ends if PerSiteCoolDownEvents is enabled"));
+		advancedPanel.add(createRewardButton(voteSitesConfig, "WaitUntilVoteDelayRewards", "Edit Rejected Vote Rewards (7.2+)",
+				"Runs when WaitUntilVoteDelay rejects a vote. Placeholders: %ServiceSite%, %SiteName%, %VoteDelay%, %VoteURL%"));
 		return advancedPanel;
+	}
+
+	private JButton createRewardButton(VoteSitesConfig voteSitesConfig, String section, String label, String help) {
+		String path = "VoteSites." + siteName + "." + section;
+		JButton button = new JButton(label);
+		button.setToolTipText(help);
+		button.setHorizontalAlignment(SwingConstants.CENTER);
+		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, button.getPreferredSize().height));
+		button.setAlignmentY(Component.CENTER_ALIGNMENT);
+		button.setAlignmentX(Component.CENTER_ALIGNMENT);
+		button.addActionListener(event -> new RewardEditor(voteSitesConfig.get(path), siteName + "." + section) {
+			@Override
+			public void saveChanges(Map<String, Object> changes) {
+				try {
+					saveRewardChanges(voteSitesConfig, path, changes);
+					JOptionPane.showMessageDialog(null, "Changes have been saved.");
+				} catch (Exception e) {
+					e.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Failed to save changes.");
+				}
+			}
+
+			@Override
+			public void removePath(String key) {
+				voteSitesConfig.remove(path + "." + key);
+				voteSitesConfig.save();
+			}
+
+			@Override
+			public Map<String, Object> updateData() {
+				Object reward = voteSitesConfig.get(path);
+				return reward instanceof Map<?, ?> ? (Map<String, Object>) reward : new HashMap<>();
+			}
+
+			@Override
+			public String getVotingPluginDirectory() {
+				return voteSitesConfig.getPluginDirectory();
+			}
+
+			@Override
+			public SFTPSettings getSFTPSetting() {
+				return voteSitesConfig.getSFTPSettings();
+			}
+		});
+		return button;
+	}
+
+	static void saveRewardChanges(VoteSitesConfig config, String path, Map<String, Object> changes) {
+		for (Entry<String, Object> change : changes.entrySet()) {
+			String key = change.getKey();
+			config.set(key.isEmpty() ? path : path + "." + key, change.getValue());
+		}
+		config.save();
 	}
 
 	private void saveChanges(String voteSiteName, VoteSitesConfig voteSitesConfig) {
 		Map<String, Object> changes = new HashMap<>();
-		for (SettingButton button : buttons) {
-			if (button.hasChanged()) {
-				changes.put(button.getKey(), button.getValue());
-				button.updateValue();
+		try {
+			for (SettingButton button : buttons) {
+				if (button.hasChanged()) {
+					changes.put(button.getKey(), button.getValue());
+				}
 			}
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Enter a whole number for each numeric setting.");
+			return;
+		} catch (IllegalArgumentException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage());
+			return;
 		}
 
 		if (!changes.isEmpty()) {
@@ -220,6 +205,11 @@ public class VoteSiteEditor {
 					voteSitesConfig.set("VoteSites." + voteSiteName + "." + change.getKey(), change.getValue());
 				}
 				voteSitesConfig.save();
+				for (SettingButton button : buttons) {
+					if (changes.containsKey(button.getKey())) {
+						button.updateValue();
+					}
+				}
 				JOptionPane.showMessageDialog(null, "Changes have been saved.");
 			} catch (Exception e) {
 				e.printStackTrace();
